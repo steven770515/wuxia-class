@@ -154,12 +154,80 @@
         .avatar-img { height: 95%; width: auto; object-fit: contain; image-rendering: pixelated; filter: drop-shadow(0 0 5px rgba(0,0,0,0.5)); transition: filter 0.3s; z-index: 2; animation: breathe 3s infinite ease-in-out; }
         @keyframes breathe { 0%, 100% { filter: drop-shadow(0 0 5px rgba(0,0,0,0.5)) brightness(1); } 50% { filter: drop-shadow(0 0 16px rgba(255,215,0,0.55)) brightness(1.12); } }
 
-        /* 放大武器與寵物 */
-        .companion-img { position: absolute; width: auto; object-fit: contain; image-rendering: pixelated; z-index: 3; filter: drop-shadow(0 0 8px rgba(0,0,0,0.8)); }
-        .companion-pet { height: 100px; bottom: 0px; left: -12px; animation: float 3s ease-in-out infinite; }
-        .companion-sword { height: 130px; top: -5px; right: -18px; transform: rotate(-18deg); animation: floatSword 4s ease-in-out infinite; }
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
-        @keyframes floatSword { 0%, 100% { transform: translateY(0) rotate(-18deg); } 50% { transform: translateY(-10px) rotate(-24deg); } }
+        /* ── v4：守護靈（神獸浮在身後）── */
+        .gear-guardian { position: absolute; left: 50%; bottom: 4px; height: 172px; width: auto; image-rendering: pixelated; pointer-events: none; z-index: 1;
+            --gop: 0.55;
+            filter: drop-shadow(0 0 8px var(--glow)) drop-shadow(0 0 20px var(--glow));
+            animation: guardianBreath 4s ease-in-out infinite; }
+        .gear-guardian.star-2 { --gop: 0.7; height: 180px; }
+        .gear-guardian.star-3 { --gop: 0.85; height: 190px; filter: drop-shadow(0 0 10px var(--glow)) drop-shadow(0 0 28px var(--glow)) brightness(1.1); }
+        @keyframes guardianBreath {
+            0%, 100% { transform: translateX(-50%) translateY(0) scale(1); opacity: calc(var(--gop) - 0.15); }
+            50% { transform: translateX(-50%) translateY(-7px) scale(1.04); opacity: var(--gop); }
+        }
+        .guardian-halo { position: absolute; left: 50%; bottom: 30px; width: 170px; height: 170px; margin-left: -85px; border-radius: 50%; pointer-events: none; z-index: 0;
+            background: repeating-conic-gradient(from 0deg, var(--glow) 0deg 6deg, transparent 6deg 30deg);
+            -webkit-mask: radial-gradient(circle, transparent 52%, #000 54%, #000 62%, transparent 64%);
+                    mask: radial-gradient(circle, transparent 52%, #000 54%, #000 62%, transparent 64%);
+            opacity: 0.55; animation: haloSpin 14s linear infinite; }
+        @keyframes haloSpin { to { transform: rotate(360deg); } }
+
+        /* ── v4：飛劍護身（劍繞著角色轉，轉到後面會被身體擋住）── */
+        .sword-orbit { position: absolute; left: 50%; bottom: 42%; width: 0; height: 0; pointer-events: none;
+            animation: orbitZ 6s linear infinite; animation-delay: calc(0s - var(--lag, 0s)); }
+        .sword-orbit .ox { animation: orbitX 3s ease-in-out infinite alternate; animation-delay: calc(0s - var(--lag, 0s)); }
+        .sword-orbit .oy { animation: orbitY 3s ease-in-out infinite alternate; animation-delay: calc(-1.5s - var(--lag, 0s)); }
+        .sword-orbit .sword-img { position: absolute; height: 84px; width: auto; left: -28px; top: -42px; image-rendering: pixelated;
+            filter: drop-shadow(0 0 4px var(--glow)) drop-shadow(0 0 10px var(--glow));
+            animation: orbitTilt 3s ease-in-out infinite alternate; animation-delay: calc(0s - var(--lag, 0s)); }
+        .sword-orbit.ghost .sword-img { filter: blur(1px) drop-shadow(0 0 8px var(--glow)); }
+        @keyframes orbitZ { 0%, 49.9% { z-index: 4; } 50%, 100% { z-index: 1; } }
+        @keyframes orbitX { from { transform: translateX(-66px); } to { transform: translateX(66px); } }
+        @keyframes orbitY { from { transform: translateY(-52px) scale(0.7); } to { transform: translateY(30px) scale(1.12); } }
+        @keyframes orbitTilt { from { transform: rotate(-16deg); } to { transform: rotate(16deg); } }
+
+        /* ── v4：氣場（純外觀，換光暈顏色）── */
+        .avatar-area.has-aura { background: radial-gradient(ellipse at 50% 100%, rgba(var(--aura-rgb), 0.42) 0%, rgba(var(--aura-rgb), 0.12) 45%, rgba(0,0,0,0) 72%); }
+        .avatar-area.has-aura::after { content: ''; position: absolute; left: 50%; bottom: 4px; width: 150px; height: 26px; margin-left: -75px; border-radius: 50%; z-index: 0; pointer-events: none;
+            border: 2px solid rgba(var(--aura-rgb), 0.7); box-shadow: 0 0 14px rgba(var(--aura-rgb), 0.8), inset 0 0 10px rgba(var(--aura-rgb), 0.6);
+            animation: auraRing 2.6s ease-in-out infinite; }
+        .avatar-area.has-aura .avatar-img { animation: auraBreathe 3s infinite ease-in-out; }
+        @keyframes auraRing { 0%, 100% { transform: scale(0.92); opacity: 0.6; } 50% { transform: scale(1.06); opacity: 1; } }
+        @keyframes auraBreathe {
+            0%, 100% { filter: drop-shadow(0 0 6px rgba(var(--aura-rgb), 0.5)) brightness(1); }
+            50% { filter: drop-shadow(0 0 18px rgba(var(--aura-rgb), 0.95)) brightness(1.12); }
+        }
+        .aura-swatch { width: 64px; height: 64px; border-radius: 50%; background: radial-gradient(circle, rgba(var(--aura-rgb),0.95) 0%, rgba(var(--aura-rgb),0.35) 55%, rgba(0,0,0,0) 72%); box-shadow: 0 0 16px rgba(var(--aura-rgb),0.7); }
+        .inventory-item .aura-swatch { width: 44px; height: 44px; }
+
+        /* ── v4：戰鬥畫面的裝備 ── */
+        .battle-fig-wrap { position: relative; display: flex; justify-content: center; align-items: flex-end; }
+        .battle-fig-wrap > #battle-student-img { position: relative; z-index: 2; }
+        #fighter-student .gear-guardian { height: 240px; bottom: -4px; }
+        #fighter-student .guardian-halo { width: 230px; height: 230px; margin-left: -115px; bottom: 20px; }
+        #fighter-student .sword-orbit { transform: scale(1.1); }
+        #fighter-student .sword-orbit .sword-img { height: 84px; }
+        .guardian-enter { animation: guardianEnter 0.9s ease-out; }
+        @keyframes guardianEnter { 0% { opacity: 0; filter: brightness(3); transform: scale(0.6); } 100% { opacity: 1; filter: none; transform: scale(1); } }
+        .flying-sword { position: absolute; height: 110px; width: auto; image-rendering: pixelated; pointer-events: none; z-index: 20;
+            filter: drop-shadow(0 0 6px var(--glow)) drop-shadow(0 0 18px var(--glow)); }
+
+        /* ── v4：行囊裡的造型與神獸覺醒 ── */
+        .inv-section-label { color: var(--text-brown); font-size: 0.9rem; border-bottom: 1px solid #503010; padding-bottom: 4px; }
+        .outfit-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+        .outfit-opt { position: relative; background: rgba(0,0,0,0.35); border: 1px solid var(--border-color); border-radius: 4px; padding: 4px 2px; cursor: pointer; text-align: center; font-size: 0.72rem; color: var(--text-beige); font-family: inherit; }
+        .outfit-opt img { display: block; width: 100%; height: 78px; object-fit: contain; image-rendering: pixelated; }
+        .outfit-opt:hover { border-color: var(--text-gold); }
+        .outfit-opt.picked { border: 2px solid #48d46d; box-shadow: 0 0 7px #48d46d; }
+        .outfit-opt.locked { cursor: not-allowed; }
+        .outfit-opt.locked img { filter: brightness(0) opacity(0.55); }
+        .outfit-lock { position: absolute; top: 28px; left: 0; right: 0; color: #fff; font-size: 0.8rem; text-shadow: 0 0 4px #000; }
+        .outfit-auto { font-size: 0.78rem; color: #aaa; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+        .awaken-box { display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: rgba(0,0,0,0.3); border: 1px dashed rgba(140, 111, 79, 0.7); }
+        .awaken-box img { width: 44px; height: 44px; image-rendering: pixelated; }
+        .awaken-info { flex-grow: 1; font-size: 0.85rem; color: var(--text-beige); line-height: 1.5; }
+        .awaken-stars { color: var(--text-gold); letter-spacing: 2px; }
+        .item-stars { position: absolute; bottom: 0; right: 2px; color: var(--text-gold); font-size: 0.6rem; text-shadow: 0 0 3px #000; }
 
         .stat-row { display: flex; align-items: center; font-size: 0.9rem; gap: 5px; margin-bottom: 3px; }
         .stat-label { width: 45px; color: var(--text-brown); text-align: right; }
@@ -214,7 +282,7 @@
         #system-modal, #edit-student-modal, #batch-modal, #leaderboard-modal, #shop-modal, #sect-modal, #grant-modal, #settings-modal, #excel-modal { z-index: 2000; }
         #system-modal { z-index: 2500; }
         #loading-overlay { z-index: 9999; background: #1a1a1a; display: flex; }
-        #battle-stage { width: 820px; height: 520px; background-size: cover; position: relative; border: 4px solid #302010; box-shadow: 0 0 50px rgba(0,0,0,0.8); display: flex; flex-direction: column; justify-content: space-between; padding: 20px; transition: background-image 0.5s ease; }
+        #battle-stage { width: 820px; height: 520px; background-color: #1f1812; background-size: cover; position: relative; border: 4px solid #302010; box-shadow: 0 0 50px rgba(0,0,0,0.8); display: flex; flex-direction: column; justify-content: space-between; padding: 20px; transition: background-image 0.5s ease; }
         .battle-top { display: flex; justify-content: space-between; align-items: flex-end; height: 60%; padding: 0 50px; }
         .fighter { display: flex; flex-direction: column; align-items: center; position: relative; }
         .fighter img { height: 190px; image-rendering: pixelated; filter: drop-shadow(0 0 10px rgba(255,255,255,0.25)); transition: transform 0.2s; opacity: 1; }
@@ -298,7 +366,10 @@
         <div class="battle-top">
             <div class="fighter" id="fighter-student" style="opacity: 0;">
                 <div class="fighter-name" id="battle-student-name">弟子</div>
-                <img id="battle-student-img" src="" alt="Student">
+                <div class="battle-fig-wrap">
+                    <div id="battle-student-gear"></div>
+                    <img id="battle-student-img" src="" alt="Student">
+                </div>
             </div>
             <div class="fighter">
                 <div class="fighter-name" id="battle-monster-name">妖獸</div>
@@ -354,6 +425,7 @@
         </div>
         <div class="shop-tabs">
             <div class="shop-tab active" data-tab="gear" onclick="switchShopTab('gear')">神兵 / 靈獸</div>
+            <div class="shop-tab" data-tab="aura" onclick="switchShopTab('aura')">氣場</div>
             <div class="shop-tab" data-tab="reward" onclick="switchShopTab('reward')">校園特權卡</div>
             <div class="shop-tab" data-tab="title" onclick="switchShopTab('title')">宗門稱號</div>
         </div>
@@ -364,10 +436,14 @@
 
 <!-- 行囊模態框 -->
 <div id="inventory-modal">
-    <div class="pixel-border" style="background:var(--panel-bg); padding:20px; width:420px; max-height:80vh; display:flex; flex-direction:column; gap:15px;">
+    <div class="pixel-border" style="background:var(--panel-bg); padding:20px; width:440px; max-width:92vw; max-height:86vh; overflow-y:auto; display:flex; flex-direction:column; gap:12px;">
         <h3 id="inv-modal-title" style="margin:0; color:var(--text-gold); text-align:center;">弟子的行囊</h3>
-        <p style="text-align:center; color:#aaa; font-size:0.8rem; margin:0;">(裝備點擊穿戴；特權卡點擊使用)</p>
+        <p style="text-align:center; color:#aaa; font-size:0.8rem; margin:0;">(裝備、氣場點擊穿戴；特權卡點擊使用)</p>
         <div id="inv-container" class="inventory-grid"></div>
+        <div id="inv-awaken"></div>
+        <div class="inv-section-label">造型（升級解鎖，解鎖後可以自由換穿）</div>
+        <div id="inv-outfits" class="outfit-row"></div>
+        <div class="outfit-auto"><span id="inv-outfit-state"></span><button class="pixel-btn action-btn-small" onclick="setOutfit(currentInvStudentIndex, null)">跟著等級自動換</button></div>
         <div style="display:flex; justify-content:center; gap:10px;">
             <button class="pixel-btn gold" onclick="openShopForCurrent()">💰 前往萬寶閣</button>
             <button class="pixel-btn" onclick="document.getElementById('inventory-modal').style.display='none'">關閉</button>
@@ -685,8 +761,8 @@
         modal.style.display = 'flex';
     }
 
+    // battle_pixel_background.jpg 在作者伺服器上已經 404，抽到會變透明背景，拿掉
     const BATTLE_BG = [
-        BASE_URL + "images/backgrounds/battle_pixel_background.jpg",
         BASE_URL + "images/backgrounds/battle_forest_pixel.jpg",
         BASE_URL + "images/backgrounds/battle_cave_pixel.jpg",
         BASE_URL + "images/backgrounds/battle_volcano_pixel.jpg",
@@ -696,16 +772,38 @@
 
     // 武器與萬寶閣專屬寵物
     const ITEMS = {
-        sword_fire:  { id:'sword_fire',  name:"炎陽劍", type:'sword', src: BASE_URL+"images/swords/sword_fire_sprite.png",  icon: BASE_URL+"images/swords/sword_fire_icon.png",  cp:320, price:380, desc:"熾熱劍鋒，灼燒敵人。", stats:{atk:48,crit:6} },
-        sword_wood:  { id:'sword_wood',  name:"青木劍", type:'sword', src: BASE_URL+"images/swords/sword_wood_sprite.png",  icon: BASE_URL+"images/swords/sword_wood_icon.png",  cp:240, price:260, desc:"靈木淬鍊，穩定增益。", stats:{atk:30,def:10} },
-        sword_gold:  { id:'sword_gold',  name:"銳金劍", type:'sword', src: BASE_URL+"images/swords/sword_gold_sprite.png",  icon: BASE_URL+"images/swords/sword_gold_icon.png",  cp:300, price:320, desc:"破甲利器，暴擊加成。", stats:{atk:46,crit:8} },
-        sword_ice:   { id:'sword_ice',   name:"冰晶劍", type:'sword', src: BASE_URL+"images/swords/sword_ice_sprite.png",   icon: BASE_URL+"images/swords/sword_ice_icon.png",   cp:260, price:300, desc:"寒霜封鋒，穩定防禦。", stats:{atk:34,def:8} },
-        sword_light: { id:'sword_light', name:"晨曦劍", type:'sword', src: BASE_URL+"images/swords/sword_light_sprite.png", icon: BASE_URL+"images/swords/sword_light_icon.png", cp:380, price:420, desc:"曙光加持，超高爆擊。", stats:{atk:55,crit:12} },
-        pet_kunpeng: { id:'pet_kunpeng', name:"神獸鯤鵬", type:'pet',  src: BASE_URL+"images/pets/kunpeng_sprite.gif", icon: BASE_URL+"images/pets/kunpeng_icon.png", cp:2500, price:3000, desc:"振翅九天，速度與氣勢兼備。" },
-        pet_zhuque:  { id:'pet_zhuque',  name:"神獸朱雀", type:'pet',  src: BASE_URL+"images/pets/zhuque_sprite.gif",  icon: BASE_URL+"images/pets/zhuque_icon.png",  cp:2500, price:3000, desc:"炎羽護主，增強爆發。" },
-        pet_qinglong:{ id:'pet_qinglong',name:"神獸青龍", type:'pet',  src: BASE_URL+"images/pets/qinglong_sprite.gif", icon: BASE_URL+"images/pets/qinglong_icon.png", cp:2500, price:3000, desc:"龍威加持，全面提升戰力。" },
-        pet_whelp:   { id:'pet_whelp',   name:"幽冥幼龍", type:'pet',  src: BASE_URL+"images/pets/pet_nether_whelp_sprite.gif", icon: BASE_URL+"images/pets/pet_nether_whelp_icon.png", cp:3000, price:3600, desc:"冥炎纏繞，屬性全面提升。" }
+        sword_fire:  { id:'sword_fire', glow:'#ff7a2a',  name:"炎陽劍", type:'sword', src: BASE_URL+"images/swords/sword_fire_sprite.png",  icon: BASE_URL+"images/swords/sword_fire_icon.png",  cp:320, price:380, desc:"熾熱劍鋒，灼燒敵人。", stats:{atk:48,crit:6} },
+        sword_wood:  { id:'sword_wood', glow:'#7dd87d',  name:"青木劍", type:'sword', src: BASE_URL+"images/swords/sword_wood_sprite.png",  icon: BASE_URL+"images/swords/sword_wood_icon.png",  cp:240, price:260, desc:"靈木淬鍊，穩定增益。", stats:{atk:30,def:10} },
+        sword_gold:  { id:'sword_gold', glow:'#ffd700',  name:"銳金劍", type:'sword', src: BASE_URL+"images/swords/sword_gold_sprite.png",  icon: BASE_URL+"images/swords/sword_gold_icon.png",  cp:300, price:320, desc:"破甲利器，暴擊加成。", stats:{atk:46,crit:8} },
+        sword_ice:   { id:'sword_ice', glow:'#8fe3ff',   name:"冰晶劍", type:'sword', src: BASE_URL+"images/swords/sword_ice_sprite.png",   icon: BASE_URL+"images/swords/sword_ice_icon.png",   cp:260, price:300, desc:"寒霜封鋒，穩定防禦。", stats:{atk:34,def:8} },
+        sword_light: { id:'sword_light', glow:'#fff3a0', name:"晨曦劍", type:'sword', src: BASE_URL+"images/swords/sword_light_sprite.png", icon: BASE_URL+"images/swords/sword_light_icon.png", cp:380, price:420, desc:"曙光加持，超高爆擊。", stats:{atk:55,crit:12} },
+        pet_kunpeng: { id:'pet_kunpeng', glow:'#6fd6e8', name:"神獸鯤鵬", type:'pet',  src: BASE_URL+"images/pets/kunpeng_sprite.gif", icon: BASE_URL+"images/pets/kunpeng_icon.png", cp:2500, price:3000, desc:"振翅九天，速度與氣勢兼備。" },
+        pet_zhuque:  { id:'pet_zhuque', glow:'#ff6a3d',  name:"神獸朱雀", type:'pet',  src: BASE_URL+"images/pets/zhuque_sprite.gif",  icon: BASE_URL+"images/pets/zhuque_icon.png",  cp:2500, price:3000, desc:"炎羽護主，增強爆發。" },
+        pet_qinglong:{ id:'pet_qinglong', glow:'#3fd1a0',name:"神獸青龍", type:'pet',  src: BASE_URL+"images/pets/qinglong_sprite.gif", icon: BASE_URL+"images/pets/qinglong_icon.png", cp:2500, price:3000, desc:"龍威加持，全面提升戰力。" },
+        pet_whelp:   { id:'pet_whelp', glow:'#b36bff',   name:"幽冥幼龍", type:'pet',  src: BASE_URL+"images/pets/pet_nether_whelp_sprite.gif", icon: BASE_URL+"images/pets/pet_nether_whelp_icon.png", cp:3000, price:3600, desc:"冥炎纏繞，屬性全面提升。" }
     };
+
+    // v4：氣場（純外觀，不加戰力；原本想做衣服換色，但濾鏡會連臉一起染，改成換光暈顏色）
+    const AURAS = {
+        aura_crimson: { id:'aura_crimson', name:'赤霞氣場', type:'aura', rgb:'255,90,74',   price:600,  desc:'身旁泛起赤紅霞光。' },
+        aura_jade:    { id:'aura_jade',    name:'碧落氣場', type:'aura', rgb:'63,209,160',  price:600,  desc:'青碧靈氣環繞周身。' },
+        aura_frost:   { id:'aura_frost',   name:'寒月氣場', type:'aura', rgb:'150,225,255', price:900,  desc:'月華如霜，清冷出塵。' },
+        aura_thunder: { id:'aura_thunder', name:'紫電氣場', type:'aura', rgb:'180,110,255', price:900,  desc:'紫電縈繞，氣勢逼人。' },
+        aura_gold:    { id:'aura_gold',    name:'金光氣場', type:'aura', rgb:'255,215,0',   price:1200, desc:'金光護體，一代宗師風範。' }
+    };
+
+    // v4：造型（原版 4 階角色圖，升到該等級解鎖，之後可自由換穿）
+    const OUTFITS = [
+        { name:'初入江湖', level:1 },
+        { name:'行走江湖', level:25 },
+        { name:'名動一方', level:50 },
+        { name:'一代宗師', level:75 }
+    ];
+
+    // v4：神獸覺醒（花妖丹升星，守護靈變亮、加戰力；3 星多一圈光環）
+    const AWAKEN_MAX = 3;
+    const AWAKEN_COST = { 2: 2000, 3: 4000 };
+    const AWAKEN_CP_PER_STAR = 600;
 
     // 稱號系統
     const TITLES = {
@@ -810,7 +908,7 @@
     };
 
     function normalizeStudent(s) {
-        const base = { id: Date.now(), name: '弟子', gender: 'male', exp: 0, coins: 0, title: "", inventory: [], equipped: {}, sectId: null };
+        const base = { id: Date.now(), name: '弟子', gender: 'male', exp: 0, coins: 0, title: "", inventory: [], equipped: {}, sectId: null, outfit: null, petStars: {} };
         if (typeof s.points !== 'undefined' && typeof s.coins === 'undefined') base.coins = s.points; // 兼容舊版妖丹欄位
         return Object.assign(base, s || {});
     }
@@ -823,7 +921,7 @@
         const lvl = calculateLevel(student.exp);
         let cp = (lvl * 100) + Math.floor(student.exp * 0.1);
         if (student.equipped) {
-            if (student.equipped.pet) { const item = getItemData(student.equipped.pet); if(item) cp += (item.cp || 300); }
+            if (student.equipped.pet) { const item = getItemData(student.equipped.pet); if(item) cp += (item.cp || 300) + (petStars(student, student.equipped.pet) - 1) * AWAKEN_CP_PER_STAR; }
             if (student.equipped.sword) { const item = getItemData(student.equipped.sword); if(item) cp += (item.cp || 500); }
         }
         if (student.title && TITLES[student.title]) cp += TITLES[student.title].bonus?.cp || 0;
@@ -832,6 +930,7 @@
 
     function getItemData(itemId) {
         if (ITEMS[itemId]) return ITEMS[itemId];
+        if (AURAS[itemId]) return AURAS[itemId];
         const real = REAL_REWARDS.find(r => itemId.startsWith(r.id));
         if (real) return real;
         if (itemId.startsWith("tamed_")) { // 舊版戰寵，已不再掉落
@@ -849,9 +948,54 @@
         const range = nextLevelExp - prevLevelExp;
         const progress = s.exp - prevLevelExp;
         const pct = Math.min(100, Math.max(0, (progress / range) * 100));
-        let artIndex = 0; if (currentLevel < 25) artIndex = 0; else if (currentLevel < 50) artIndex = 1; else if (currentLevel < 75) artIndex = 2; else artIndex = 3;
+        const unlocked = unlockedOutfitTier(currentLevel);
+        // 選了已解鎖的造型就穿它；等級被扣到沒解鎖時自動退回跟著等級
+        const artIndex = (Number.isInteger(s.outfit) && s.outfit >= 0 && s.outfit <= unlocked) ? s.outfit : unlocked;
         const gender = s.gender || 'male';
-        return { level: currentLevel, avatar: getAvatarPath(PLAYER_ARTS[artIndex], gender), battleAvatar: getAvatarPath(PLAYER_BATTLE_ARTS[artIndex], gender), expText: `${s.exp} / ${nextLevelExp}`, pct };
+        return { level: currentLevel, avatar: getAvatarPath(PLAYER_ARTS[artIndex], gender), battleAvatar: getAvatarPath(PLAYER_BATTLE_ARTS[artIndex], gender), expText: `${s.exp} / ${nextLevelExp}`, pct, artIndex, unlocked };
+    }
+
+    function unlockedOutfitTier(level) {
+        let tier = 0;
+        OUTFITS.forEach((o, i) => { if (level >= o.level) tier = i; });
+        return tier;
+    }
+
+    function petStars(s, petId) {
+        const n = s && s.petStars ? Number(s.petStars[petId]) : 1;
+        return (Number.isInteger(n) && n >= 1 && n <= AWAKEN_MAX) ? n : 1;
+    }
+
+    // 放進 innerHTML 的文字一律先跳脫，避免名字裡的符號被當成程式碼
+    function escHtml(v) {
+        return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+    }
+
+    // 守護靈＋飛劍的圖層（卡片和戰鬥畫面共用）
+    function gearLayersHtml(s) {
+        let html = '';
+        const eq = s.equipped || {};
+        const pet = eq.pet ? getItemData(eq.pet) : null;
+        if (pet) {
+            const stars = petStars(s, eq.pet);
+            const glow = pet.glow || '#ffd700';
+            if (stars >= 3) html += `<div class="guardian-halo" style="--glow:${glow}"></div>`;
+            html += `<img class="gear-guardian star-${stars}" src="${pet.src || pet.icon}" style="--glow:${glow}" alt="" onerror="this.style.display='none'">`;
+        }
+        const sword = eq.sword ? getItemData(eq.sword) : null;
+        if (sword && sword.src) {
+            // 後兩把是殘影，做出劍光拖尾
+            [[0.24, 0.16], [0.12, 0.35], [0, 1]].forEach(([lag, op]) => {
+                html += `<div class="sword-orbit${lag ? ' ghost' : ''}" style="--lag:${lag}s; --glow:${sword.glow || '#ffd700'}; opacity:${op}">`
+                    + `<div class="ox"><div class="oy"><img class="sword-img" src="${sword.src}" alt=""></div></div></div>`;
+            });
+        }
+        return html;
+    }
+
+    function auraOf(s) {
+        const id = s.equipped && s.equipped.aura;
+        return id && AURAS[id] ? AURAS[id] : null;
     }
 
     function updateExp(index, amount) {
@@ -932,7 +1076,7 @@
             row.innerHTML = `
                 <div class="rank-num">${i+1}</div>
                 <img class="lb-avatar" src="${info.avatar}">
-                <div class="lb-name">${s.name} ${s.title ? `<span class="title-badge">${titleName(s.title)}</span>` : ''} ${sectBadgeHtml(s)} <span style="font-size:0.8em; color:#aaa;">Lv.${info.level}</span></div>
+                <div class="lb-name">${escHtml(s.name)} ${s.title ? `<span class="title-badge">${escHtml(titleName(s.title))}</span>` : ''} ${sectBadgeHtml(s)} <span style="font-size:0.8em; color:#aaa;">Lv.${info.level}</span></div>
                 <div class="lb-cp">${cp}</div>`;
             container.appendChild(row);
         });
@@ -963,7 +1107,7 @@
             row.innerHTML = `
                 <div class="rank-num">${i+1}</div>
                 <div style="width:40px; margin-right:10px; text-align:center; font-size:1.8rem;">${r.sect.emblem}</div>
-                <div class="lb-name" style="color:${r.sect.color}">${r.sect.name}
+                <div class="lb-name" style="color:${escHtml(r.sect.color)}">${escHtml(r.sect.name)}
                     <span style="display:block; font-size:0.7em; color:#aaa;">${r.count} 人　總戰力 ${r.cp}　平均 ${r.avgCp}　妖丹 ${r.coins}</span>
                 </div>
                 <div class="lb-cp">${value}</div>`;
@@ -1003,6 +1147,7 @@
         container.innerHTML = '';
         let itemsToShow = [];
         if (shopTab === 'gear') itemsToShow = Object.values(ITEMS);
+        else if (shopTab === 'aura') itemsToShow = Object.values(AURAS);
         else if (shopTab === 'reward') itemsToShow = REAL_REWARDS;
         else itemsToShow = Object.values(TITLES).map(t => ({...t, type:'title', price: 0}));
 
@@ -1010,6 +1155,12 @@
             const card = document.createElement('div');
             const cls = item.type === 'pet' ? 'pet' : (item.type === 'consumable' ? 'reward' : '');
             card.className = `shop-card ${cls}`;
+            const imgHtml = item.type === 'aura'
+                ? `<div class="aura-swatch" style="--aura-rgb:${item.rgb}"></div>`
+                : `<img src="${item.icon || item.src || BASE_URL+'images/ui/icon_shop_pixel.png'}">`;
+            const extraHint = item.type === 'aura' ? '<div style="color:#80ffea; font-size:0.78rem;">純外觀，不加戰力</div>'
+                : (item.type === 'pet' ? '<div style="color:#80ffea; font-size:0.78rem;">裝備後化為守護靈，可再覺醒升星</div>'
+                : (item.type === 'sword' ? '<div style="color:#80ffea; font-size:0.78rem;">裝備後化為飛劍繞身</div>' : ''));
             const priceHtml = item.type === 'title' ? '<div class="item-price" style="color:#80ffea;">師尊可直接授予</div>' : `<div class="item-price">💰 ${item.price}</div>`;
             const actionBtn = !isTeacherMode
                 ? `<div style="color:#888; font-size:0.78rem; padding:5px 0;">購買需師尊操作</div>`
@@ -1017,9 +1168,10 @@
                     ? `<button class="pixel-btn info action-btn-small" onclick="grantTitleFromShop('${item.id}')">授予</button>`
                     : `<button class="pixel-btn success action-btn-small" onclick="buyItem('${item.id}')">購買</button>`);
             card.innerHTML = `
-                <img src="${item.icon || item.src || BASE_URL+'images/ui/icon_shop_pixel.png'}">
+                ${imgHtml}
                 <h4>${item.name}</h4>
                 <p>${item.desc || ''}</p>
+                ${extraHint}
                 ${item.bonus?.cp ? `<div class="cp-bonus">戰力 +${item.bonus.cp}</div>` : (item.cp ? `<div class="cp-bonus">戰力 +${item.cp}</div>` : '')}
                 ${priceHtml}
                 ${actionBtn}`;
@@ -1032,21 +1184,34 @@
         const s = students[currentInvStudentIndex];
         const itemData = getItemData(itemId);
         if (!itemData) { showNotify("商品不存在"); return; }
+        if (!s) { showNotify("請先選擇購買人"); return; }
         const price = itemData.price || 0;
-        if ((s.coins || 0) < price) { showNotify("妖丹不足，先去歷練賺取！"); return; }
-        playSfx(sfxGetItem);
-        s.coins = (s.coins || 0) - price;
-        if (!s.inventory) s.inventory = [];
         const isConsumable = itemData.type === 'consumable';
-        if (isConsumable) {
-            const uid = `${itemId}_${Date.now()}`;
-            s.inventory.push(uid);
-            showNotify("購買成功！已放入行囊，請向老師出示使用。");
-        } else {
-            if (s.inventory.includes(itemId)) { showNotify("已擁有此裝備，購買取消。"); s.coins += price; }
-            else { s.inventory.push(itemId); showNotify("購買成功！戰力大增！"); }
-        }
-        saveData(); updateShopBalance(); renderGrid();
+        if (!s.inventory) s.inventory = [];
+        if (!isConsumable && s.inventory.includes(itemId)) { showNotify(`${s.name} 已經有${itemData.name}了`); return; }
+        if ((s.coins || 0) < price) { showNotify(`${s.name} 的妖丹不足（有 ${s.coins || 0}，要 ${price}）`); return; }
+        // 上課手忙腳亂容易選錯人，買之前把名字和價錢講清楚
+        showCustomModal({
+            title: '確認購買',
+            msg: `幫「${s.name}」花 ${price} 妖丹購買【${itemData.name}】？\n（剩下 ${(s.coins || 0) - price} 妖丹，買錯可以按復原）`,
+            showCancel: true,
+            onConfirm: () => {
+                pushUndo(`${s.name} 購買 ${itemData.name}`);
+                playSfx(sfxGetItem);
+                s.coins = (s.coins || 0) - price;
+                if (isConsumable) {
+                    s.inventory.push(`${itemId}_${Date.now()}`);
+                    showNotify("購買成功！已放入行囊，請向老師出示使用。");
+                } else {
+                    s.inventory.push(itemId);
+                    if (!s.equipped) s.equipped = {};
+                    // 該欄位還空著就直接穿上，買完馬上看得到效果
+                    if (['sword', 'pet', 'aura'].includes(itemData.type) && !s.equipped[itemData.type]) s.equipped[itemData.type] = itemId;
+                    showNotify(itemData.type === 'aura' ? `${s.name} 換上了${itemData.name}！` : `購買成功！${s.name} 戰力大增！`);
+                }
+                saveQuiet(); openShopModal(); renderGrid();
+            }
+        });
     }
 
     function grantTitleFromShop(titleId) {
@@ -1054,6 +1219,8 @@
         const t = TITLES[titleId];
         if (!t) { showNotify("稱號不存在"); return; }
         const s = students[currentInvStudentIndex];
+        if (!s) return;
+        pushUndo(`${s.name} 授予稱號 ${t.name}`);
         s.title = titleId;
         saveData(); renderGrid(); showNotify(`${s.name} 獲得稱號：${t.name}`);
     }
@@ -1070,15 +1237,19 @@
             s.inventory.forEach(itemId => {
                 const itemData = getItemData(itemId);
                 if (itemData) {
-                    const isEquipped = (s.equipped && (s.equipped.pet === itemId || s.equipped.sword === itemId));
+                    const eq = s.equipped || {};
+                    const isEquipped = (eq.pet === itemId || eq.sword === itemId || eq.aura === itemId);
                     const isConsumable = itemData.type === 'consumable';
+                    const stars = itemData.type === 'pet' ? petStars(s, itemId) : 0;
+                    const cpText = itemData.cp ? itemData.cp + (stars > 1 ? (stars - 1) * AWAKEN_CP_PER_STAR : 0) : 0;
                     const div = document.createElement('div');
                     div.className = `inventory-item ${isEquipped ? 'equipped' : ''}`;
                     div.innerHTML = `
-                        <img src="${itemData.icon || itemData.src}">
+                        ${itemData.type === 'aura' ? `<div class="aura-swatch" style="--aura-rgb:${itemData.rgb}"></div>` : `<img src="${itemData.icon || itemData.src}">`}
+                        ${stars > 1 ? `<span class="item-stars">${'★'.repeat(stars)}</span>` : ''}
                         <div class="item-tooltip">
                             <b>${itemData.name}</b><br>
-                            ${itemData.cp ? `<span class="cp-bonus">戰力 +${itemData.cp}</span><br>` : ''}
+                            ${cpText ? `<span class="cp-bonus">戰力 +${cpText}</span><br>` : ''}
                             <span style="font-size:0.8em; color:#ddd;">${itemData.desc || (isConsumable ? '特權卡' : '點擊裝備')}</span>
                         </div>`;
                     if (isConsumable) div.onclick = () => useRealReward(index, itemId);
@@ -1087,15 +1258,92 @@
                 }
             });
         }
+        renderAwakenBox(index);
+        renderOutfitPicker(index);
         modal.style.display = 'flex';
     }
 
     function toggleEquip(studentIndex, itemId, type) {
         const s = students[studentIndex];
         if (!s.equipped) s.equipped = {};
-        if (type === 'pet') s.equipped.pet = (s.equipped.pet === itemId) ? null : itemId;
-        else if (type === 'sword') s.equipped.sword = (s.equipped.sword === itemId) ? null : itemId;
-        saveData(); renderGrid(); openInventory(studentIndex);
+        if (['pet', 'sword', 'aura'].includes(type)) s.equipped[type] = (s.equipped[type] === itemId) ? null : itemId;
+        saveQuiet(); renderGrid(); openInventory(studentIndex);
+    }
+
+    // 造型：解鎖的造型任選，null 代表跟著等級自動換（原版行為）
+    function renderOutfitPicker(index) {
+        const s = students[index];
+        const info = getStudentInfo(s);
+        const wrap = document.getElementById('inv-outfits');
+        wrap.innerHTML = '';
+        OUTFITS.forEach((o, tier) => {
+            const locked = tier > info.unlocked;
+            const btn = document.createElement('button');
+            btn.className = 'outfit-opt' + (locked ? ' locked' : '') + (!locked && tier === info.artIndex ? ' picked' : '');
+            btn.innerHTML = `<img src="${getAvatarPath(PLAYER_ARTS[tier], s.gender || 'male')}" alt="">`
+                + (locked ? `<span class="outfit-lock">🔒 Lv.${o.level}</span>` : '')
+                + `<span>${o.name}</span>`;
+            btn.onclick = () => locked ? showNotify(`升到 Lv.${o.level} 才能穿「${o.name}」`) : setOutfit(index, tier);
+            wrap.appendChild(btn);
+        });
+        document.getElementById('inv-outfit-state').innerText = Number.isInteger(s.outfit) && s.outfit <= info.unlocked
+            ? `目前穿：${OUTFITS[info.artIndex].name}（自選）`
+            : `目前穿：${OUTFITS[info.artIndex].name}（跟著等級）`;
+    }
+
+    function setOutfit(index, tier) {
+        const s = students[index];
+        if (!s) return;
+        playSfx(sfxClick);
+        s.outfit = (tier === null) ? null : tier;
+        saveQuiet(); renderGrid(); openInventory(index);
+    }
+
+    // 神獸覺醒：只針對目前裝備中的神獸
+    function renderAwakenBox(index) {
+        const s = students[index];
+        const box = document.getElementById('inv-awaken');
+        const petId = s.equipped && s.equipped.pet;
+        const pet = petId ? getItemData(petId) : null;
+        if (!pet) { box.innerHTML = ''; return; }
+        const stars = petStars(s, petId);
+        const next = stars + 1;
+        const starText = '★'.repeat(stars) + '☆'.repeat(AWAKEN_MAX - stars);
+        const info = stars >= AWAKEN_MAX
+            ? '已覺醒至最高星，守護靈光環全開'
+            : `覺醒到 ${next} 星：${AWAKEN_COST[next]} 妖丹，戰力再 +${AWAKEN_CP_PER_STAR}` + (next === AWAKEN_MAX ? '，多一圈光環' : '');
+        box.innerHTML = `<div class="awaken-box">
+                <img src="${pet.icon || pet.src}" alt="">
+                <div class="awaken-info">${pet.name}　<span class="awaken-stars">${starText}</span><br><span style="color:#aaa;">${info}</span></div>
+                ${stars < AWAKEN_MAX ? `<button class="pixel-btn gold action-btn-small teacher-only" onclick="awakenPet(${index})">覺醒</button>` : ''}
+            </div>`;
+        updateTeacherUI();
+    }
+
+    function awakenPet(index) {
+        if (!requireTeacher('神獸覺醒')) return;
+        const s = students[index];
+        const petId = s && s.equipped && s.equipped.pet;
+        const pet = petId ? getItemData(petId) : null;
+        if (!pet) return;
+        const next = petStars(s, petId) + 1;
+        if (next > AWAKEN_MAX) return;
+        const cost = AWAKEN_COST[next];
+        if ((s.coins || 0) < cost) { showNotify(`${s.name} 的妖丹不足（有 ${s.coins || 0}，要 ${cost}）`); return; }
+        showCustomModal({
+            title: '神獸覺醒',
+            msg: `幫「${s.name}」花 ${cost} 妖丹，讓${pet.name}覺醒到 ${next} 星？`,
+            showCancel: true,
+            onConfirm: () => {
+                pushUndo(`${s.name} 的${pet.name}覺醒 ${next} 星`);
+                s.coins = (s.coins || 0) - cost;
+                if (!s.petStars || typeof s.petStars !== 'object') s.petStars = {};
+                s.petStars[petId] = next;
+                playSfx(sfxLevelUp); showLevelUpEffect();
+                saveQuiet(); renderGrid(); openInventory(index);
+                showNotify(`${pet.name}覺醒至 ${next} 星！`);
+            }
+        });
     }
 
     function useRealReward(studentIndex, uniqueId) {
@@ -1104,10 +1352,16 @@
         // 原版用 split('_')[0] 比對，card_vocab_123 會被切成 card 而永遠對不到，改用前綴比對
         const item = REAL_REWARDS.find(r => uniqueId === r.id || uniqueId.indexOf(r.id + '_') === 0);
         if (!item) { showNotify("找不到這張特權卡"); return; }
-        if (confirm(`確定要使用【${item.name}】嗎？請向老師出示此畫面。`)) {
-            s.inventory = s.inventory.filter(id => id !== uniqueId);
-            saveData(); openInventory(studentIndex); showNotify(`已使用 ${item.name}！`);
-        }
+        showCustomModal({
+            title: '使用特權卡',
+            msg: `確定要幫「${s.name}」使用【${item.name}】嗎？`,
+            showCancel: true,
+            onConfirm: () => {
+                pushUndo(`${s.name} 使用 ${item.name}`);
+                s.inventory = s.inventory.filter(id => id !== uniqueId);
+                saveQuiet(); openInventory(studentIndex); showNotify(`已使用 ${item.name}！`);
+            }
+        });
     }
 
     // 稱號授予
@@ -1137,6 +1391,7 @@
     function grantSelectedTitle() {
         if (titleTargetIndex < 0 || titleTargetIndex >= students.length) return;
         if (!selectedTitleId) { showNotify("請選擇稱號"); return; }
+        pushUndo(`${students[titleTargetIndex].name} 授予稱號 ${TITLES[selectedTitleId].name}`);
         students[titleTargetIndex].title = selectedTitleId;
         saveData(); renderGrid();
         document.getElementById('title-modal').style.display = 'none';
@@ -1146,11 +1401,12 @@
     // 學生管理
     function addStudent() {
         const input = document.getElementById('newStudentName');
-        const name = input.value.trim();
+        const name = cleanName(input.value);
         const genderRadios = document.getElementsByName('newStudentGender');
         let gender = 'male'; for(let r of genderRadios) if(r.checked) gender = r.value;
         if(!name) return;
         playSfx(sfxClick);
+        pushUndo('招收 ' + name);
         students.push(normalizeStudent({ id: Date.now(), name, gender }));
         input.value = ''; saveData(); renderGrid(); showNotify(`歡迎 ${name} 加入宗門！`);
     }
@@ -1189,7 +1445,8 @@
     }
 
     function openEditModal(id) {
-        const s = students.find(st => st.id === id); if (!s) return;
+        // 匯入過的存檔 id 是字串，原本用 === 比對會對不到，按齒輪沒反應
+        const s = students.find(st => String(st.id) === String(id)); if (!s) return;
         document.getElementById('edit-id').value = id;
         document.getElementById('edit-name').value = s.name;
         document.getElementById('edit-title').value = s.title || "";
@@ -1200,42 +1457,49 @@
 
     function saveStudentEdit() {
         const id = parseInt(document.getElementById('edit-id').value);
-        const newName = document.getElementById('edit-name').value.trim();
-        const newTitle = document.getElementById('edit-title').value.trim();
+        const newName = cleanName(document.getElementById('edit-name').value);
+        const newTitle = cleanName(document.getElementById('edit-title').value);
         const genderRadios = document.getElementsByName('editGender');
         let newGender = 'male'; for(let r of genderRadios) if(r.checked) newGender = r.value;
-        const s = students.find(st => st.id === id);
-        if (s && newName) { s.name = newName; s.gender = newGender; s.title = newTitle; saveData(); renderGrid(); document.getElementById('edit-student-modal').style.display = 'none'; showNotify("弟子資料已更新！"); }
+        const s = students.find(st => String(st.id) === String(id));
+        if (s && newName) { pushUndo('編輯 ' + s.name + ' 的資料'); s.name = newName; s.gender = newGender; s.title = newTitle; saveData(); renderGrid(); document.getElementById('edit-student-modal').style.display = 'none'; showNotify("弟子資料已更新！"); }
     }
 
     function confirmDeleteStudent() {
-        if(confirm("確定要逐出此弟子？")) {
-            const id = parseInt(document.getElementById('edit-id').value);
-            students = students.filter(s => s.id !== id);
-            saveData(); renderGrid();
-            document.getElementById('edit-student-modal').style.display = 'none';
-            showNotify("弟子已離開宗門。");
-        }
+        const id = document.getElementById('edit-id').value;
+        const target = students.find(s => String(s.id) === String(id));
+        if (!target) return;
+        showCustomModal({
+            title: '逐出弟子',
+            msg: `確定要逐出「${target.name}」？（按錯可以按復原救回）`,
+            showCancel: true,
+            onConfirm: () => {
+                // README 一直寫「誤刪弟子救得回來」，但原本這裡沒記復原，現在補上
+                pushUndo('逐出 ' + target.name);
+                students = students.filter(s => String(s.id) !== String(id));
+                saveQuiet(); renderGrid();
+                document.getElementById('edit-student-modal').style.display = 'none';
+                showNotify(`${target.name} 已離開宗門（可按復原救回）`);
+            }
+        });
     }
 
     function renderGrid() {
         const grid = document.getElementById('studentGrid'); grid.innerHTML = '';
         students.forEach((s, index) => {
             const info = getStudentInfo(s);
-            let companionHtml = '';
-            if (s.equipped && s.equipped.pet) { const petData = getItemData(s.equipped.pet); if(petData) companionHtml += `<img src="${petData.src || petData.icon}" class="companion-img companion-pet" onerror="this.style.display='none'">`; }
-            if (s.equipped && s.equipped.sword) { const swordData = getItemData(s.equipped.sword); if(swordData) companionHtml += `<img src="${swordData.src}" class="companion-img companion-sword">`; }
+            const aura = auraOf(s);
             const auraClass = info.level >= 70 ? 'aura-high' : (info.level >= 40 ? 'aura-mid' : 'aura-low');
             const card = document.createElement('div'); card.className = 'student-card pixel-border'; card.id = `card-${index}`;
             card.innerHTML = `
-                <button class="card-edit-btn teacher-only" onclick="openEditModal(${s.id})">⚙️</button>
+                <button class="card-edit-btn teacher-only" onclick="openEditModal('${escHtml(s.id)}')">⚙️</button>
                 <div class="card-header">
-                    <div class="student-name">${s.name} ${s.title ? `<span class="title-badge">${titleName(s.title)}</span>` : ''} ${sectBadgeHtml(s)}</div>
+                    <div class="student-name">${escHtml(s.name)} ${s.title ? `<span class="title-badge">${escHtml(titleName(s.title))}</span>` : ''} ${sectBadgeHtml(s)}</div>
                     <div class="level-badge">Lv.${info.level}</div>
                 </div>
-                <div class="avatar-area ${auraClass}">
+                <div class="avatar-area ${auraClass}${aura ? ' has-aura' : ''}"${aura ? ` style="--aura-rgb:${aura.rgb}"` : ''}>
+                    ${gearLayersHtml(s)}
                     <img src="${info.avatar}" class="avatar-img" onerror="this.src='${PLAYER_ARTS[0]}'">
-                    ${companionHtml}
                 </div>
                 <div class="stat-row"><span class="stat-label">修為</span><div class="bar-container"><div class="bar-fill bar-exp" style="width: ${info.pct}%"></div></div><span class="stat-value">${info.expText}</span></div>
                 <div class="stat-row"><span class="stat-label">妖丹</span><div class="coin-display">💰 ${s.coins || 0}</div></div>
@@ -1259,6 +1523,7 @@
         const modal = document.getElementById('battle-modal');
         if (Math.random() < 0.2) { isTreasureEncounter = true; setupTreasureEncounter(); } else { isTreasureEncounter = false; setupMonsterEncounter(); }
         document.getElementById('fighter-student').style.opacity = '0';
+        document.getElementById('battle-student-gear').innerHTML = '';
         document.getElementById('battle-controls-start').style.display = 'flex';
         document.getElementById('battle-controls-judge').style.display = 'none';
         updateDrawInfo();
@@ -1290,6 +1555,7 @@
         if (!requireTeacher('點名')) return;
         playSfx(sfxClick);
         document.getElementById('battle-controls-start').style.display = 'none';
+        document.getElementById('battle-student-gear').innerHTML = '';
         document.getElementById('battle-msg').innerText = "天道輪盤轉動中...";
 
         // 先決定最後抽中誰
@@ -1337,7 +1603,13 @@
 
     function finalizePick(student) {
         const flash = document.getElementById('battle-flash'); flash.style.animation = 'flash 0.5s'; setTimeout(() => flash.style.animation = '', 500);
-        document.getElementById('battle-msg').innerText = isTreasureEncounter ? `${student.name} 嘗試開啟寶箱！` : `${student.name} 挺身而出！`;
+        // 抽中後才讓守護靈和飛劍出場（輪盤轉動時不顯示，免得一直閃）
+        const gear = document.getElementById('battle-student-gear');
+        gear.innerHTML = gearLayersHtml(student);
+        if (gear.innerHTML) { gear.classList.remove('guardian-enter'); void gear.offsetWidth; gear.classList.add('guardian-enter'); }
+        const pet = student.equipped && student.equipped.pet ? getItemData(student.equipped.pet) : null;
+        const petLine = pet ? `${pet.name}現身護主！` : '';
+        document.getElementById('battle-msg').innerText = (isTreasureEncounter ? `${student.name} 嘗試開啟寶箱！` : `${student.name} 挺身而出！`) + petLine;
         document.getElementById('battle-controls-judge').style.display = 'block';
         playSfx(sfxLevelUp);
     }
@@ -1349,15 +1621,20 @@
         const studentImg = document.getElementById('battle-student-img');
         const s = students[currentBattleStudentIndex];
         if(isWin) {
-            playSfx(sfxWin); monsterImg.classList.add('shake-effect');
-            playHitEffect(monsterImg, '#ffd45a');
-            let expGain = 50; let coinGain = 50;
-            if (isTreasureEncounter) { expGain = 100; coinGain = 200; document.getElementById('battle-msg').innerText = `開啟成功！獲得 ${expGain} Exp / ${coinGain} 妖丹！`; checkWeaponDrop(currentBattleStudentIndex, true); }
-            else { document.getElementById('battle-msg').innerText = `回答正確！獲得 ${expGain} Exp / ${coinGain} 妖丹！`; checkWeaponDrop(currentBattleStudentIndex, false); }
+            playSfx(sfxWin);
+            const hit = () => { monsterImg.classList.add('shake-effect'); playHitEffect(monsterImg, '#ffd45a'); };
+            // 有裝飛劍：劍先飛過去再打中
+            const flew = flySwordStrike(s, monsterImg);
+            if (flew) setTimeout(hit, SWORD_FLY_MS - 20); else hit();
+            const expGain = isTreasureEncounter ? 100 : 50;
+            const coinGain = isTreasureEncounter ? 200 : 50;
+            // 先加修為（這一步會記復原點），掉寶和妖丹放在後面，按復原才會一起退回
             updateExp(currentBattleStudentIndex, expGain);
+            if (isTreasureEncounter) { document.getElementById('battle-msg').innerText = `開啟成功！獲得 ${expGain} Exp / ${coinGain} 妖丹！`; checkWeaponDrop(currentBattleStudentIndex, true); }
+            else { document.getElementById('battle-msg').innerText = `回答正確！獲得 ${expGain} Exp / ${coinGain} 妖丹！`; checkWeaponDrop(currentBattleStudentIndex, false); }
             s.coins = parseInt(s.coins || 0) + coinGain;
             saveData(); renderGrid();
-            setTimeout(() => { monsterImg.style.opacity = '0'; setTimeout(closeBattleModal, 1500); }, 500);
+            setTimeout(() => { monsterImg.style.opacity = '0'; setTimeout(closeBattleModal, 1500); }, flew ? 900 : 500);
         } else {
             playSfx(sfxAttack); studentImg.classList.add('shake-effect');
             playHitEffect(studentImg, '#ff6b6b');
@@ -1382,25 +1659,61 @@
         stage.appendChild(fx); setTimeout(()=>fx.remove(), 450);
     }
 
-    // 掉落：僅武器，不掉寵物
+    // 答對時飛劍從弟子身邊射向妖獸，回傳有沒有飛（沒裝劍就不飛）
+    const SWORD_FLY_MS = 520;
+    function flySwordStrike(s, targetImg) {
+        const sword = s && s.equipped && s.equipped.sword ? getItemData(s.equipped.sword) : null;
+        const fromImg = document.getElementById('battle-student-img');
+        const stage = document.getElementById('battle-stage');
+        if (!sword || !sword.src || !fromImg || !targetImg || !stage.animate) return false;
+        const st = stage.getBoundingClientRect();
+        const a = fromImg.getBoundingClientRect();
+        const b = targetImg.getBoundingClientRect();
+        const x0 = a.left + a.width / 2 - st.left - stage.clientLeft;
+        const y0 = a.top + a.height * 0.35 - st.top - stage.clientTop;
+        const dx = (b.left + b.width / 2) - (a.left + a.width / 2);
+        const dy = (b.top + b.height / 2) - (a.top + a.height * 0.35);
+        const img = document.createElement('img');
+        img.src = sword.src; img.className = 'flying-sword'; img.alt = '';
+        img.style.setProperty('--glow', sword.glow || '#ffd700');
+        img.style.left = x0 + 'px'; img.style.top = y0 + 'px';
+        stage.appendChild(img);
+        // 劍的原圖劍尖朝右上，轉 60 度讓劍尖對著右邊的妖獸
+        img.animate([
+            { transform: 'translate(-50%,-50%) translateY(0) rotate(-20deg) scale(0.6)', opacity: 0, easing: 'ease-out' },
+            { transform: 'translate(-50%,-50%) translateY(-70px) rotate(60deg) scale(1)', opacity: 1, offset: 0.4, easing: 'ease-in' },
+            { transform: `translate(-50%,-50%) translate(${dx}px, ${dy}px) rotate(60deg) scale(1.15)`, opacity: 1 }
+        ], { duration: SWORD_FLY_MS, easing: 'linear' }).onfinish = () => img.remove();
+        spawnBattleFx(sword.id === 'sword_fire' ? 'fire' : 'lightning');
+        return true;
+    }
+
+    // 掉落：僅武器，不掉寵物；優先掉還沒有的劍，全部集齊的話寶箱改給妖丹
+    const ALL_SWORDS_BONUS = 100;
     function checkWeaponDrop(studentIndex, guaranteed = false) {
-        if (guaranteed || Math.random() < 0.05) {
-            const keys = Object.keys(ITEMS).filter(k => ITEMS[k].type === 'sword');
-            const randomItemKey = keys[Math.floor(Math.random() * keys.length)];
-            const s = students[studentIndex];
-            if (!s.inventory) s.inventory = [];
-            if (!s.inventory.includes(randomItemKey)) {
-                s.inventory.push(randomItemKey);
-                saveData();
-                const item = ITEMS[randomItemKey];
-                const overlay = document.getElementById('item-get-overlay');
-                document.getElementById('item-get-img').src = item.icon;
-                document.getElementById('item-get-name').innerText = `獲得神兵：${item.name}！`;
-                document.getElementById('item-get-desc').innerText = `戰鬥力 +${item.cp}`;
-                overlay.style.display = 'flex';
-                playSfx(sfxGetItem);
-            }
+        if (!(guaranteed || Math.random() < 0.05)) return;
+        const s = students[studentIndex];
+        if (!s.inventory) s.inventory = [];
+        const keys = Object.keys(ITEMS).filter(k => ITEMS[k].type === 'sword' && !s.inventory.includes(k));
+        const overlay = document.getElementById('item-get-overlay');
+        if (!keys.length) {
+            if (!guaranteed) return;
+            s.coins = (s.coins || 0) + ALL_SWORDS_BONUS;
+            document.getElementById('item-get-img').src = BASE_URL + 'images/ui/icon_shop_pixel.png';
+            document.getElementById('item-get-name').innerText = `神兵已集齊！`;
+            document.getElementById('item-get-desc').innerText = `寶箱化為妖丹：再 +${ALL_SWORDS_BONUS}`;
+        } else {
+            const item = ITEMS[keys[Math.floor(Math.random() * keys.length)]];
+            s.inventory.push(item.id);
+            if (!s.equipped) s.equipped = {};
+            if (!s.equipped.sword) s.equipped.sword = item.id;
+            document.getElementById('item-get-img').src = item.icon;
+            document.getElementById('item-get-name').innerText = `獲得神兵：${item.name}！`;
+            document.getElementById('item-get-desc').innerText = `戰鬥力 +${item.cp}`;
         }
+        saveQuiet();
+        overlay.style.display = 'flex';
+        playSfx(sfxGetItem);
     }
 
     // 攻擊 / 受擊特效
@@ -1469,7 +1782,7 @@
     function sectBadgeHtml(s) {
         var k = getSect(s.sectId);
         if (!k) return '';
-        return '<span class="sect-badge" style="color:' + k.color + '">' + k.emblem + ' ' + k.name + '</span>';
+        return '<span class="sect-badge" style="color:' + escHtml(k.color) + '">' + escHtml(k.emblem) + ' ' + escHtml(k.name) + '</span>';
     }
 
     // ── 復原上一步 ──
@@ -2104,6 +2417,15 @@
             var equipped = {};
             if (typeof eq.pet === 'string' && getItemData(cleanName(eq.pet, 60))) equipped.pet = cleanName(eq.pet, 60);
             if (typeof eq.sword === 'string' && getItemData(cleanName(eq.sword, 60))) equipped.sword = cleanName(eq.sword, 60);
+            if (typeof eq.aura === 'string' && AURAS[eq.aura]) equipped.aura = eq.aura;
+
+            var petStarsClean = {};
+            if (s.petStars && typeof s.petStars === 'object' && !Array.isArray(s.petStars)) {
+                Object.keys(s.petStars).slice(0, 20).forEach(function (k) {
+                    var n = Number(s.petStars[k]);
+                    if (getItemData(k) && Number.isInteger(n) && n >= 1 && n <= AWAKEN_MAX) petStarsClean[k] = n;
+                });
+            }
 
             var inventory = Array.isArray(s.inventory)
                 ? s.inventory.filter(function (x) { return typeof x === 'string'; })
@@ -2123,6 +2445,8 @@
                 title: (typeof s.title === 'string' && TITLES[s.title]) ? s.title : '',
                 inventory: inventory,
                 equipped: equipped,
+                outfit: (Number.isInteger(s.outfit) && s.outfit >= 0 && s.outfit < OUTFITS.length) ? s.outfit : null,
+                petStars: petStarsClean,
                 sectId: (sid && seenSect[sid]) ? sid : null
             }));
         });
