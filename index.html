@@ -132,6 +132,23 @@
         .set-price-name { flex-grow: 1; color: var(--text-beige); font-size: 0.9rem; }
         .set-price-input { width: 88px; }
         .set-price-hint { color: #888; font-size: 0.74rem; width: 74px; text-align: right; }
+        /* ── v5：自訂特權卡、勾選分派、雙獎賞、寶箱、請假 ── */
+        .set-card-row { padding: 6px; background: rgba(0,0,0,0.2); border: 1px solid rgba(112, 80, 48, 0.35); }
+        .set-card-name { width: 110px; }
+        .set-card-desc { flex: 1 1 100%; min-width: 0; }
+        .set-card-price { width: 80px; }
+        .sect-row.assign-row { cursor: pointer; user-select: none; }
+        .sect-row.assign-row.checked { background: rgba(255, 215, 0, 0.14); border-color: var(--text-gold); }
+        .sect-assign-row-wrap { display: flex; flex-direction: column; gap: 6px; }
+        .grant-quick-label { color: var(--text-brown); font-size: 0.8rem; min-width: 2.6em; align-self: center; }
+        .shop-card.chest { box-shadow: 0 0 12px rgba(255, 215, 0, 0.3); }
+        .shop-card.chest.tier-2 { box-shadow: 0 0 14px rgba(0, 210, 255, 0.45); }
+        .shop-card.chest.tier-3 { box-shadow: 0 0 18px rgba(199, 146, 234, 0.7); border-color: #c792ea; }
+        .chest-odds { color: #aaa; font-size: 0.72rem; line-height: 1.4; }
+        .shop-group-label { grid-column: 1 / -1; color: var(--text-gold); border-bottom: 1px solid #503010; padding: 4px 0; font-size: 0.95rem; }
+        .student-card.on-leave .avatar-area, .student-card.on-leave .card-header, .student-card.on-leave .stat-row { filter: grayscale(0.9); opacity: 0.55; }
+        .leave-badge { padding: 2px 6px; border: 1px solid #aaa; color: #ddd; background: rgba(0,0,0,0.4); border-radius: 6px; font-size: 0.75rem; }
+        #item-get-swatch { width: 100px; height: 100px; margin: 0 auto; }
         #set-pw-new, #set-pw-again { width: 118px; }
         .excel-inline { color: var(--text-brown); font-size: 0.85rem; display: flex; align-items: center; gap: 4px; }
         .excel-inline input { width: 62px; }
@@ -426,6 +443,7 @@
         <div class="shop-tabs">
             <div class="shop-tab active" data-tab="gear" onclick="switchShopTab('gear')">神兵 / 靈獸</div>
             <div class="shop-tab" data-tab="aura" onclick="switchShopTab('aura')">氣場</div>
+            <div class="shop-tab" data-tab="chest" onclick="switchShopTab('chest')">寶箱</div>
             <div class="shop-tab" data-tab="reward" onclick="switchShopTab('reward')">校園特權卡</div>
             <div class="shop-tab" data-tab="title" onclick="switchShopTab('title')">宗門稱號</div>
         </div>
@@ -497,6 +515,7 @@
         <div class="item-card-anim">
             <h2 style="color:var(--text-gold); margin:0 0 10px 0;">✨ 機緣已到 ✨</h2>
             <img id="item-get-img" src="" style="width:100px; height:100px; image-rendering:pixelated; border:2px solid #fff; border-radius:5px; background:rgba(0,0,0,0.5);">
+            <div id="item-get-swatch" class="aura-swatch" style="display:none;"></div>
             <p id="item-get-name" style="color:var(--text-beige); font-size:1.5rem; margin:10px 0;">獲得 神獸！</p>
             <p id="item-get-desc" style="color:var(--text-brown); font-size:1rem; margin:0;">成功收服了妖獸！</p>
         <br><button class="pixel-btn success" onclick="document.getElementById('item-get-overlay').style.display='none'">收下</button>
@@ -543,7 +562,10 @@
                 <span class="sect-picker-label">顏色</span>
                 <div id="sect-color-picker" class="sect-picker"></div>
             </div>
-            <button class="pixel-btn success" onclick="addSect()">立派</button>
+            <div class="sect-batch-row">
+                <button class="pixel-btn success" onclick="addSect()">立派</button>
+                <button class="pixel-btn info" onclick="addDefaultSects()">建立預設六派</button>
+            </div>
         </div>
 
         <div class="sect-section-label">現有門派</div>
@@ -555,10 +577,11 @@
                 <span class="sect-picker-label">指派到</span>
                 <select id="sect-batch-target" class="sect-assign-select"></select>
             </div>
+            <p class="set-hint">點下面的弟子勾選（可以勾很多位），再按「指派勾選的人」</p>
+            <div id="sect-assign-list" class="sect-scroll sect-assign-scroll"></div>
             <div class="sect-batch-row">
-                <button class="pixel-btn action-btn-small" onclick="batchCheckAll(true)">全選</button>
-                <button class="pixel-btn action-btn-small" onclick="batchCheckAll(false)">清除勾選</button>
                 <button class="pixel-btn action-btn-small success" onclick="batchAssignChecked()">指派勾選的人（<span id="sect-checked-count">0</span>）</button>
+                <button class="pixel-btn action-btn-small" onclick="clearSectChecked()">清除勾選</button>
             </div>
             <div class="sect-batch-row">
                 <span class="sect-picker-label">座號</span>
@@ -577,7 +600,6 @@
                 <button class="pixel-btn action-btn-small success" onclick="autoDistribute()">分配</button>
             </div>
         </div>
-        <div id="sect-assign-list" class="sect-scroll sect-assign-scroll"></div>
 
         <button class="pixel-btn" onclick="closeSectModal()">關閉</button>
     </div>
@@ -595,25 +617,33 @@
         </label>
 
         <label class="grant-field">
-            <span>項目</span>
-            <select id="grant-kind">
-                <option value="coins">妖丹</option>
-                <option value="exp">修為（經驗值）</option>
-            </select>
+            <span>妖丹</span>
+            <input type="number" id="grant-coins" value="50" step="10">
         </label>
+        <div class="grant-quick">
+            <span class="grant-quick-label">妖丹</span>
+            <button class="pixel-btn action-btn-small" onclick="setGrantAmount('coins', 0)">0</button>
+            <button class="pixel-btn action-btn-small" onclick="setGrantAmount('coins', 10)">+10</button>
+            <button class="pixel-btn action-btn-small" onclick="setGrantAmount('coins', 50)">+50</button>
+            <button class="pixel-btn action-btn-small" onclick="setGrantAmount('coins', 100)">+100</button>
+            <button class="pixel-btn action-btn-small" onclick="setGrantAmount('coins', 300)">+300</button>
+            <button class="pixel-btn action-btn-small" style="color:#ff6b6b; border-color:#581212;" onclick="setGrantAmount('coins', -30)">-30</button>
+        </div>
 
         <label class="grant-field">
-            <span>數量</span>
-            <input type="number" id="grant-amount" value="50" step="10">
+            <span>修為</span>
+            <input type="number" id="grant-exp" value="0" step="10">
         </label>
-
         <div class="grant-quick">
-            <button class="pixel-btn action-btn-small" onclick="setGrantAmount(10)">+10</button>
-            <button class="pixel-btn action-btn-small" onclick="setGrantAmount(50)">+50</button>
-            <button class="pixel-btn action-btn-small" onclick="setGrantAmount(100)">+100</button>
-            <button class="pixel-btn action-btn-small" onclick="setGrantAmount(300)">+300</button>
-            <button class="pixel-btn action-btn-small" style="color:#ff6b6b; border-color:#581212;" onclick="setGrantAmount(-30)">-30</button>
+            <span class="grant-quick-label">修為</span>
+            <button class="pixel-btn action-btn-small" onclick="setGrantAmount('exp', 0)">0</button>
+            <button class="pixel-btn action-btn-small" onclick="setGrantAmount('exp', 10)">+10</button>
+            <button class="pixel-btn action-btn-small" onclick="setGrantAmount('exp', 50)">+50</button>
+            <button class="pixel-btn action-btn-small" onclick="setGrantAmount('exp', 100)">+100</button>
+            <button class="pixel-btn action-btn-small" onclick="setGrantAmount('exp', 300)">+300</button>
+            <button class="pixel-btn action-btn-small" style="color:#ff6b6b; border-color:#581212;" onclick="setGrantAmount('exp', -30)">-30</button>
         </div>
+        <p class="grant-hint">妖丹和修為可以一起給；不想給的那項填 0</p>
 
         <div class="grant-actions">
             <button class="pixel-btn" onclick="closeGrantModal()">取消</button>
@@ -650,13 +680,15 @@
             <p class="set-hint">改完數值要按「儲存按鈕」才會生效。項目選妖丹就是加扣妖丹。</p>
         </div>
 
-        <div class="sect-section-label">校園特權卡價格</div>
+        <div class="sect-section-label">校園特權卡</div>
         <div class="set-block">
-            <div id="set-price-list" class="sect-scroll"></div>
+            <div id="set-card-list" class="sect-scroll" style="max-height:320px;"></div>
             <div class="set-row set-actions">
-                <button class="pixel-btn action-btn-small success" onclick="saveRewardPrices()">儲存價格</button>
-                <button class="pixel-btn action-btn-small" onclick="resetRewardPrices()">還原預設</button>
+                <button class="pixel-btn action-btn-small success" onclick="saveRewardCards()">儲存特權卡</button>
+                <button class="pixel-btn action-btn-small info" onclick="addRewardCard()">新增一張</button>
+                <button class="pixel-btn action-btn-small" onclick="resetRewardCards()">還原預設</button>
             </div>
+            <p class="set-hint">名稱最多 8 字、說明最多 40 字。改完要按「儲存特權卡」才會生效。刪掉的卡萬寶閣不再賣，但學生已經買的還在行囊裡，照樣可以使用。</p>
         </div>
 
         <div class="sect-section-label">隨機點名</div>
@@ -815,7 +847,8 @@
     };
 
     // 校園特權卡（貼近台灣學生且非請客，移除加分券）
-    const REAL_REWARDS = [
+    // v5：這是預設的 7 張；老師在設定裡改過的存在 settings.rewardCards，REAL_REWARDS 是目前萬寶閣在賣的
+    const DEFAULT_REWARD_CARDS = [
         { id: 'card_vocab',     name: '減字訣',     type: 'consumable', icon: BASE_URL + 'images/ui/icon_scroll_pixel.png', price: 800,  desc: "作業或圈詞可少寫一遍" },
         { id: 'card_nap',       name: '逍遙午休',   type: 'consumable', icon: BASE_URL + 'images/monsters/placeholder_monster.gif', price: 500, desc: "午休/早自習可安靜趴睡一次" },
         { id: 'card_seat',      name: '移形換位',   type: 'consumable', icon: BASE_URL + 'images/ui/icon_bag_pixel.png', price: 2500, desc: "下週優先選擇座位一次" },
@@ -823,6 +856,31 @@
         { id: 'card_late',      name: '雲影步',     type: 'consumable', icon: BASE_URL + 'images/ui/icon_reward_pixel.png', price: 1200, desc: "一次小遲到補救，記錄不列入" },
         { id: 'card_extension', name: '緩衝符',     type: 'consumable', icon: BASE_URL + 'images/ui/icon_scroll_pixel.png', price: 1500, desc: "一次作業或報告可順延一天繳交" },
         { id: 'card_cleanup',   name: '風清掃',     type: 'consumable', icon: BASE_URL + 'images/ui/icon_bag_pixel.png', price: 900,  desc: "一次值日/打掃可換班同學代班（需老師同意）" }
+    ];
+    let REAL_REWARDS = DEFAULT_REWARD_CARDS.map(c => Object.assign({}, c));
+    const REWARD_CARD_MAX = 15;
+    const REWARD_ICONS = ['icon_scroll_pixel.png', 'icon_bag_pixel.png', 'icon_save_pixel.png', 'icon_reward_pixel.png'].map(f => BASE_URL + 'images/ui/' + f);
+
+    // v5：萬寶閣寶箱（三類 × 三級）。等級越高越容易開到好東西，便宜的寶箱有機會是空的
+    const CHEST_KINDS = [
+        { kind: 'sword', name: '神兵箱', icon: '🗡️', prices: [150, 250, 400] },
+        { kind: 'aura',  name: '氣場箱', icon: '✨', prices: [400, 700, 1100] },
+        { kind: 'pet',   name: '靈獸箱', icon: '🐉', prices: [1500, 2400, 3400] }
+    ];
+    const CHEST_TIERS = [
+        { tier: 1, name: '凡品', emptyRate: 0.3 },
+        { tier: 2, name: '靈品', emptyRate: 0.1 },
+        { tier: 3, name: '仙品', emptyRate: 0 }
+    ];
+
+    // v5：一鍵建立的預設六派
+    const DEFAULT_SECTS = [
+        { name: '青龍門', emblem: '🐉', color: '#7dd87d' },
+        { name: '白虎堂', emblem: '🐯', color: '#ffd700' },
+        { name: '玄武宗', emblem: '🐢', color: '#00d2ff' },
+        { name: '朱雀閣', emblem: '🦅', color: '#ff6b6b' },
+        { name: '太極派', emblem: '🐼', color: '#c792ea' },
+        { name: '靈狐谷', emblem: '🦊', color: '#ffa94d' }
     ];
 
     const PLAYER_ARTS = [
@@ -931,12 +989,31 @@
     function getItemData(itemId) {
         if (ITEMS[itemId]) return ITEMS[itemId];
         if (AURAS[itemId]) return AURAS[itemId];
-        const real = REAL_REWARDS.find(r => itemId.startsWith(r.id));
+        const real = findRewardCard(itemId);
         if (real) return real;
         if (itemId.startsWith("tamed_")) { // 舊版戰寵，已不再掉落
             const monsterType = itemId.split('_')[1];
             const m = MONSTERS.find(x => x.id === monsterType);
             if(m) return { id:itemId, name: "馴服的"+m.name, cp: m.cp || 200, icon: m.icon, type: 'pet', desc:"舊版戰寵" };
+        }
+        return null;
+    }
+
+    // 行囊裡的特權卡是「卡片代號_購買時間」。只認完全相同或「代號_」開頭，免得 card_u1 被當成 card_u10
+    function rewardIdMatches(itemId, cardId) {
+        return itemId === cardId || itemId.indexOf(cardId + '_') === 0;
+    }
+    function findRewardCard(itemId) {
+        if (typeof itemId !== 'string') return null;
+        const selling = REAL_REWARDS.find(r => rewardIdMatches(itemId, r.id));
+        if (selling) return selling;
+        // 已經從萬寶閣下架的卡：學生買過的照樣顯示、照樣能用
+        const retired = (settings.retiredCards || []).find(r => rewardIdMatches(itemId, r.id));
+        if (retired) return Object.assign({ type: 'consumable', retired: true, price: 0, icon: cardIcon(retired.id) }, retired);
+        const def = DEFAULT_REWARD_CARDS.find(r => rewardIdMatches(itemId, r.id));
+        if (def) return Object.assign({}, def, { retired: true });
+        if (/^card_[a-z0-9]+_\d+$/.test(itemId)) {
+            return { id: itemId.slice(0, itemId.lastIndexOf('_')), name: '已下架的特權卡', type: 'consumable', icon: REWARD_ICONS[0], price: 0, desc: '這張卡已經不賣了，還是可以使用', retired: true };
         }
         return null;
     }
@@ -1149,6 +1226,7 @@
         if (shopTab === 'gear') itemsToShow = Object.values(ITEMS);
         else if (shopTab === 'aura') itemsToShow = Object.values(AURAS);
         else if (shopTab === 'reward') itemsToShow = REAL_REWARDS;
+        else if (shopTab === 'chest') { renderChestShop(container); return; }
         else itemsToShow = Object.values(TITLES).map(t => ({...t, type:'title', price: 0}));
 
         itemsToShow.forEach(item => {
@@ -1169,8 +1247,8 @@
                     : `<button class="pixel-btn success action-btn-small" onclick="buyItem('${item.id}')">購買</button>`);
             card.innerHTML = `
                 ${imgHtml}
-                <h4>${item.name}</h4>
-                <p>${item.desc || ''}</p>
+                <h4>${escHtml(item.name)}</h4>
+                <p>${escHtml(item.desc || '')}</p>
                 ${extraHint}
                 ${item.bonus?.cp ? `<div class="cp-bonus">戰力 +${item.bonus.cp}</div>` : (item.cp ? `<div class="cp-bonus">戰力 +${item.cp}</div>` : '')}
                 ${priceHtml}
@@ -1179,11 +1257,124 @@
         });
     }
 
+    // ── v5：寶箱 ──
+    // 同一類的東西依價格分高低（同價算同一階），凡品偏向便宜的、仙品偏向最貴的
+    function chestPool(kind) {
+        const src = kind === 'aura' ? Object.values(AURAS) : Object.values(ITEMS).filter(it => it.type === kind);
+        const prices = [...new Set(src.map(it => it.price || 0))].sort((a, b) => a - b);
+        return src.map(it => ({ item: it, rank: prices.indexOf(it.price || 0), ranks: prices.length }));
+    }
+    function chestWeight(entry, tier) {
+        if (tier === 1) return Math.pow(entry.ranks - entry.rank, 2);
+        if (tier === 3) return Math.pow(entry.rank + 1, 2);
+        return 1;
+    }
+    function chestUnowned(s, kind) {
+        const inv = (s && s.inventory) || [];
+        return chestPool(kind).filter(e => inv.indexOf(e.item.id) < 0);
+    }
+    // 只抽學生還沒有的；rng 可以換掉，方便測試
+    function rollChest(s, kind, tier, rng) {
+        rng = rng || Math.random;
+        const t = CHEST_TIERS.find(x => x.tier === tier);
+        const pool = chestUnowned(s, kind);
+        if (!t || !pool.length) return null;
+        if (rng() < t.emptyRate) return { empty: true };
+        const total = pool.reduce((sum, e) => sum + chestWeight(e, tier), 0);
+        let r = rng() * total;
+        for (const e of pool) {
+            r -= chestWeight(e, tier);
+            if (r < 0) return { item: e.item };
+        }
+        return { item: pool[pool.length - 1].item };
+    }
+
+    function renderChestShop(container) {
+        const s = students[currentInvStudentIndex];
+        CHEST_KINDS.forEach(k => {
+            const label = document.createElement('div');
+            label.className = 'shop-group-label';
+            const left = s ? chestUnowned(s, k.kind).length : 0;
+            label.textContent = `${k.icon} ${k.name}　${s ? (left ? `${s.name} 還有 ${left} 種沒收集到` : `${s.name} 已經全部集齊`) : ''}`;
+            container.appendChild(label);
+            CHEST_TIERS.forEach((t, i) => {
+                const price = k.prices[i];
+                const card = document.createElement('div');
+                card.className = `shop-card chest tier-${t.tier}`;
+                const odds = t.tier === 1 ? '比較容易開到便宜的' : (t.tier === 2 ? '每一種機會差不多' : '比較容易開到最好的');
+                const empty = t.emptyRate ? `有 ${Math.round(t.emptyRate * 100)}% 是空箱（退一半妖丹）` : '一定開到東西';
+                const action = !isTeacherMode
+                    ? `<div style="color:#888; font-size:0.78rem; padding:5px 0;">購買需師尊操作</div>`
+                    : (left
+                        ? `<button class="pixel-btn success action-btn-small" onclick="buyChest('${k.kind}', ${t.tier})">開箱</button>`
+                        : `<div style="color:#80ffea; font-size:0.78rem; padding:5px 0;">已集齊，不用再開</div>`);
+                card.innerHTML = `
+                    <div style="font-size:3rem; line-height:1.2;">🎁</div>
+                    <h4>${t.name}${k.name}</h4>
+                    <div class="chest-odds">${odds}<br>${empty}<br>只會開到還沒有的</div>
+                    <div class="item-price">💰 ${price}</div>
+                    ${action}`;
+                container.appendChild(card);
+            });
+        });
+    }
+
+    function buyChest(kind, tier) {
+        if (!requireTeacher('開寶箱')) return;
+        const s = students[currentInvStudentIndex];
+        const k = CHEST_KINDS.find(x => x.kind === kind);
+        const t = CHEST_TIERS.find(x => x.tier === tier);
+        if (!s) { showNotify("請先選擇購買人"); return; }
+        if (!k || !t) { showNotify("寶箱不存在"); return; }
+        const price = k.prices[tier - 1];
+        if (!chestUnowned(s, kind).length) { showNotify(`${s.name} 的${k.name.replace('箱', '')}已經集齊了`); return; }
+        if ((s.coins || 0) < price) { showNotify(`${s.name} 的妖丹不足（有 ${s.coins || 0}，要 ${price}）`); return; }
+        showCustomModal({
+            title: '確認開箱',
+            msg: `幫「${s.name}」花 ${price} 妖丹開【${t.name}${k.name}】？\n（剩下 ${(s.coins || 0) - price} 妖丹，開錯可以按復原）`,
+            showCancel: true,
+            onConfirm: () => {
+                const res = rollChest(s, kind, tier);
+                if (!res) { showNotify('已經集齊了'); return; }
+                pushUndo(`${s.name} 開 ${t.name}${k.name}`);
+                s.coins = (s.coins || 0) - price;
+                if (res.empty) {
+                    const refund = Math.floor(price / 2);
+                    s.coins += refund;
+                    showItemGet({ icon: BASE_URL + 'images/ui/icon_shop_pixel.png', title: '寶箱是空的…', desc: `撿回 ${refund} 妖丹` });
+                    playSfx(sfxClick);
+                } else {
+                    const item = res.item;
+                    if (!s.inventory) s.inventory = [];
+                    s.inventory.push(item.id);
+                    if (!s.equipped) s.equipped = {};
+                    if (!s.equipped[item.type]) s.equipped[item.type] = item.id;
+                    const desc = item.type === 'aura' ? '純外觀，已放進行囊' : `戰力 +${item.cp}`;
+                    showItemGet({ icon: item.icon, rgb: item.type === 'aura' ? item.rgb : null, title: `開到 ${item.name}！`, desc: desc });
+                    playSfx(sfxGetItem);
+                }
+                saveQuiet(); openShopModal(); renderGrid();
+            }
+        });
+    }
+
+    // 「機緣已到」彈窗：氣場沒有圖，改顯示光暈
+    function showItemGet(o) {
+        const img = document.getElementById('item-get-img');
+        const sw = document.getElementById('item-get-swatch');
+        if (o.rgb) { img.style.display = 'none'; sw.style.display = 'block'; sw.style.setProperty('--aura-rgb', o.rgb); }
+        else { sw.style.display = 'none'; img.style.display = ''; img.src = o.icon || ''; }
+        document.getElementById('item-get-name').innerText = o.title;
+        document.getElementById('item-get-desc').innerText = o.desc;
+        document.getElementById('item-get-overlay').style.display = 'flex';
+    }
+
     function buyItem(itemId) {
         if (!requireTeacher('購買')) return;
         const s = students[currentInvStudentIndex];
         const itemData = getItemData(itemId);
         if (!itemData) { showNotify("商品不存在"); return; }
+        if (itemData.type === 'consumable' && !REAL_REWARDS.some(r => r.id === itemId)) { showNotify("這張特權卡已經下架了"); return; }
         if (!s) { showNotify("請先選擇購買人"); return; }
         const price = itemData.price || 0;
         const isConsumable = itemData.type === 'consumable';
@@ -1248,9 +1439,9 @@
                         ${itemData.type === 'aura' ? `<div class="aura-swatch" style="--aura-rgb:${itemData.rgb}"></div>` : `<img src="${itemData.icon || itemData.src}">`}
                         ${stars > 1 ? `<span class="item-stars">${'★'.repeat(stars)}</span>` : ''}
                         <div class="item-tooltip">
-                            <b>${itemData.name}</b><br>
+                            <b>${escHtml(itemData.name)}</b><br>
                             ${cpText ? `<span class="cp-bonus">戰力 +${cpText}</span><br>` : ''}
-                            <span style="font-size:0.8em; color:#ddd;">${itemData.desc || (isConsumable ? '特權卡' : '點擊裝備')}</span>
+                            <span style="font-size:0.8em; color:#ddd;">${escHtml(itemData.desc || (isConsumable ? '特權卡' : '點擊裝備'))}${itemData.retired ? '<br>（萬寶閣已下架）' : ''}</span>
                         </div>`;
                     if (isConsumable) div.onclick = () => useRealReward(index, itemId);
                     else div.onclick = () => toggleEquip(index, itemId, itemData.type);
@@ -1349,8 +1540,8 @@
     function useRealReward(studentIndex, uniqueId) {
         if (!requireTeacher('使用特權卡')) return;
         const s = students[studentIndex];
-        // 原版用 split('_')[0] 比對，card_vocab_123 會被切成 card 而永遠對不到，改用前綴比對
-        const item = REAL_REWARDS.find(r => uniqueId === r.id || uniqueId.indexOf(r.id + '_') === 0);
+        // 原版用 split('_')[0] 比對，card_vocab_123 會被切成 card 而永遠對不到；v5 起下架的卡也查得到
+        const item = findRewardCard(uniqueId);
         if (!item) { showNotify("找不到這張特權卡"); return; }
         showCustomModal({
             title: '使用特權卡',
@@ -1490,11 +1681,12 @@
             const info = getStudentInfo(s);
             const aura = auraOf(s);
             const auraClass = info.level >= 70 ? 'aura-high' : (info.level >= 40 ? 'aura-mid' : 'aura-low');
-            const card = document.createElement('div'); card.className = 'student-card pixel-border'; card.id = `card-${index}`;
+            const onLeave = isOnLeave(s);
+            const card = document.createElement('div'); card.className = 'student-card pixel-border' + (onLeave ? ' on-leave' : ''); card.id = `card-${index}`;
             card.innerHTML = `
                 <button class="card-edit-btn teacher-only" onclick="openEditModal('${escHtml(s.id)}')">⚙️</button>
                 <div class="card-header">
-                    <div class="student-name">${escHtml(s.name)} ${s.title ? `<span class="title-badge">${escHtml(titleName(s.title))}</span>` : ''} ${sectBadgeHtml(s)}</div>
+                    <div class="student-name">${escHtml(s.name)} ${onLeave ? '<span class="leave-badge">請假</span>' : ''} ${s.title ? `<span class="title-badge">${escHtml(titleName(s.title))}</span>` : ''} ${sectBadgeHtml(s)}</div>
                     <div class="level-badge">Lv.${info.level}</div>
                 </div>
                 <div class="avatar-area ${auraClass}${aura ? ' has-aura' : ''}"${aura ? ` style="--aura-rgb:${aura.rgb}"` : ''}>
@@ -1507,6 +1699,7 @@
                 <div class="card-actions teacher-only">
                     ${quickButtonsHtml(index)}
                     <button class="pixel-btn action-btn-small info" onclick="openTitleModal(${index})">授予稱號</button>
+                    <button class="pixel-btn action-btn-small" onclick="toggleLeave(${index})">${onLeave ? '銷假' : '請假'}</button>
                 </div>`;
             grid.appendChild(card);
         });
@@ -1553,13 +1746,16 @@
 
     function pickRandomStudent() {
         if (!requireTeacher('點名')) return;
+        // 今天請假的人不進抽籤池
+        const present = students.map((s, i) => i).filter(i => !isOnLeave(students[i]));
+        if (!present.length) { showNotify(students.length ? '今天沒有可以點的人（全部請假）' : '還沒有弟子'); return; }
         playSfx(sfxClick);
         document.getElementById('battle-controls-start').style.display = 'none';
         document.getElementById('battle-student-gear').innerHTML = '';
         document.getElementById('battle-msg').innerText = "天道輪盤轉動中...";
 
         // 先決定最後抽中誰
-        let pool = students.map((s, i) => i);
+        let pool = present.slice();
         if (settings.drawNoRepeat) {
             // 抽過的人整輪都不再被抽，全班抽完自動重新開始
             const drawn = settings.drawnIds.map(String);
@@ -1571,7 +1767,7 @@
                 remain = pool.slice();
             }
             pool = remain;
-        } else if (students.length > 1 && lastPickedStudentId !== null) {
+        } else if (pool.length > 1 && lastPickedStudentId !== null) {
             // 沒開啟時，至少避免連續抽到同一人
             const filtered = pool.filter(i => String(students[i].id) !== String(lastPickedStudentId));
             if (filtered.length) pool = filtered;
@@ -1581,7 +1777,7 @@
         let speed = 50; let totalTime = 0; const maxTime = 2500;
         (function animateRoll() {
             const isLast = totalTime >= maxTime;
-            const randomIdx = isLast ? finalIdx : Math.floor(Math.random() * students.length);
+            const randomIdx = isLast ? finalIdx : present[Math.floor(Math.random() * present.length)];
             const s = students[randomIdx]; const info = getStudentInfo(s);
             currentBattleStudentIndex = randomIdx;
             document.getElementById('battle-student-name').innerText = s.name;
@@ -1695,24 +1891,18 @@
         const s = students[studentIndex];
         if (!s.inventory) s.inventory = [];
         const keys = Object.keys(ITEMS).filter(k => ITEMS[k].type === 'sword' && !s.inventory.includes(k));
-        const overlay = document.getElementById('item-get-overlay');
         if (!keys.length) {
             if (!guaranteed) return;
             s.coins = (s.coins || 0) + ALL_SWORDS_BONUS;
-            document.getElementById('item-get-img').src = BASE_URL + 'images/ui/icon_shop_pixel.png';
-            document.getElementById('item-get-name').innerText = `神兵已集齊！`;
-            document.getElementById('item-get-desc').innerText = `寶箱化為妖丹：再 +${ALL_SWORDS_BONUS}`;
+            showItemGet({ icon: BASE_URL + 'images/ui/icon_shop_pixel.png', title: `神兵已集齊！`, desc: `寶箱化為妖丹：再 +${ALL_SWORDS_BONUS}` });
         } else {
             const item = ITEMS[keys[Math.floor(Math.random() * keys.length)]];
             s.inventory.push(item.id);
             if (!s.equipped) s.equipped = {};
             if (!s.equipped.sword) s.equipped.sword = item.id;
-            document.getElementById('item-get-img').src = item.icon;
-            document.getElementById('item-get-name').innerText = `獲得神兵：${item.name}！`;
-            document.getElementById('item-get-desc').innerText = `戰鬥力 +${item.cp}`;
+            showItemGet({ icon: item.icon, title: `獲得神兵：${item.name}！`, desc: `戰鬥力 +${item.cp}` });
         }
         saveQuiet();
-        overlay.style.display = 'flex';
         playSfx(sfxGetItem);
     }
 
@@ -1779,6 +1969,27 @@
         return null;
     }
     function titleName(id) { return (TITLES[id] && TITLES[id].name) || id || ''; }
+
+    // ── v5：請假（只算當天，隔天打開自動恢復，不用記得銷假）──
+    function todayStr() {
+        var d = new Date();
+        var p = function (n) { return String(n).padStart(2, '0'); };
+        return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+    }
+    function isOnLeave(s) { return !!s && s.leaveDate === todayStr(); }
+    function toggleLeave(index) {
+        if (!requireTeacher('請假')) return;
+        var s = students[index];
+        if (!s) return;
+        var on = isOnLeave(s);
+        playSfx(sfxClick);
+        pushUndo(s.name + (on ? ' 銷假' : ' 請假'));
+        s.leaveDate = on ? null : todayStr();
+        saveQuiet();
+        renderGrid();
+        updateDrawInfo();
+        showNotify(on ? s.name + ' 已銷假' : s.name + ' 今天請假，點名不會點到（明天自動恢復）');
+    }
     function sectBadgeHtml(s) {
         var k = getSect(s.sectId);
         if (!k) return '';
@@ -1854,7 +2065,7 @@
         if (!sects.length) {
             var empty = document.createElement('div');
             empty.className = 'sect-empty';
-            empty.innerText = '還沒有門派。上面輸入名稱（讓學生自己取），按「立派」。';
+            empty.innerText = '還沒有門派。上面輸入名稱按「立派」，或按「建立預設六派」一次建好。';
             list.appendChild(empty);
         }
         sects.forEach(function (sect) {
@@ -1941,7 +2152,7 @@
 
         students.forEach(function (s, i) {
             var row = document.createElement('div');
-            row.className = 'sect-row';
+            row.className = 'sect-row assign-row' + (sectChecked[String(s.id)] ? ' checked' : '');
 
             var cb = document.createElement('input');
             cb.type = 'checkbox';
@@ -1950,6 +2161,7 @@
             cb.onchange = function () {
                 if (cb.checked) sectChecked[String(s.id)] = true;
                 else delete sectChecked[String(s.id)];
+                row.classList.toggle('checked', cb.checked);
                 updateCheckedCount();
             };
 
@@ -1959,9 +2171,16 @@
 
             var nm = document.createElement('span');
             nm.className = 'sect-assign-name';
+            var cur = getSect(s.sectId);
             nm.textContent = s.name;
-            nm.style.cursor = 'pointer';
-            nm.onclick = function () { cb.checked = !cb.checked; cb.onchange(); };
+
+            // 整列點下去就勾選；勾選框和門派下拉自己處理
+            row.onclick = function (e) {
+                if (e.target === cb || e.target === sel || sel.contains(e.target)) return;
+                cb.checked = !cb.checked;
+                cb.onchange();
+            };
+            if (cur) row.style.borderLeft = '4px solid ' + cur.color;
 
             var sel = document.createElement('select');
             sel.className = 'sect-assign-select';
@@ -1994,11 +2213,32 @@
         if (el) el.innerText = Object.keys(sectChecked).length;
     }
 
-    function batchCheckAll(on) {
+    // 不提供全選：全班不會在同一個門派，要分派全班請用「平均分配」
+    function clearSectChecked() {
         playSfx(sfxClick);
         sectChecked = {};
-        if (on) students.forEach(function (s) { sectChecked[String(s.id)] = true; });
         renderSectModal();
+    }
+
+    // v5：一鍵建立預設六派（同名的跳過，總數最多 12）
+    function addDefaultSects() {
+        if (!requireTeacher('建立門派')) return;
+        var names = {};
+        sects.forEach(function (k) { names[k.name] = true; });
+        var toAdd = DEFAULT_SECTS.filter(function (d) { return !names[d.name]; });
+        if (!toAdd.length) { showNotify('預設六派都已經建立了'); return; }
+        var room = 12 - sects.length;
+        if (room <= 0) { showNotify('門派數量已達上限（12）'); return; }
+        toAdd = toAdd.slice(0, room);
+        playSfx(sfxGetItem);
+        pushUndo('建立預設門派');
+        toAdd.forEach(function (d) {
+            sects.push({ id: uidSect(), name: d.name, emblem: d.emblem, color: d.color });
+        });
+        saveQuiet();
+        renderSectModal();
+        renderGrid();
+        showNotify('已建立 ' + toAdd.map(function (d) { return d.name; }).join('、'));
     }
 
     // 共用：把一群弟子放進同一個門派，只記一次復原
@@ -2225,16 +2465,25 @@
         playSfx(sfxClick);
         document.getElementById('grant-modal').style.display = 'none';
     }
-    function setGrantAmount(n) {
-        document.getElementById('grant-amount').value = n;
+    function setGrantAmount(kind, n) {
+        document.getElementById(kind === 'exp' ? 'grant-exp' : 'grant-coins').value = n;
+    }
+    function readGrantAmount(id) {
+        var raw = document.getElementById(id).value;
+        if (String(raw).trim() === '') return 0;
+        var n = Math.round(Number(raw));
+        return (isFinite(n) && Math.abs(n) <= 99999) ? n : NaN;
     }
 
+    // v5：妖丹和修為可以同一次一起給，只記一筆復原
     function doGrant() {
+        if (!requireTeacher('獎賞')) return;
         var target = document.getElementById('grant-target').value;
-        var kind = document.getElementById('grant-kind').value;
-        var amount = Math.round(Number(document.getElementById('grant-amount').value));
+        var coins = readGrantAmount('grant-coins');
+        var exp = readGrantAmount('grant-exp');
 
-        if (!isFinite(amount) || amount === 0) { showNotify('請先填要獎賞的數量'); return; }
+        if (isNaN(coins) || isNaN(exp)) { showNotify('數量要填 -99999 到 99999 之間的數字'); return; }
+        if (coins === 0 && exp === 0) { showNotify('請先填要獎賞的妖丹或修為'); return; }
 
         var targets = [], label = '';
         if (target === 'all') {
@@ -2253,34 +2502,38 @@
         }
         if (!targets.length) { showNotify('這個對象目前沒有弟子'); return; }
 
-        var kindName = kind === 'coins' ? '妖丹' : '修為';
-        var sign = amount > 0 ? '+' : '';
-        pushUndo(label + ' ' + kindName + ' ' + sign + amount);
+        var signed = function (n) { return (n > 0 ? '+' : '') + n; };
+        var parts = [];
+        if (coins) parts.push('妖丹 ' + signed(coins));
+        if (exp) parts.push('修為 ' + signed(exp));
+        var summary = parts.join('、');
+        pushUndo(label + ' ' + summary);
+
+        var floatParts = [];
+        if (coins) floatParts.push(signed(coins) + ' 妖丹');
+        if (exp) floatParts.push(signed(exp) + ' Exp');
 
         var leveledUp = false;
         targets.forEach(function (s) {
             var idx = students.indexOf(s);
-            if (kind === 'coins') {
-                s.coins = Math.max(0, parseInt(s.coins || 0) + amount);
-            } else {
+            if (coins) s.coins = Math.max(0, parseInt(s.coins || 0) + coins);
+            if (exp) {
                 var oldLvl = calculateLevel(s.exp);
-                s.exp = Math.max(0, s.exp + amount);
+                s.exp = Math.max(0, s.exp + exp);
                 if (calculateLevel(s.exp) > oldLvl) leveledUp = true;
             }
-            if (idx >= 0) {
-                showFloatText(sign + amount + (kind === 'coins' ? ' 妖丹' : ' Exp'), idx);
-            }
+            if (idx >= 0) showFloatText(floatParts.join(' '), idx);
         });
 
-        if (kind === 'coins') playSfx(amount > 0 ? sfxGetItem : sfxClick);
-        else if (leveledUp) { playSfx(sfxLevelUp); showLevelUpEffect(); }
+        if (leveledUp) { playSfx(sfxLevelUp); showLevelUpEffect(); }
+        else if (coins > 0) playSfx(sfxGetItem);
         else playSfx(sfxClick);
 
         saveQuiet();
         document.getElementById('grant-modal').style.display = 'none';
         renderGrid();
         if (document.getElementById('sect-modal').style.display === 'flex') renderSectModal();
-        showNotify(label + '（' + targets.length + ' 人）' + kindName + ' ' + sign + amount);
+        showNotify(label + '（' + targets.length + ' 人）' + summary);
     }
 
     // ── 匯出 / 匯入存檔 ──
@@ -2298,6 +2551,8 @@
                 // 故意不含口令雜湊，檔案給別人時不會把口令帶出去
                 quickButtons: settings.quickButtons,
                 rewardPrices: settings.rewardPrices,
+                rewardCards: settings.rewardCards,
+                retiredCards: settings.retiredCards,
                 drawNoRepeat: settings.drawNoRepeat,
                 malesUpTo: settings.malesUpTo
             }
@@ -2366,7 +2621,7 @@
                     if (result.settings) {
                         settings = sanitizeSettings(result.settings, settings);
                         saveSettings();
-                        applyRewardPrices();
+                        applyRewardCards();
                     }
                     lastPickedStudentId = null;
                     saveQuiet();
@@ -2447,7 +2702,8 @@
                 equipped: equipped,
                 outfit: (Number.isInteger(s.outfit) && s.outfit >= 0 && s.outfit < OUTFITS.length) ? s.outfit : null,
                 petStars: petStarsClean,
-                sectId: (sid && seenSect[sid]) ? sid : null
+                sectId: (sid && seenSect[sid]) ? sid : null,
+                leaveDate: (typeof s.leaveDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s.leaveDate)) ? s.leaveDate : null
             }));
         });
 
@@ -2474,12 +2730,14 @@
         { label: '-30 扣分', amount: -30, kind: 'exp' },
         { label: '+300 奇遇', amount: 300, kind: 'exp' }
     ];
-    const DEFAULT_REWARD_PRICES = {};
+    const RETIRED_CARD_MAX = 50;
 
     let settings = {
         passwordHash: null,
         quickButtons: null,
         rewardPrices: {},
+        rewardCards: null,     // null＝用預設 7 張
+        retiredCards: [],      // 從萬寶閣下架的卡（學生可能已經買了，要查得到名字）
         drawNoRepeat: false,
         drawnIds: [],
         malesUpTo: 15
@@ -2490,13 +2748,12 @@
 
     // ── 設定的讀寫與清洗 ──
     function loadSettings() {
-        REAL_REWARDS.forEach(function (r) { DEFAULT_REWARD_PRICES[r.id] = r.price; });
         let raw = null;
         try { raw = JSON.parse(localStorage.getItem(SETTINGS_KEY)); } catch (e) { raw = null; }
         if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
             settings = sanitizeSettings(raw, settings);
         }
-        applyRewardPrices();
+        applyRewardCards();
     }
 
     function saveSettings() {
@@ -2520,11 +2777,105 @@
             })()
         };
         const rp = (raw.rewardPrices && typeof raw.rewardPrices === 'object') ? raw.rewardPrices : {};
-        REAL_REWARDS.forEach(function (r) {
+        DEFAULT_REWARD_CARDS.forEach(function (r) {
             const v = Math.round(Number(rp[r.id]));
             if (isFinite(v) && v >= 1 && v <= 99999) out.rewardPrices[r.id] = v;
         });
+        out.retiredCards = sanitizeRetiredCards(raw.retiredCards);
+        if (Array.isArray(raw.rewardCards)) {
+            out.rewardCards = sanitizeRewardCards(raw.rewardCards);
+        } else if (Object.keys(out.rewardPrices).length) {
+            // v4 以前只存價格：用預設卡套上舊價格，匯入舊備份價格不會跑掉
+            out.rewardCards = DEFAULT_REWARD_CARDS.map(function (c) {
+                return { id: c.id, name: c.name, desc: c.desc, price: out.rewardPrices[c.id] || c.price };
+            });
+        } else {
+            out.rewardCards = null;
+        }
         return out;
+    }
+
+    // ── v5：自訂特權卡 ──
+    const CARD_ID_RE = /^card_[a-z0-9]{1,24}$/;
+
+    function cleanCardText(v, max) {
+        return typeof v === 'string' ? cleanName(v, max) : '';
+    }
+
+    // 清洗老師自訂的卡；不合格的卡丟掉，一張都不剩就回到預設（null）
+    function sanitizeRewardCards(arr) {
+        if (!Array.isArray(arr)) return null;
+        const out = [];
+        const seen = {};
+        arr.forEach(function (c) {
+            if (out.length >= REWARD_CARD_MAX) return;
+            if (!c || typeof c !== 'object') return;
+            const id = typeof c.id === 'string' ? c.id : '';
+            if (!CARD_ID_RE.test(id) || seen[id]) return;
+            const name = cleanCardText(c.name, 8);
+            const price = Math.round(Number(c.price));
+            if (!name || !isFinite(price) || price < 1 || price > 99999) return;
+            seen[id] = true;
+            out.push({ id: id, name: name, desc: cleanCardText(c.desc, 40), price: price });
+        });
+        return out.length ? out : null;
+    }
+
+    function sanitizeRetiredCards(arr) {
+        if (!Array.isArray(arr)) return [];
+        const out = [];
+        const seen = {};
+        arr.slice(-RETIRED_CARD_MAX).forEach(function (c) {
+            if (!c || typeof c !== 'object' || !CARD_ID_RE.test(c.id) || seen[c.id]) return;
+            const name = cleanCardText(c.name, 8);
+            if (!name) return;
+            seen[c.id] = true;
+            out.push({ id: c.id, name: name, desc: cleanCardText(c.desc, 40) });
+        });
+        return out;
+    }
+
+    function cardIcon(id) {
+        const def = DEFAULT_REWARD_CARDS.find(function (c) { return c.id === id; });
+        if (def) return def.icon;
+        let sum = 0;
+        for (let i = 0; i < id.length; i++) sum += id.charCodeAt(i);
+        return REWARD_ICONS[sum % REWARD_ICONS.length];
+    }
+
+    // 把設定裡的卡套到萬寶閣
+    function applyRewardCards() {
+        const list = settings.rewardCards || DEFAULT_REWARD_CARDS;
+        REAL_REWARDS = list.map(function (c) {
+            return { id: c.id, name: c.name, desc: c.desc || '', price: c.price, type: 'consumable', icon: cardIcon(c.id) };
+        });
+    }
+
+    // 換一批卡：沒出現在新清單的舊卡移到「已下架」，重新上架的從已下架拿掉
+    function commitRewardCards(nextCards) {
+        const nextList = nextCards || DEFAULT_REWARD_CARDS;
+        const nextIds = {};
+        nextList.forEach(function (c) { nextIds[c.id] = true; });
+        let retired = (settings.retiredCards || []).filter(function (c) { return !nextIds[c.id]; });
+        REAL_REWARDS.forEach(function (c) {
+            if (nextIds[c.id]) return;
+            retired = retired.filter(function (r) { return r.id !== c.id; });
+            retired.push({ id: c.id, name: c.name, desc: c.desc || '' });
+        });
+        settings.retiredCards = retired.slice(-RETIRED_CARD_MAX);
+        settings.rewardCards = nextCards;
+        // 留一份舊格式價格，舊版程式讀這個備份也不會出錯
+        settings.rewardPrices = {};
+        nextList.forEach(function (c) {
+            const def = DEFAULT_REWARD_CARDS.find(function (d) { return d.id === c.id; });
+            if (def && def.price !== c.price) settings.rewardPrices[c.id] = c.price;
+        });
+        saveSettings();
+        applyRewardCards();
+    }
+
+    function newCardId() {
+        return 'card_u' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
     }
 
     function sanitizeQuickButtons(arr) {
@@ -2542,13 +2893,6 @@
     }
 
     function quickButtons() { return settings.quickButtons || DEFAULT_QUICK_BUTTONS; }
-
-    function applyRewardPrices() {
-        REAL_REWARDS.forEach(function (r) {
-            const v = settings.rewardPrices ? settings.rewardPrices[r.id] : null;
-            r.price = v || DEFAULT_REWARD_PRICES[r.id];
-        });
-    }
 
     // ── 權限守門：會動到經驗值與妖丹的都要師尊 ──
     function requireTeacher(what) {
@@ -2645,7 +2989,7 @@
     function remainingDrawCount() {
         if (!settings.drawNoRepeat) return null;
         const drawn = settings.drawnIds.map(String);
-        return students.filter(function (s) { return drawn.indexOf(String(s.id)) < 0; }).length;
+        return students.filter(function (s) { return !isOnLeave(s) && drawn.indexOf(String(s.id)) < 0; }).length;
     }
 
     function updateDrawInfo() {
@@ -2678,6 +3022,7 @@
     function openSettingsModal() {
         if (!requireTeacher('設定')) return;
         playSfx(sfxClick);
+        cardDraft = null;   // 上次沒儲存的特權卡修改不留
         renderSettingsModal();
         document.getElementById('settings-modal').style.display = 'flex';
     }
@@ -2737,34 +3082,9 @@
             list.appendChild(row);
         });
 
-        // 特權卡價格
-        const prices = document.getElementById('set-price-list');
-        prices.innerHTML = '';
-        REAL_REWARDS.forEach(function (r) {
-            const row = document.createElement('div');
-            row.className = 'set-row';
-
-            const nm = document.createElement('span');
-            nm.className = 'set-price-name';
-            nm.textContent = r.name;
-
-            const inp = document.createElement('input');
-            inp.type = 'number';
-            inp.className = 'set-price-input';
-            inp.dataset.rewardId = r.id;
-            inp.value = r.price;
-            inp.min = 1;
-            inp.max = 99999;
-
-            const hint = document.createElement('span');
-            hint.className = 'set-price-hint';
-            hint.textContent = '原價 ' + DEFAULT_REWARD_PRICES[r.id];
-
-            row.appendChild(nm);
-            row.appendChild(inp);
-            row.appendChild(hint);
-            prices.appendChild(row);
-        });
+        // 特權卡（正在編輯還沒儲存的，重畫時保留）
+        if (cardDraft) cardDraft = readCardRows();
+        renderCardRows(cardDraft || REAL_REWARDS);
 
         // 抽籤
         document.getElementById('set-draw-norepeat').checked = !!settings.drawNoRepeat;
@@ -2822,29 +3142,116 @@
         showNotify('卡片按鈕已還原預設');
     }
 
-    function saveRewardPrices() {
-        const inputs = document.querySelectorAll('#set-price-list .set-price-input');
-        const next = {};
-        let bad = 0;
-        inputs.forEach(function (inp) {
-            const v = Math.round(Number(inp.value));
-            if (!isFinite(v) || v < 1 || v > 99999) { bad++; return; }
-            if (v !== DEFAULT_REWARD_PRICES[inp.dataset.rewardId]) next[inp.dataset.rewardId] = v;
+    // ── 設定面板：校園特權卡 ──
+    let cardDraft = null;
+
+    function renderCardRows(list) {
+        const box = document.getElementById('set-card-list');
+        box.innerHTML = '';
+        list.forEach(function (c, i) {
+            const row = document.createElement('div');
+            row.className = 'set-row set-card-row';
+            row.dataset.cardId = c.id;
+
+            const name = document.createElement('input');
+            name.type = 'text';
+            name.className = 'set-card-name';
+            name.maxLength = 8;
+            name.placeholder = '名稱';
+            name.value = c.name;
+
+            const price = document.createElement('input');
+            price.type = 'number';
+            price.className = 'set-card-price';
+            price.min = 1;
+            price.max = 99999;
+            price.value = c.price;
+            price.title = '價格（妖丹）';
+
+            const del = document.createElement('button');
+            del.className = 'pixel-btn action-btn-small';
+            del.style.color = '#ff6b6b';
+            del.style.borderColor = '#581212';
+            del.innerText = '刪除';
+            del.onclick = function () { removeRewardCard(i); };
+
+            const desc = document.createElement('input');
+            desc.type = 'text';
+            desc.className = 'set-card-desc';
+            desc.maxLength = 40;
+            desc.placeholder = '說明（例如：午休可以趴睡一次）';
+            desc.value = c.desc || '';
+
+            row.appendChild(name);
+            row.appendChild(price);
+            row.appendChild(del);
+            row.appendChild(desc);
+            box.appendChild(row);
         });
-        if (bad) { showNotify('價格要填 1 到 99999 之間的數字'); return; }
-        settings.rewardPrices = next;
-        saveSettings();
-        applyRewardPrices();
-        renderSettingsModal();
-        showNotify('特權卡價格已更新');
     }
 
-    function resetRewardPrices() {
-        settings.rewardPrices = {};
-        saveSettings();
-        applyRewardPrices();
+    function readCardRows() {
+        const rows = document.querySelectorAll('#set-card-list .set-card-row');
+        const arr = [];
+        rows.forEach(function (row) {
+            arr.push({
+                id: row.dataset.cardId,
+                name: row.querySelector('.set-card-name').value,
+                desc: row.querySelector('.set-card-desc').value,
+                price: row.querySelector('.set-card-price').value
+            });
+        });
+        return arr;
+    }
+
+    function addRewardCard() {
+        const list = readCardRows();
+        if (list.length >= REWARD_CARD_MAX) { showNotify('最多 ' + REWARD_CARD_MAX + ' 張特權卡'); return; }
+        list.push({ id: newCardId(), name: '', desc: '', price: 500 });
+        cardDraft = list;
+        renderCardRows(list);
+        const inputs = document.querySelectorAll('#set-card-list .set-card-name');
+        if (inputs.length) inputs[inputs.length - 1].focus();
+    }
+
+    function removeRewardCard(i) {
+        const list = readCardRows();
+        if (list.length <= 1) { showNotify('至少要留一張特權卡'); return; }
+        list.splice(i, 1);
+        cardDraft = list;
+        renderCardRows(list);
+    }
+
+    function saveRewardCards() {
+        if (!requireTeacher('修改特權卡')) return;
+        const list = readCardRows();
+        for (let i = 0; i < list.length; i++) {
+            const c = list[i];
+            if (!cleanCardText(c.name, 8)) { showNotify('第 ' + (i + 1) + ' 張還沒有名稱'); return; }
+            const p = Math.round(Number(c.price));
+            if (!isFinite(p) || p < 1 || p > 99999) { showNotify('「' + cleanCardText(c.name, 8) + '」的價格要填 1 到 99999'); return; }
+        }
+        const clean = sanitizeRewardCards(list);
+        if (!clean) { showNotify('至少要留一張有效的特權卡'); return; }
+        cardDraft = null;
+        commitRewardCards(clean);
         renderSettingsModal();
-        showNotify('特權卡價格已還原');
+        showNotify('特權卡已更新（學生已經買的卡不受影響）');
+    }
+
+    function resetRewardCards() {
+        if (!requireTeacher('修改特權卡')) return;
+        showCustomModal({
+            title: '還原預設特權卡',
+            msg: '萬寶閣會換回原本的 7 張特權卡。自訂的卡不再販賣，但學生已經買的還在行囊裡，照樣可以使用。',
+            showCancel: true,
+            onConfirm: function () {
+                cardDraft = null;
+                commitRewardCards(null);
+                renderSettingsModal();
+                showNotify('特權卡已還原預設');
+            }
+        });
     }
 
     // ── Excel／CSV 匯入班級名單 ──
