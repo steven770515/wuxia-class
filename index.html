@@ -149,6 +149,91 @@
         .student-card.on-leave .avatar-area, .student-card.on-leave .card-header, .student-card.on-leave .stat-row { filter: grayscale(0.9); opacity: 0.55; }
         .leave-badge { padding: 2px 6px; border: 1px solid #aaa; color: #ddd; background: rgba(0,0,0,0.4); border-radius: 6px; font-size: 0.75rem; }
         #item-get-swatch { width: 100px; height: 100px; margin: 0 auto; }
+        /* ── v6：寶箱圖、題庫、答題對戰 ── */
+        .shop-card img.chest-img { width: 120px; height: 120px; margin: -12px 0; }
+        .chest-credit { color: #888; font-size: 0.72rem; border-bottom: none; text-align: center; }
+        .chest-sprite { width: 144px; height: 144px; margin: 0 auto; background-repeat: no-repeat; background-size: 432px 144px; background-position: 0 0; image-rendering: pixelated; }
+        .chest-sprite.opening { animation: chestOpen 0.6s steps(2) 0.15s forwards; }
+        @keyframes chestOpen { from { background-position: 0 0; } to { background-position: -288px 0; } }
+
+        #qbank-modal, #duel-setup-modal, #duel-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: center; flex-direction: column; }
+        #duel-modal { z-index: 1500; background: rgba(0,0,0,0.92); }
+        .qbank-panel { width: 640px; }
+        .qbank-panel > * { flex-shrink: 0; }
+        .sect-create .qb-meta input[type=text] { width: 130px; font-size: 0.95rem; }
+        .sect-create .qb-opt input[type=text] { width: auto; }
+        .qb-text { width: 100%; min-height: 58px; box-sizing: border-box; resize: vertical; background: rgba(0,0,0,0.3); border: 2px solid var(--border-color); color: var(--text-beige); padding: 8px; font-family: inherit; font-size: 1rem; }
+        .qb-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+        .qb-opt { display: flex; align-items: center; gap: 5px; color: var(--text-gold); font-weight: bold; }
+        .qb-opt input[type=text] { flex: 1; min-width: 0; }
+        .qb-opt input[type=radio] { width: 18px; height: 18px; accent-color: #48d46d; margin: 0; }
+        .qb-meta input { width: 110px; }
+        .qb-row { display: flex; align-items: center; gap: 8px; padding: 7px 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(112, 80, 48, 0.5); }
+        .qb-row-main { flex: 1; min-width: 0; }
+        .qb-row-text { color: var(--text-beige); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .qb-row-meta { color: #aaa; font-size: 0.78rem; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .qb-tag { color: #80ffea; margin-right: 6px; }
+        .qb-format table { border-collapse: collapse; font-size: 0.78rem; color: var(--text-beige); }
+        .qb-format td, .qb-format th { border: 1px solid #503010; padding: 3px 6px; white-space: nowrap; }
+        .qb-format th { color: var(--text-gold); }
+        .qb-import-bad { color: #ff9b9b; font-size: 0.8rem; }
+
+        .duel-pick-row { display: flex; align-items: center; gap: 10px; }
+        .duel-pick { flex: 1; display: flex; flex-direction: column; gap: 6px; align-items: stretch; min-width: 0; }
+        .duel-pick select { width: 100%; font-size: 1rem; padding: 6px; }
+        .duel-side-label { color: var(--text-brown); font-size: 0.85rem; text-align: center; }
+        .duel-cp { color: var(--text-gold); text-align: center; font-size: 0.9rem; min-height: 1.2em; }
+        .duel-vs { color: #ff6b6b; font-size: 1.6rem; font-weight: bold; text-shadow: 2px 2px 0 #000; }
+
+        #duel-stage { width: min(1180px, 96vw); height: min(720px, 94vh); box-sizing: border-box; background-color: #1f1812; background-size: cover; background-position: center; position: relative; border: 4px solid #302010; display: flex; flex-direction: column; gap: 10px; padding: 14px; overflow: hidden; }
+        .duel-head { flex: 1; display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 12px; min-height: 0; }
+        .duel-side { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 6px; min-width: 0; }
+        .duel-name { background: rgba(0,0,0,0.75); color: var(--text-gold); padding: 3px 10px; border: 1px solid var(--border-color); font-size: 1.3rem; font-weight: bold; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .duel-sub { color: #ddd; font-size: 0.85rem; text-shadow: 1px 1px 0 #000; }
+        .duel-hp { width: 90%; height: 18px; background: rgba(0,0,0,0.7); border: 2px solid #000; position: relative; }
+        .duel-hp-fill { height: 100%; background: linear-gradient(to bottom, #6fe38a, #269f43); transition: width 0.45s ease-out; }
+        .duel-hp-fill.low { background: linear-gradient(to bottom, #ff8a7a, #b83224); }
+        .duel-hp-text { position: absolute; inset: 0; text-align: center; font-size: 0.75rem; line-height: 14px; color: #fff; text-shadow: 1px 1px 0 #000; }
+        .duel-fig { position: relative; display: flex; justify-content: center; align-items: flex-end; height: 190px; }
+        .duel-fig .duel-img { position: relative; z-index: 2; height: 180px; image-rendering: pixelated; filter: drop-shadow(0 0 10px rgba(255,255,255,0.25)); }
+        .duel-fig .duel-gear { position: absolute; inset: 0; pointer-events: none; }
+        #duel-side-R .duel-fig { transform: scaleX(-1); }
+        .duel-center { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; min-width: 0; }
+        .duel-round { color: var(--text-brown); font-size: 0.95rem; text-shadow: 1px 1px 0 #000; }
+        .duel-timer { font-size: 2.2rem; font-weight: bold; color: var(--text-gold); text-shadow: 2px 2px 0 #000; }
+        .duel-timer.urgent { color: #ff6b6b; }
+        .duel-question { background: rgba(30,22,14,0.95); border: 3px solid var(--border-color); color: #fff; font-size: clamp(1.2rem, 2.4vw, 2rem); line-height: 1.45; padding: 16px 20px; text-align: center; width: 100%; box-sizing: border-box; word-break: break-word; }
+        .duel-result:empty { visibility: hidden; }
+        .duel-result { background: rgba(0,0,0,0.6); padding: 4px 14px; white-space: pre-line; min-height: 2.2em; color: var(--text-gold); font-size: 1.25rem; text-align: center; text-shadow: 1px 1px 0 #000; }
+        .duel-answers { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        .duel-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; position: relative; padding: 8px; border: 2px dashed rgba(140,111,79,0.6); background: rgba(0,0,0,0.35); }
+        .duel-opts.side-L { border-color: rgba(0,210,255,0.6); }
+        .duel-opts.side-R { border-color: rgba(255,107,107,0.6); }
+        .duel-opt { font-family: inherit; font-size: clamp(1rem, 1.8vw, 1.4rem); min-height: 64px; padding: 8px 10px; background: linear-gradient(to bottom, #c89a6a, #8c6a45); color: #fff; border: 3px solid #403020; cursor: pointer; text-align: left; display: flex; gap: 8px; align-items: center; touch-action: manipulation; user-select: none; word-break: break-word; }
+        .duel-opt .duel-letter { color: #ffd700; font-weight: bold; text-shadow: 1px 1px 0 #000; }
+        .duel-opt .duel-key { margin-left: auto; font-size: 0.7em; color: rgba(255,255,255,0.6); }
+        .duel-opts.locked .duel-opt { filter: grayscale(0.8) brightness(0.7); cursor: default; }
+        /* 作答後先不標出選了哪個，免得另一邊偷看；公布時才框起來 */
+        .duel-opts.revealed .duel-opt { filter: grayscale(0.6) brightness(0.6); }
+        .duel-opts.revealed .duel-opt.picked { outline: 3px solid #fff; }
+        .duel-opts.revealed .duel-opt.correct { filter: none; background: linear-gradient(to bottom, #48d46d, #269f43); }
+        .duel-opts.revealed .duel-opt.wrong.picked { filter: none; background: linear-gradient(to bottom, #d44848, #9f2626); }
+        .duel-lock { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: #000; color: #fff; font-size: 0.8rem; padding: 1px 10px; border: 1px solid #fff; display: none; z-index: 3; white-space: nowrap; }
+        .duel-opts.locked .duel-lock { display: block; }
+        .duel-controls { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+        .duel-dmg { position: absolute; left: 50%; top: 30%; transform: translateX(-50%); color: #ff5a4a; font-size: 2.6rem; font-weight: bold; text-shadow: 2px 2px 0 #000; animation: levelUpFloat 1.4s forwards; pointer-events: none; z-index: 20; white-space: nowrap; }
+        .duel-end { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; }
+        .duel-end h2 { margin: 0; color: var(--text-gold); font-size: 2.4rem; text-shadow: 3px 3px 0 #000; }
+        .duel-underdog { color: #ff6b6b; font-size: 1.8rem; font-weight: bold; text-shadow: 2px 2px 0 #000; animation: bounce 1s infinite; }
+        .duel-reward { color: var(--text-beige); font-size: 1.1rem; line-height: 1.6; }
+        @media (max-width: 760px) {
+            .duel-head { grid-template-columns: 1fr 1fr; }
+            .duel-center { grid-column: 1 / -1; order: -1; }
+            .duel-fig { height: 110px; }
+            .duel-fig .duel-img { height: 100px; }
+            .duel-answers { gap: 8px; }
+            .qb-opts { grid-template-columns: 1fr; }
+        }
         #set-pw-new, #set-pw-again { width: 118px; }
         .excel-inline { color: var(--text-brown); font-size: 0.85rem; display: flex; align-items: center; gap: 4px; }
         .excel-inline input { width: 62px; }
@@ -352,6 +437,8 @@
             <button class="pixel-btn gold" onclick="openShopDirect()">💰 萬寶閣</button>
             <button class="pixel-btn gold" onclick="openLeaderboard()">🏆 戰力榜</button>
             <button class="pixel-btn teacher-only" style="display:none;" onclick="openBattleModal()">⚔️ 隨機歷練</button>
+            <button class="pixel-btn primary teacher-only" style="display:none;" onclick="openDuelSetup()">🥊 對戰</button>
+            <button class="pixel-btn teacher-only" style="display:none;" onclick="openQbankModal()">📜 題庫</button>
             <div style="width: 20px;"></div>
 
             <button id="loginBtn" class="pixel-btn" onclick="toggleTeacherMode()">🔑 師尊登入</button>
@@ -516,9 +603,144 @@
             <h2 style="color:var(--text-gold); margin:0 0 10px 0;">✨ 機緣已到 ✨</h2>
             <img id="item-get-img" src="" style="width:100px; height:100px; image-rendering:pixelated; border:2px solid #fff; border-radius:5px; background:rgba(0,0,0,0.5);">
             <div id="item-get-swatch" class="aura-swatch" style="display:none;"></div>
+            <div id="item-get-chest" class="chest-sprite" style="display:none;"></div>
             <p id="item-get-name" style="color:var(--text-beige); font-size:1.5rem; margin:10px 0;">獲得 神獸！</p>
             <p id="item-get-desc" style="color:var(--text-brown); font-size:1rem; margin:0;">成功收服了妖獸！</p>
         <br><button class="pixel-btn success" onclick="document.getElementById('item-get-overlay').style.display='none'">收下</button>
+    </div>
+</div>
+
+<!-- v6：題庫 -->
+<div id="qbank-modal">
+    <div class="pixel-border sect-panel qbank-panel">
+        <h2 class="sect-panel-title">📜 題庫</h2>
+
+        <div class="sect-create">
+            <textarea id="qb-text" class="qb-text" maxlength="150" placeholder="題目（最多 150 字）"></textarea>
+            <div class="qb-opts">
+                <label class="qb-opt"><input type="radio" name="qb-answer" value="0" checked> A <input type="text" id="qb-opt-0" maxlength="40" placeholder="選項 A"></label>
+                <label class="qb-opt"><input type="radio" name="qb-answer" value="1"> B <input type="text" id="qb-opt-1" maxlength="40" placeholder="選項 B"></label>
+                <label class="qb-opt"><input type="radio" name="qb-answer" value="2"> C <input type="text" id="qb-opt-2" maxlength="40" placeholder="選項 C（可空白）"></label>
+                <label class="qb-opt"><input type="radio" name="qb-answer" value="3"> D <input type="text" id="qb-opt-3" maxlength="40" placeholder="選項 D（可空白）"></label>
+            </div>
+            <div class="sect-batch-row qb-meta">
+                <span class="sect-picker-label">科目</span><input type="text" id="qb-subject" maxlength="12" placeholder="例如 國語">
+                <span class="sect-picker-label">單元</span><input type="text" id="qb-unit" maxlength="12" placeholder="例如 第三課">
+            </div>
+            <p class="set-hint">左邊圓圈點選正確答案。選項至少填 A、B 兩個。</p>
+            <div class="sect-batch-row">
+                <button class="pixel-btn success" id="qb-save-btn" onclick="saveQuestionForm()">新增題目</button>
+                <button class="pixel-btn" onclick="resetQuestionForm()">清空</button>
+            </div>
+        </div>
+
+        <div class="sect-section-label">題目清單（<span id="qb-count">0</span> 題）</div>
+        <div class="sect-batch-row">
+            <select id="qb-filter" class="sect-assign-select" style="width:auto; max-width:220px;" onchange="renderQuestionList()"></select>
+            <button class="pixel-btn action-btn-small info" onclick="document.getElementById('qb-file').click()">📊 Excel 匯入題目</button>
+            <button class="pixel-btn action-btn-small" onclick="toggleQbFormat()">Excel 格式說明</button>
+            <input type="file" id="qb-file" accept=".xlsx,.xls,.csv" style="display:none;" onchange="handleQuestionFile(this)">
+        </div>
+        <div id="qb-format" class="excel-preview qb-format" style="display:none;">
+            <div class="excel-note">第一列放欄位名稱，一列一題。只讀第一個工作表。答案可以填 A～D，也可以直接填正確選項的文字。科目、單元可以不填。</div>
+            <table>
+                <tr><th>題目</th><th>選項A</th><th>選項B</th><th>選項C</th><th>選項D</th><th>答案</th><th>科目</th><th>單元</th></tr>
+                <tr><td>「蜿蜒」的意思是？</td><td>彎曲延伸</td><td>快速奔跑</td><td>高聳入雲</td><td>安靜無聲</td><td>A</td><td>國語</td><td>第三課</td></tr>
+                <tr><td>12 × 8 = ?</td><td>86</td><td>96</td><td>106</td><td></td><td>96</td><td>數學</td><td>乘法</td></tr>
+            </table>
+        </div>
+        <div id="qb-import" class="set-block" style="display:none;">
+            <div id="qb-import-preview"></div>
+            <div class="set-row">
+                <label class="set-check"><input type="radio" name="qb-import-mode" value="append" checked> 加在現有題目後面</label>
+                <label class="set-check"><input type="radio" name="qb-import-mode" value="replace"> 取代全部題目</label>
+            </div>
+            <div class="set-row set-actions">
+                <button class="pixel-btn action-btn-small success" id="qb-import-confirm" onclick="confirmQuestionImport()">確認匯入</button>
+                <button class="pixel-btn action-btn-small" onclick="cancelQuestionImport()">取消</button>
+            </div>
+        </div>
+        <div id="qb-list" class="sect-scroll" style="max-height:300px;"></div>
+        <button class="pixel-btn" onclick="closeQbankModal()">關閉</button>
+    </div>
+</div>
+
+<!-- v6：對戰開場 -->
+<div id="duel-setup-modal">
+    <div class="pixel-border sect-panel" style="width:540px;">
+        <h2 class="sect-panel-title">🥊 答題對戰</h2>
+        <div class="lb-tabs">
+            <button class="pixel-btn action-btn-small lb-tab active" id="duel-tab-solo" onclick="setDuelMode('solo')">個人對戰</button>
+            <button class="pixel-btn action-btn-small lb-tab" id="duel-tab-sect" onclick="setDuelMode('sect')">門派對戰</button>
+        </div>
+        <div class="duel-pick-row">
+            <div class="duel-pick">
+                <div class="duel-side-label">左方（鍵盤 1 2 3 4）</div>
+                <select id="duel-left" onchange="updateDuelSetupInfo()"></select>
+                <div id="duel-left-cp" class="duel-cp"></div>
+            </div>
+            <div class="duel-vs">VS</div>
+            <div class="duel-pick">
+                <div class="duel-side-label">右方（鍵盤 7 8 9 0）</div>
+                <select id="duel-right" onchange="updateDuelSetupInfo()"></select>
+                <div id="duel-right-cp" class="duel-cp"></div>
+            </div>
+        </div>
+        <div class="sect-batch-row" style="justify-content:center;">
+            <button class="pixel-btn action-btn-small" id="duel-random-btn" onclick="duelRandomPick()">🎲 隨機挑兩位</button>
+        </div>
+        <label class="grant-field"><span>題目</span><select id="duel-scope" onchange="updateDuelSetupInfo()"></select></label>
+        <label class="grant-field"><span>每題</span>
+            <select id="duel-time">
+                <option value="10">10 秒</option>
+                <option value="15">15 秒</option>
+                <option value="20" selected>20 秒</option>
+                <option value="30">30 秒</option>
+                <option value="45">45 秒</option>
+            </select>
+        </label>
+        <p id="duel-hint" class="grant-hint"></p>
+        <p class="set-hint">雙方各 100 血，答對就打對方；兩邊都答對，比較快的打。戰力比較高的一方傷害最多 +30%，戰力比較低的一方打贏是「以弱勝強」，獎勵加倍。</p>
+        <div class="grant-actions">
+            <button class="pixel-btn" onclick="closeDuelSetup()">取消</button>
+            <button class="pixel-btn success" onclick="startDuel()">⚔️ 開戰</button>
+        </div>
+    </div>
+</div>
+
+<!-- v6：對戰畫面 -->
+<div id="duel-modal">
+    <div id="duel-stage" class="pixel-border">
+        <div class="flash-overlay" id="duel-flash"></div>
+        <div class="duel-head">
+            <div class="duel-side" id="duel-side-L">
+                <div class="duel-name" id="duel-name-L"></div>
+                <div class="duel-sub" id="duel-sub-L"></div>
+                <div class="duel-hp"><div class="duel-hp-fill" id="duel-hp-L"></div><div class="duel-hp-text" id="duel-hp-text-L"></div></div>
+                <div class="duel-fig"><div class="duel-gear" id="duel-gear-L"></div><img class="duel-img" id="duel-img-L" alt=""></div>
+            </div>
+            <div class="duel-center" id="duel-center">
+                <div class="duel-round" id="duel-round"></div>
+                <div class="duel-timer" id="duel-timer"></div>
+                <div class="duel-question" id="duel-question"></div>
+                <div class="duel-result" id="duel-result"></div>
+            </div>
+            <div class="duel-side" id="duel-side-R">
+                <div class="duel-name" id="duel-name-R"></div>
+                <div class="duel-sub" id="duel-sub-R"></div>
+                <div class="duel-hp"><div class="duel-hp-fill" id="duel-hp-R"></div><div class="duel-hp-text" id="duel-hp-text-R"></div></div>
+                <div class="duel-fig"><div class="duel-gear" id="duel-gear-R"></div><img class="duel-img" id="duel-img-R" alt=""></div>
+            </div>
+        </div>
+        <div class="duel-answers" id="duel-answers">
+            <div class="duel-opts side-L" id="duel-opts-L"></div>
+            <div class="duel-opts side-R" id="duel-opts-R"></div>
+        </div>
+        <div class="duel-controls" id="duel-controls">
+            <button class="pixel-btn success" id="duel-next-btn" onclick="duelNextQuestion()" style="display:none;">下一題 ▶</button>
+            <button class="pixel-btn" id="duel-pause-btn" onclick="toggleDuelPause()">⏸ 暫停</button>
+            <button class="pixel-btn primary" id="duel-quit-btn" onclick="endDuelEarly()">結束對戰</button>
+        </div>
     </div>
 </div>
 
@@ -765,7 +987,7 @@
     document.addEventListener('click', () => { if (isMusicEnabled && bgmMain.paused && bgmBattle.paused && document.getElementById('battle-modal').style.display === 'none') playBGM('main'); }, {once:true});
 
     // 通用系統彈窗
-    function showCustomModal({ title, msg, hasInput = false, isPassword = false, showCancel = false, onConfirm }) {
+    function showCustomModal({ title, msg, hasInput = false, isPassword = false, showCancel = false, onConfirm, onCancel }) {
         const modal = document.getElementById('system-modal');
         document.getElementById('modal-title').innerText = title || "提示";
         document.getElementById('modal-msg').innerText = msg || "";
@@ -779,7 +1001,7 @@
 
         const cancelBtn = document.getElementById('modal-cancel-btn');
         cancelBtn.style.display = showCancel ? 'block' : 'none';
-        cancelBtn.onclick = () => modal.style.display = 'none';
+        cancelBtn.onclick = () => { modal.style.display = 'none'; if (onCancel) onCancel(); };
 
         const confirmBtn = document.getElementById('modal-confirm-btn');
         const newConfirmBtn = confirmBtn.cloneNode(true);
@@ -872,6 +1094,20 @@
         { tier: 2, name: '靈品', emptyRate: 0.1 },
         { tier: 3, name: '仙品', emptyRate: 0 }
     ];
+
+    // v6：寶箱圖（Yevhen Babiichuk (DustDFG)〈Animated Pixel Art Treasure Chests〉CC-BY 4.0，顏色有調整：凡品改木色、靈品改藍銀）
+    // full／empty 是 144×48 三格開箱動畫（有金幣／空的），closed 是 48×48 關著的樣子
+    const CHEST_IMG = {
+        '1_closed': 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAABWUlEQVR42u2WzUrDQBSFT0ooWEKUWCQWF5KFuJDuzQv4Cn2WPpGv4NZF3IuL0kVWEoeiIS3BRQjWhU0paccxP9SknG+X3Dskc+eeORcghBBCCCGElETb9XI8cpcAYBu6dKGIU6hysjw/CKXx+8eJVusGxiN3+fHs4+iyL13UM034QYjj96hynojTSpvQ8j/f/UpgmT1lRa9to5Y8APCms9Kb6LRdA1sN/PbyikjRFnXmVaX1J3B4LXR+c6EUZ515ACCmM57AmqTTXVdPhjOwkGxU+TcmIgZEvL8N5E1MZUayeHYLqcwOfyxEaQ2oelkWb6wGRJzCq/BBXqNFnXjTUZOhg6cH72d+WU2iMsfdlxPrRZI/Fwvc3rnwg1A5RjfGyPJizJ6dgdUIERcuo23osK/O2qmBSOID/6mBw7uFTofOztEBq56XjRay+Lx/gnkFpyWEEEIIIXK+AVoSvC+3vi8fAAAAAElFTkSuQmCC',
+        '1_empty': 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJAAAAAwCAYAAAD+WvNWAAACwUlEQVR42u2awYraUBSG/0gYqgRHrJSMzEKyGIQOs6+LbvsKPosP0GeZV+i2i3RfpiAuQheDI2IlShiKSO3CRmzG3FyTexPN/N9GJAc99+Q/5557EoAQQgghhBBCCCGEEEIIIYQQQsgLjLIvcNDvbS7+rNCs14R2k2ANbzxH17akbaPcfx0aFFDJxPPru4dqpyW0q9Xr8MZzXM58adt9oYVimgRrrSIa9HsbHb97KBlkk8IUOWpbpjALk2xE2ao7a3WK53Lmw7fMnYCcdhPeeA7bMtH/2N3oFFF0TU67mV1AALq2BQB4engEAFzdXgNA4nqMNIGXDbqMnY6s1bltdW0LfvD74A3UXYni7k3DepPpd4eTYBeDcA3hun64Iyxajdj1mIcC/753Ixf0m3eZ7Zzth/KsXVUudlVShNNuYrVXUUVlPgzyfqC98XwX7LAS5c2+oFVT7bSwEMTGLGPv8/neNQb93kZ2a5LBtsxtpgJo1mv/iSUqoslo+mqa6BcCenp4hJ+wLam00y4iAPg5Q7XTytwvOADc0TRRRHmT9X+zCN4sc3ZEReQp6Be6tiVVifJkvnw+nQpUdhFB83bmjqa5z4N09kBHC+jq9lp4IgmbTVV2WUto2u1Mh4iKEM/J9UCvpRKp7omGk6AQ8ajYMkUJnDSSMHROOo850qoIPv1P77+ySXR0UJU0DIy7Hp7CZI7RMvMapJzU0n85/9MmQGIPlNTLxF0vqgei//n6Xzl6vwzWcM94UEb/1VIBITon0fsT5dWdg29f3O28499RNm7iXNQkmv7n6/9Rx/jn5RIfPvV2ry6cG/S/gEFitBkLv4fzh3NrQul/wc/CbMuELXg949Sh/wX2QH7MHOJcegj6z1MYOfVT2Ns7BweftwieuYiuL1oN4RttqqH/xfpPCCGEEEIIIYQQQgghhBBCSFn4C3zImz7dkV67AAAAAElFTkSuQmCC',
+        '1_full': 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJAAAAAwCAYAAAD+WvNWAAADrklEQVR42u2avWtaURjGH40kTbjEVG25CQ5BaBBaMpVCLe3QwW6FbmZtlxYSl24iZGoJtBBIMvQ/SP6FOnawe0ghOLhUjIQoRkSCJLFDOLfHj/uhnquJPD8Q78cbec97nvOe9765ACGEEEIIIYQQQgghhBBCCCGEkC48kz7AVCLWmr5uIjA/Z2lXql8iX6wgqmuObTs5+HXsoYAmTDzlwzxml0OWdnPz88gXK/CfVR3bykITYirVL10VUSoRa7nxu70Wg9NF4bNyVNd8lqvQzsZqtbq9at0Uj/+siqrmMwQUWQogX6xA13xIvIq23BRR55giS4HhBQQgqmsAgJOjAgBg8UkYAGzH4xkk8E6D7sTOjVXr5rYV1TVU6xc9J9DtTGQ2NwvavaF+97hUN2IgxiDG9Sebw3lowXQ8vl6BfxxbcRb0lYdD20VuvpSv2qZ32siSVkSWAmhKGdUqzYsgy4HOFytGsEUmGjWyoFUzuxzCuUVsvJNY+3w9yHrE5JYP82jUarafLylP2/Gnp1Nt13TNh+NSHZVawzTzqNpSBmF7y992/Pn1/bZrbtFVwJwcFVC12ZZU2rkpolQi1soD+CEFcndnqst2I3llTP5G8gqFjBfh+DV2d6baBBEBkM2dIgogMD/XlnHkTKSa1uELo3j+mDAXj53/prtF7nRg3yYyA8ki2t8LopD5P8x30RY2kleo1BrYSF4ZAZeFJAtLtq/UGojqmqNMpFI8sv/p948MwWxv+bG95e/Lf3nc4nwYJlZAf7+/bIngh+PXxvVw/BqFjBeb6RkAQOd9+Vw+3kzPoFq/wGZ6Bt/ePjAVUTZ3qqSAtvNfiGgQ/4XgPjybHbp+6trCFp+ELZ9IRLGpym7YFGq+ap3ZigkRgZbP5WMxaeJ8Px7E2nq5bTtTJZ5R+C9vf2vrZWagzpTfGdBeK7SfFdw5UYWMF/t7QSMTqRXPaPyX/84qETjuA6nudPZTE6gIPv0f3H9lnejORpVdM9DsvngKc9LhddKvGbRTS/+d+T/oArCtgexqGbP746qB6P9o/e+7BirVL5FVXPSOEvqvlonuAxGMvxMtd5SbqxH8/pm96Xfg5j/xZh3ncXWi6f9o/ff1Y9yo1fD8Tcx4deGuQf9HICC7Ykyci+7rXStC6b9a//uWsa75oFu8nnHbof9jrIGqJn2Iu1JD0H8+hZHb/hQWXI2g11t7sHivxOr+eWjB8o021dD/8fpPCCGEEEIIIYQQQgghhBBCyKTwD2bYmh9iNloWAAAAAElFTkSuQmCC',
+        '2_closed': 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAABR0lEQVR42u2WMUvDUBSFz7OZpEFcFJei3dyCk6Po5hK7V+jo0F9g6SSltH9Cwe6S7J3s8CbpZiaRTF1FyVbqIAWJeT6avKbGnm+871zIzbsnJwAhhBBCCCEkJSKpOJpEMwAY111lozPwoNPMdb4MlOf9iyNhdIDRJJrdn1ZRFjvKptpQwpcB3q7PM+tKnbtMQ4j4wz+6J7DtLe0b3e5eGdEBQNjspR5io+gesOKF1/cQ5Q/1WjiGdQBQyjBA4W/g/63Qvl3Rms60LlznGxBJAWaK3wLMVKD9WKF4iOnCSHVeG0oA0IbdPMyW7gHdLqfty90DzsBD2OzxM5pbEn9P1EvvBe3Dza/C7ROmrYYycfNKYmsR8cPZMW6eI/gywLTVKFaQxesHe7t/wsTWog3juotKUT2QtMur9gB/JVb9K0EIIYQQss58AtSwltGmayu+AAAAAElFTkSuQmCC',
+        '2_empty': 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJAAAAAwCAYAAAD+WvNWAAAC0UlEQVR42u2aP2gaYRjGn4sOJXiIUJImgySd2iEQOmVoobRbhtrsKTg6ODck0qlYsXOGbBWavdUhW6BQh5tCtjj15JZTKEhQpMthhxg59Lz7PL87/+T5TeK9d77fd8/7594TIIQQQgghhBBCCCGEEEIIIYQQMoKy7AusNrq936nXUNW4q93ueRkVrYZEISNsO8zX9y8UCmjJxPP9zVPElDVXu4NLDRWthtuTfWFbu9B0swkAiORLgYqo2uj2griuUzCIBoXi5uj1Yco1Cr1s3KI16KgNUjz3ttsb64NjYYjIaU12H/xiZItIFDIAgHrbAABsqUkAQOv4zHU9UT8bL7rpInYff171ZG/4fdna2dwRLlvJCWyt/lp0szm4gdsb69DNJqxcOpA1jUM3m3gceyTlWqoaR6yzNvgMAPWTfdf1RCfdeNFNF745p0eBbPir8i8hu3d7zwABW3vZUtX4IOM4iShs/nb+TXV+xOWYV1aOLmPv8/LJqlJtdHuipUmUVr4E9EVkF8uwiIwH1ESPCKjeNgZpzDGzSLbzioCpRfTlwrFn8cXpEYzjM08Rhc20v2vIFNBSZqK+iHQTU/cLiUIGrTkTUbt9Oz8ZaNlFhI6EcpZLjy1nRrYY+jwoyB5oYgFtqUnPQZpsOyNkEcnoiSwHEc1CPHPXAz2UTCS7J/Kal8xr/+MVwF5zLSXISafbABEBDBTpv3///a5rJAMNDxG9hoHjjh9cagAgVDIi+ZK0TaP//vz3GwDCPZBXL+P3PNk9EP0P1/+VSU/YPS/DyBYXthei/3JZASFBTqLtE+UP5T/49Hz17otvV7By6bET51lNoul/uP5P9Bj/4+0ePt90UdFqsHLphYsW+h9CBhJtxobnD4vWhNL/Gb0Luz5MIbnANZv+z7AHcqqli9RD0H/5/vMpjEDan+r5KoD+E0IIIYQQQgghhBBCCCGEEELu+A8Xy0aqHl7+ywAAAABJRU5ErkJggg==',
+        '2_full': 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJAAAAAwCAYAAAD+WvNWAAADrklEQVR42u2aPUgbYRjH/4lKS/AQoVQtEjRQaAdBOgkqlJZKcWjq0KFgQToJMRSk1K92KlZSJFMFwaGCgmMbhw4BoVCHTCIudShGroGYIkg4OVxiOuhdr/m4e5PcRRL+v+k+ngv/93mf932eey4AIYQQQgghhBBCCCGEEEIIIYSQPFz1PsDtIzX7w38fktRiate7HsFmbB+tC+PCtrl8fHrPxQCqs+BZe+BDs+umqd3IVgybsX2kZ4eFbY2BFk+mAAAN86uOBtH2kZp14ncLLQbRReEyE7o76jddhVY2ZqvV6VXrZPBott0dbfq9agRRoTEZNZSLPBFC68I4AOBQkQEAXZIXAHAys2w6nsZyHC/qdBG7N193snY7XEtbPbd6hNOWtwTbzOVY4smUPoHdHW2IJ1PIzI05MqZixJMp3Gi+bstvSVILmk9v6scAcDg7bDqexlIdL+p04cn5NOWIwwcj34XsnvTdAQRsjWlLklr0HadQEFWb49Ozip5vMLlntSs31mPtM9DucW0fqVnR1AQAixsSXj9X9ONE1I3OoXP9GgCczK8Cl0FkDJbcIJKvYMwi+p0gL4AOFVnfxgruLDbbWa2AioPowzeEfEH9+tKkJ882EFb1yQ+EVd35S5MedHd4/tst5ZllyyCym+xe/0Xx/OcR1ooEj5D+YjVQBdrc9fwWNtDucYV8QSSi/4bpf3yGQFiFoqQRCKu6w42BZAwso72ipNG6MI6TmWUoSjqviHUifWX3+rNG/W9f3tYDZnFD0ncbUf3GcWvnYADl83txMKs5v3PoXL/eOXSORNSN6ZUmAEDufeO58Xh6pQnHp2eYXmlC8NerokEkT4RseQuz0q8FUTn6tYAbfXat4vopL4V1SV7LRprddrIjq1bMVpsQzdHGc+OxNmnaeQhBTOWkM7uCpxr6jelv6oA7UN6Wn+vQQiu0lBWcO1GJqBshX1DfiewNnuroNz5XtD616Gu5nOx0mjUQnWgoUn/5+ssdV14Ky20iWjUDi90f2YoBgNBrdMP8qm1Oo/7y9Je7AIRrIKtaptzn7K6BqL+6+kuugXrXI5AnQjVbI1G/vdR1H4g4j2Un2thRfhE5wLu7l53NzzvIzI0V7ThfVSea+qurv6RvYV8e9uH9TxWbsX1k5sZqbrVQfxV2INFiLPe7T60VodRvj/6Sv8bvjvrhreGcTf1XWAMVyqW1VENQv/36+RZGYNuf6vkpgPoJIYQQQgghhBBCCCGEEEIIIRf8BRAHKGsFHdJkAAAAAElFTkSuQmCC',
+        '3_closed': 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAABOUlEQVR42mNgGAWjYBSMglEwCkbBKBgFo2AUkAkYsQl+2MHwn4GBgWFJjytOjTEluxkIqYGpO3oZt7x3KXY3kO2BDzsY/pcXSTDwMIrh1FTbe4nh6GUGhk3zKVfnlHCJIk8wojt+er0ZAy8vP8EQvbSGOuoYGBgYFN13k+0JpqGeB1jQBR58fsTA80WMoEZqqlOkwANDPgaGXxJS4JUjmOlooW7ExgAjtgqMWgBfBUatCg0jCaFXYoQqI1zytb2XGBgYCFd2sMqM5nmAUFomVx/d80BMyW4GRffdo8Uo3WviB58fMXQ2vmAIjITwS6p2M+xboEeUPlrWxCykKG4u1mNYvxySaZEdPyQqMnRxRUnxQZGJWUjVQKgDM6jzAL60PFB5YLQpMdBNiVEwCkbBKBgFo2AUjIKRDACcr4PvZx1VCQAAAABJRU5ErkJggg==',
+        '3_empty': 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJAAAAAwCAYAAAD+WvNWAAACvklEQVR42u2av4vaYBjHvykOHQx2KHe9DsflDzCjy22CWOhUcCncYMeuraVQOMrRqdibO55DoYtQOBA8Am63OOb+gIiLBjpYdLjNDmKQqMmb+L6JP76fSc2T8H3ffN/3efIYgBBCCCGEEEIIIYQQQgghhBBCyBLavg9w1Mb059cCdD0XGHdRs3D/ANhN8Vg/rz/t/3welIFGbUw/f3iBrHYUGHd5beP+Abi9EY9dNJozcAEAxaqt1ESjNqYqrrtqMYguCi1I6K8fpcBVGBYTtFpVr1qV5pnHGifH3rEkTLRqTIsa4mKULdjNAgCgN+4DAM70UwCAWekGjicTLNIVmEh3o5vTqttT2RM+T1v5l+JpK0psVnv0TDO/gcbJMZyBi07DVDKmdTgDF8+zT6VcS9dzyE6OvM/A7N616sO148lEnXjRSReNc+5KaNUt6RP+/qorFHeeB87zXaFtfp62dD3n7TirTJQ0fyePyq49W/hDCO9A+8CzV9BGbUxFU5MoxWrXM9GiWfwmOiSWDNQb971tLAiZcYZCE+HdELc3WKpZYqWLuxLMihVqoqRJ07SZfV4dfhM5A2xcL9jNAsxKd6tMNB7/o4GSMhEmm6ezTsNcm86MspV4P0hlDRTZQGf6aWgjTUVckiaSUROtMlEa5tm6GuhQdiLZNVFYv2RX65+wvpamstMZ1ECEgoYi9cfXH3dcSzuQv9MZ1gxcd/zy2vYaUWEpo1i1pU0a9cfTH3cBCNdAYbVM3PNkQ/3J6n8S9YSLmgWjbO1sLUT9KRuIkFid6N64j+9XQ7x5O/te+2Kh0zCFzkuyE039yeqP9Bj/7aOJP79nRdui+F2B+lNsJPp/9/cfdq0Ipf6UGolhL5BtO9SfYg0UlEt3oYagfvn6+RRGIO2lev4VQP2EEEIIIYQQQgghhBBCCCGEkBn/Ad0+BZ0Ey8STAAAAAElFTkSuQmCC',
+        '3_full': 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJAAAAAwCAYAAAD+WvNWAAADhUlEQVR42u2aP0gbURzHvxeUFsmhQ9FaRAyloxldgotQI3YoBTsIDrZbyWZTKqVSpFMxZpMODnUouAiFgiXmwM0l4zmXiA2YgEPkJGTyOoR7PfPn7iXenSb9fqb788vxfb/3fe/97l0AQgghhBBCCCGEEEIIIYQQQgghDSi93sByBubXT1NQ1UHHuKWkhqNjQN+Tj63n2bvez+d/ZaByBub7lYcIK8OOcWubOo6OgZ/f5GPtRsuflQAAM8u6ryYqZ2D68dxmg0F2UChOQr+nnjqOQrcYp9Hq96j10zxWbGR0RNwLwkTN2mTX0CmRuAZ9bwoAcGKcAgAm1HEAQHQh59iePmeRJYlElm7UOfsbuul1wq1la/KR/LLVTmxYqQrTWB0YGR1B/qyEw52oL21qRf6shAfh+548S1UHEb4cFsdAre/2N4ot29PXbuJlky4blz94iv0NzfOEv1nPScXFJoHYZE5qmreWLVUdFDNOMxMFzfll1bdn1wZ+EdIzUC8wNAelnIEpuzQBQGpXRXLREMeFbAhjs1fiWm15ygkT2c1Sb6LbQEa/HzQY6MQ4FdOYE17GRXw0EV4VMR9/LK5vrQw0xCbSFdH5iXRFJH9rZQCR0YFrs2V0QXM1kdeYesxWPP9uah4Z/X4Q6uW3sKE5KPPxGArZf818PldFIl2BYVwgka6IhNuNZDeWPd4wLqDvTSG6kINhXDTMOH4sX6YeM+36P75+IgyT2lXFbCOr395u65wGasKf1LRpJX9s9kpcH5u9QiEbwup2PwCg/r793H68ut2P88sqVrf7EVWmW5ooEtc8eQtz02+ZqBP9luGWXt67cf3UsIRNqOOuG2l+xHk/auVirQ6xEm0/tx9bnSbuIQbg6Npy5pV5gtBvX/5+HXAGapjy6xPabIS2M4LrO6qQDWE+HhMzkbfmCUa//XetcNvXUvzc6XTaQPRjQ5H6O9ffabsalrD6nU63zcBW99c2dbER5fYaPbOse5Y06u9Mf6cDQLoGcqtlOv2d11B/sPrbroGWkhoica1rayTq5z4QuUNI70SfGKf4sl7Ei8XaefKDhsOdqNTvgtyJpv5g9bf1Lezz2yh+7NaKNrv4boH6A5iBZIux+u8+3VaEUr9PBnLD7Q9kdx3qv8UayGkt7YYagvq918+3MALP/lTPTwHUTwghhBBCCCGEEEIIIYQQQgip8RcP0elJ68FdFgAAAABJRU5ErkJggg=='
+    };
 
     // v5：一鍵建立的預設六派
     const DEFAULT_SECTS = [
@@ -1309,7 +1545,7 @@
                         ? `<button class="pixel-btn success action-btn-small" onclick="buyChest('${k.kind}', ${t.tier})">開箱</button>`
                         : `<div style="color:#80ffea; font-size:0.78rem; padding:5px 0;">已集齊，不用再開</div>`);
                 card.innerHTML = `
-                    <div style="font-size:3rem; line-height:1.2;">🎁</div>
+                    <img class="chest-img" src="${CHEST_IMG[t.tier + '_closed']}" alt="">
                     <h4>${t.name}${k.name}</h4>
                     <div class="chest-odds">${odds}<br>${empty}<br>只會開到還沒有的</div>
                     <div class="item-price">💰 ${price}</div>
@@ -1317,6 +1553,11 @@
                 container.appendChild(card);
             });
         });
+        // CC-BY 授權要求標示作者
+        const credit = document.createElement('div');
+        credit.className = 'shop-group-label chest-credit';
+        credit.textContent = '寶箱圖：Yevhen Babiichuk (DustDFG)〈Animated Pixel Art Treasure Chests〉，CC-BY 4.0，顏色有調整';
+        container.appendChild(credit);
     }
 
     function buyChest(kind, tier) {
@@ -1341,7 +1582,7 @@
                 if (res.empty) {
                     const refund = Math.floor(price / 2);
                     s.coins += refund;
-                    showItemGet({ icon: BASE_URL + 'images/ui/icon_shop_pixel.png', title: '寶箱是空的…', desc: `撿回 ${refund} 妖丹` });
+                    showItemGet({ chest: { tier: tier, empty: true }, title: '寶箱是空的…', desc: `撿回 ${refund} 妖丹` });
                     playSfx(sfxClick);
                 } else {
                     const item = res.item;
@@ -1350,7 +1591,7 @@
                     if (!s.equipped) s.equipped = {};
                     if (!s.equipped[item.type]) s.equipped[item.type] = item.id;
                     const desc = item.type === 'aura' ? '純外觀，已放進行囊' : `戰力 +${item.cp}`;
-                    showItemGet({ icon: item.icon, rgb: item.type === 'aura' ? item.rgb : null, title: `開到 ${item.name}！`, desc: desc });
+                    showItemGet({ chest: { tier: tier, empty: false }, icon: item.icon, rgb: item.type === 'aura' ? item.rgb : null, title: `開到 ${item.name}！`, desc: desc });
                     playSfx(sfxGetItem);
                 }
                 saveQuiet(); openShopModal(); renderGrid();
@@ -1358,14 +1599,34 @@
         });
     }
 
-    // 「機緣已到」彈窗：氣場沒有圖，改顯示光暈
+    // 「機緣已到」彈窗：氣場沒有圖，改顯示光暈；有 chest 時先播寶箱打開，再揭曉
+    let itemGetTimer = null;
     function showItemGet(o) {
         const img = document.getElementById('item-get-img');
         const sw = document.getElementById('item-get-swatch');
-        if (o.rgb) { img.style.display = 'none'; sw.style.display = 'block'; sw.style.setProperty('--aura-rgb', o.rgb); }
-        else { sw.style.display = 'none'; img.style.display = ''; img.src = o.icon || ''; }
-        document.getElementById('item-get-name').innerText = o.title;
-        document.getElementById('item-get-desc').innerText = o.desc;
+        const chest = document.getElementById('item-get-chest');
+        const nameEl = document.getElementById('item-get-name');
+        const descEl = document.getElementById('item-get-desc');
+        clearTimeout(itemGetTimer);
+        const reveal = () => {
+            if (o.chest && o.chest.empty) { img.style.display = 'none'; sw.style.display = 'none'; }
+            else if (o.rgb) { chest.style.display = 'none'; img.style.display = 'none'; sw.style.display = 'block'; sw.style.setProperty('--aura-rgb', o.rgb); }
+            else { chest.style.display = 'none'; sw.style.display = 'none'; img.style.display = ''; img.src = o.icon || ''; }
+            nameEl.innerText = o.title;
+            descEl.innerText = o.desc;
+        };
+        if (o.chest) {
+            img.style.display = 'none'; sw.style.display = 'none';
+            chest.style.display = 'block';
+            chest.style.backgroundImage = `url('${CHEST_IMG[o.chest.tier + (o.chest.empty ? '_empty' : '_full')]}')`;
+            chest.classList.remove('opening'); void chest.offsetWidth; chest.classList.add('opening');
+            nameEl.innerText = '開箱中…';
+            descEl.innerText = '';
+            itemGetTimer = setTimeout(reveal, 900);
+        } else {
+            chest.style.display = 'none';
+            reveal();
+        }
         document.getElementById('item-get-overlay').style.display = 'flex';
     }
 
@@ -1735,7 +1996,7 @@
     function setupTreasureEncounter() {
         currentMonster = null;
         const monsterImg = document.getElementById('battle-monster-img');
-        monsterImg.src = BASE_URL + "images/ui/icon_shop_pixel.png";
+        monsterImg.src = CHEST_IMG['3_closed'];
         monsterImg.className = 'treasure-chest'; monsterImg.style.opacity = '1';
         document.getElementById('battle-monster-name').innerText = "神秘寶箱";
         document.getElementById('battle-msg').innerText = `發現了一個神秘寶箱！`;
@@ -2555,7 +2816,8 @@
                 retiredCards: settings.retiredCards,
                 drawNoRepeat: settings.drawNoRepeat,
                 malesUpTo: settings.malesUpTo
-            }
+            },
+            questions: questions
         };
         var blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
         var url = URL.createObjectURL(blob);
@@ -2612,7 +2874,8 @@
                     ? '這是原版的舊資料（' + result.students.length + ' 位弟子，沒有門派）。要用它覆蓋目前資料嗎？'
                         + '匯入後到「🏯 門派」用批次功能分派，匯入後也還可以按「復原」。'
                     : '要用這份存檔覆蓋目前資料嗎？（' + result.students.length + ' 位弟子、'
-                        + result.sects.length + ' 個門派）匯入後還可以按「復原」。',
+                        + result.sects.length + ' 個門派' + (result.questions ? '、' + result.questions.length + ' 題題庫' : '') + '）匯入後還可以按「復原」。'
+                        + (result.questions ? '（題庫會換成備份裡的，這部分不能復原）' : ''),
                 showCancel: true,
                 onConfirm: function () {
                     pushUndo('匯入存檔前的資料');
@@ -2622,6 +2885,10 @@
                         settings = sanitizeSettings(result.settings, settings);
                         saveSettings();
                         applyRewardCards();
+                    }
+                    if (result.questions) {
+                        questions = result.questions;
+                        saveQuestions();
                     }
                     lastPickedStudentId = null;
                     saveQuiet();
@@ -2712,7 +2979,9 @@
             fromOriginal: fromOriginal,
             students: cleanStudents,
             sects: cleanSects,
-            settings: (raw.settings && typeof raw.settings === 'object' && !Array.isArray(raw.settings)) ? raw.settings : null
+            settings: (raw.settings && typeof raw.settings === 'object' && !Array.isArray(raw.settings)) ? raw.settings : null,
+            // 舊備份沒有題庫：null 代表保留目前的題庫
+            questions: Array.isArray(raw.questions) ? sanitizeQuestions(raw.questions) : null
         };
     }
 
@@ -3516,6 +3785,906 @@
     }
 
     function showNotify(msg) { const bar = document.getElementById('notification-bar'); bar.innerText = msg; bar.style.opacity = '1'; setTimeout(() => bar.style.opacity = '0', 3000); }
+
+    /* ══════════════════════════════════════════════════════════
+       v6 加購功能：題庫、答題對戰（個人／門派）
+       ══════════════════════════════════════════════════════════ */
+
+    const QUESTION_KEY = 'wuxia_class_questions';
+    const QUESTION_MAX = 1000;
+    const OPTION_LETTERS = ['A', 'B', 'C', 'D'];
+
+    let questions = [];
+    try { questions = sanitizeQuestions(JSON.parse(localStorage.getItem(QUESTION_KEY))); } catch (e) { questions = []; }
+    let qbEditingId = null;
+    let qbImportList = null;
+
+    // 題目裡可能有「3 > 2」這種符號，所以不刪 < >；顯示時一律用 textContent，不會被當成程式碼
+    function cleanText(v, max) {
+        if (typeof v === 'number' && isFinite(v)) v = String(v);
+        if (typeof v !== 'string') return '';
+        return v.replace(/[\u0000-\u001F\u007F]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, max);
+    }
+    function uidQuestion() {
+        return 'q_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+    }
+
+    function sanitizeQuestion(q) {
+        if (!q || typeof q !== 'object') return null;
+        const text = cleanText(q.text, 150);
+        if (!text || !Array.isArray(q.options)) return null;
+        const answer = Math.round(Number(q.answer));
+        // 空白選項拿掉，答案位置跟著移
+        const kept = [];
+        let newAnswer = -1;
+        q.options.slice(0, 4).forEach(function (o, i) {
+            const t = cleanText(o, 40);
+            if (!t) return;
+            if (i === answer) newAnswer = kept.length;
+            kept.push(t);
+        });
+        if (kept.length < 2 || newAnswer < 0) return null;
+        const id = (typeof q.id === 'string' && /^q_[a-z0-9]{1,24}$/.test(q.id)) ? q.id : uidQuestion();
+        return { id: id, subject: cleanText(q.subject, 12), unit: cleanText(q.unit, 12), text: text, options: kept, answer: newAnswer };
+    }
+
+    function sanitizeQuestions(arr) {
+        if (!Array.isArray(arr)) return [];
+        const out = [];
+        const seen = {};
+        arr.forEach(function (q) {
+            if (out.length >= QUESTION_MAX) return;
+            const c = sanitizeQuestion(q);
+            if (!c) return;
+            if (seen[c.id]) c.id = uidQuestion();
+            seen[c.id] = true;
+            out.push(c);
+        });
+        return out;
+    }
+
+    function saveQuestions() {
+        try { localStorage.setItem(QUESTION_KEY, JSON.stringify(questions)); } catch (e) { showNotify('題庫存不下（瀏覽器空間不足）'); }
+        markBackupDirty();
+    }
+
+    // 題目範圍：'' 全部、's:科目'、'u:科目\u0001單元'
+    function questionsInScope(scope) {
+        if (!scope) return questions.slice();
+        if (scope.indexOf('s:') === 0) {
+            const subj = scope.slice(2);
+            return questions.filter(function (q) { return q.subject === subj; });
+        }
+        if (scope.indexOf('u:') === 0) {
+            const parts = scope.slice(2).split('\u0001');
+            return questions.filter(function (q) { return q.subject === parts[0] && q.unit === parts[1]; });
+        }
+        return questions.slice();
+    }
+
+    function fillScopeSelect(sel, keep) {
+        sel.innerHTML = '';
+        const add = function (value, label) {
+            const o = document.createElement('option');
+            o.value = value;
+            o.textContent = label;
+            sel.appendChild(o);
+        };
+        add('', '全部題目（' + questions.length + ' 題）');
+        const subjects = [];
+        const units = [];
+        questions.forEach(function (q) {
+            if (q.subject && subjects.indexOf(q.subject) < 0) subjects.push(q.subject);
+            const u = q.subject + '\u0001' + q.unit;
+            if (q.unit && units.indexOf(u) < 0) units.push(u);
+        });
+        subjects.forEach(function (s) { add('s:' + s, '科目：' + s + '（' + questionsInScope('s:' + s).length + ' 題）'); });
+        units.forEach(function (u) {
+            const p = u.split('\u0001');
+            add('u:' + u, (p[0] ? p[0] + '｜' : '') + p[1] + '（' + questionsInScope('u:' + u).length + ' 題）');
+        });
+        const has = Array.prototype.some.call(sel.options, function (o) { return o.value === keep; });
+        sel.value = has ? keep : '';
+    }
+
+    // ── 題庫視窗 ──
+    function openQbankModal() {
+        if (!requireTeacher('管理題庫')) return;
+        playSfx(sfxClick);
+        resetQuestionForm();
+        cancelQuestionImport();
+        renderQuestionList();
+        document.getElementById('qbank-modal').style.display = 'flex';
+    }
+    function closeQbankModal() {
+        playSfx(sfxClick);
+        document.getElementById('qbank-modal').style.display = 'none';
+    }
+    function toggleQbFormat() {
+        const el = document.getElementById('qb-format');
+        el.style.display = el.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function resetQuestionForm() {
+        qbEditingId = null;
+        document.getElementById('qb-text').value = '';
+        for (let i = 0; i < 4; i++) document.getElementById('qb-opt-' + i).value = '';
+        document.querySelector('input[name="qb-answer"][value="0"]').checked = true;
+        document.getElementById('qb-save-btn').innerText = '新增題目';
+    }
+
+    function saveQuestionForm() {
+        if (!requireTeacher('管理題庫')) return;
+        const checked = document.querySelector('input[name="qb-answer"]:checked');
+        const raw = {
+            id: qbEditingId || undefined,
+            text: document.getElementById('qb-text').value,
+            options: [0, 1, 2, 3].map(function (i) { return document.getElementById('qb-opt-' + i).value; }),
+            answer: checked ? Number(checked.value) : 0,
+            subject: document.getElementById('qb-subject').value,
+            unit: document.getElementById('qb-unit').value
+        };
+        if (!cleanText(raw.text, 150)) { showNotify('先寫題目'); return; }
+        if (raw.options.filter(function (o) { return cleanText(o, 40); }).length < 2) { showNotify('選項至少要填兩個'); return; }
+        if (!cleanText(raw.options[raw.answer], 40)) { showNotify('圈選的正確答案是空白的'); return; }
+        const q = sanitizeQuestion(raw);
+        if (!q) { showNotify('這題的格式不對'); return; }
+        if (qbEditingId) {
+            const idx = questions.findIndex(function (x) { return x.id === qbEditingId; });
+            if (idx >= 0) questions[idx] = q; else questions.push(q);
+            showNotify('題目已修改');
+        } else {
+            if (questions.length >= QUESTION_MAX) { showNotify('題庫最多 ' + QUESTION_MAX + ' 題'); return; }
+            questions.push(q);
+            showNotify('已新增第 ' + questions.length + ' 題');
+        }
+        saveQuestions();
+        resetQuestionForm();   // 科目、單元留著，連續出同一單元的題目比較方便
+        renderQuestionList();
+        document.getElementById('qb-text').focus();
+    }
+
+    function editQuestion(id) {
+        const q = questions.find(function (x) { return x.id === id; });
+        if (!q) return;
+        qbEditingId = id;
+        document.getElementById('qb-text').value = q.text;
+        for (let i = 0; i < 4; i++) document.getElementById('qb-opt-' + i).value = q.options[i] || '';
+        document.querySelector('input[name="qb-answer"][value="' + q.answer + '"]').checked = true;
+        document.getElementById('qb-subject').value = q.subject;
+        document.getElementById('qb-unit').value = q.unit;
+        document.getElementById('qb-save-btn').innerText = '儲存修改';
+        document.querySelector('#qbank-modal .sect-panel').scrollTop = 0;
+    }
+
+    function deleteQuestion(id) {
+        const q = questions.find(function (x) { return x.id === id; });
+        if (!q) return;
+        showCustomModal({
+            title: '刪除題目',
+            msg: '確定刪除這題？（刪了不能復原）\n' + q.text,
+            showCancel: true,
+            onConfirm: function () {
+                questions = questions.filter(function (x) { return x.id !== id; });
+                if (qbEditingId === id) resetQuestionForm();
+                saveQuestions();
+                renderQuestionList();
+                showNotify('題目已刪除');
+            }
+        });
+    }
+
+    function renderQuestionList() {
+        const sel = document.getElementById('qb-filter');
+        fillScopeSelect(sel, sel.value);
+        const list = questionsInScope(sel.value);
+        document.getElementById('qb-count').innerText = questions.length;
+        const box = document.getElementById('qb-list');
+        box.innerHTML = '';
+        if (!list.length) {
+            const empty = document.createElement('div');
+            empty.className = 'sect-empty';
+            empty.innerText = questions.length ? '這個範圍沒有題目' : '還沒有題目。上面一題一題新增，或用 Excel 一次匯入。';
+            box.appendChild(empty);
+            return;
+        }
+        list.forEach(function (q) {
+            const row = document.createElement('div');
+            row.className = 'qb-row';
+            const main = document.createElement('div');
+            main.className = 'qb-row-main';
+            const t = document.createElement('div');
+            t.className = 'qb-row-text';
+            t.textContent = q.text;
+            t.title = q.text;
+            const meta = document.createElement('div');
+            meta.className = 'qb-row-meta';
+            if (q.subject || q.unit) {
+                const tag = document.createElement('span');
+                tag.className = 'qb-tag';
+                tag.textContent = [q.subject, q.unit].filter(Boolean).join('｜');
+                meta.appendChild(tag);
+            }
+            meta.appendChild(document.createTextNode('答案 ' + OPTION_LETTERS[q.answer] + '：' + q.options[q.answer] + '（共 ' + q.options.length + ' 個選項）'));
+            main.appendChild(t);
+            main.appendChild(meta);
+            const ed = document.createElement('button');
+            ed.className = 'pixel-btn action-btn-small';
+            ed.innerText = '修改';
+            ed.onclick = function () { editQuestion(q.id); };
+            const del = document.createElement('button');
+            del.className = 'pixel-btn action-btn-small';
+            del.style.color = '#ff6b6b';
+            del.style.borderColor = '#581212';
+            del.innerText = '刪除';
+            del.onclick = function () { deleteQuestion(q.id); };
+            row.appendChild(main);
+            row.appendChild(ed);
+            row.appendChild(del);
+            box.appendChild(row);
+        });
+    }
+
+    // ── Excel 匯入題目 ──
+    function handleQuestionFile(input) {
+        const file = input.files && input.files[0];
+        input.value = '';
+        if (!file) return;
+        showNotify('讀取中...');
+        loadXlsxLib().then(function (ok) {
+            if (!ok) { showNotify('讀不到 Excel 工具，請確認網路連線'); return; }
+            const reader = new FileReader();
+            reader.onerror = function () { showNotify('讀取檔案失敗'); };
+            reader.onload = function () {
+                let rows;
+                try {
+                    const wb = XLSX.read(new Uint8Array(reader.result), { type: 'array' });
+                    rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, blankrows: false });
+                } catch (e) {
+                    showNotify('這個檔案讀不出來，確認是 Excel 或 CSV');
+                    return;
+                }
+                showQuestionImportPreview(parseQuestionRows(rows));
+            };
+            reader.readAsArrayBuffer(file);
+        });
+    }
+
+    // 答案可以填 A～D（全形也可以）、1～4，或直接填正確選項的文字
+    function parseAnswer(raw, options) {
+        const s = cleanText(raw, 40);
+        if (!s) return -1;
+        const half = s.replace(/[Ａ-Ｄａ-ｄ１-４]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); }).toUpperCase();
+        const letter = half.replace(/[()（）.．\s]/g, '');
+        if (/^[A-D]$/.test(letter)) return options[letter.charCodeAt(0) - 65] ? letter.charCodeAt(0) - 65 : -1;
+        const byText = options.findIndex(function (o) { return o && o === s; });
+        if (byText >= 0) return byText;
+        if (/^[1-4]$/.test(letter)) return options[Number(letter) - 1] ? Number(letter) - 1 : -1;
+        return -1;
+    }
+
+    function parseQuestionRows(rawRows) {
+        const rows = (Array.isArray(rawRows) ? rawRows : []).filter(function (r) {
+            return Array.isArray(r) && r.some(function (c) { return String(c == null ? '' : c).trim() !== ''; });
+        });
+        if (rows.length < 2) return { error: '檔案裡沒有題目（第一列要放欄位名稱，第二列開始放題目）' };
+        const norm = function (v) { return String(v == null ? '' : v).toLowerCase().replace(/[\s()（）:：_\-]/g, ''); };
+        const HEAD = {
+            text: ['題目', '問題', '題幹', 'question', 'questiontext'],
+            opt0: ['選項a', 'a', '選項1', 'optiona', 'option1'],
+            opt1: ['選項b', 'b', '選項2', 'optionb', 'option2'],
+            opt2: ['選項c', 'c', '選項3', 'optionc', 'option3'],
+            opt3: ['選項d', 'd', '選項4', 'optiond', 'option4'],
+            answer: ['答案', '正確答案', '正解', 'answer', 'correctanswer'],
+            subject: ['科目', '學科', 'subject'],
+            unit: ['單元', '章節', '課', 'unit']
+        };
+        const head = rows[0].map(norm);
+        const col = {};
+        Object.keys(HEAD).forEach(function (k) {
+            col[k] = head.findIndex(function (h) { return HEAD[k].indexOf(h) >= 0; });
+        });
+        if (col.text < 0 || col.answer < 0 || col.opt0 < 0 || col.opt1 < 0) {
+            return { error: '第一列要有「題目、選項A、選項B、答案」這幾個欄位名稱（按「Excel 格式說明」看範例）' };
+        }
+        const cell = function (r, k) { return col[k] >= 0 ? r[col[k]] : ''; };
+        const list = [];
+        const bad = [];
+        rows.slice(1).forEach(function (r, i) {
+            const line = i + 2;
+            const options = ['opt0', 'opt1', 'opt2', 'opt3'].map(function (k) { return cleanText(cell(r, k), 40); });
+            const text = cleanText(cell(r, 'text'), 150);
+            if (!text) { bad.push('第 ' + line + ' 列沒有題目'); return; }
+            if (options.filter(Boolean).length < 2) { bad.push('第 ' + line + ' 列選項少於兩個'); return; }
+            const answer = parseAnswer(cell(r, 'answer'), options);
+            if (answer < 0) { bad.push('第 ' + line + ' 列的答案對不到選項'); return; }
+            const q = sanitizeQuestion({ text: text, options: options, answer: answer, subject: cell(r, 'subject'), unit: cell(r, 'unit') });
+            if (q) list.push(q); else bad.push('第 ' + line + ' 列格式不對');
+        });
+        return { list: list, bad: bad };
+    }
+
+    function showQuestionImportPreview(parsed) {
+        const box = document.getElementById('qb-import');
+        const pv = document.getElementById('qb-import-preview');
+        pv.innerHTML = '';
+        box.style.display = 'flex';
+        if (parsed.error) {
+            qbImportList = null;
+            pv.textContent = parsed.error;
+            document.getElementById('qb-import-confirm').disabled = true;
+            return;
+        }
+        qbImportList = parsed.list;
+        document.getElementById('qb-import-confirm').disabled = !parsed.list.length;
+        const head = document.createElement('div');
+        head.className = 'set-state';
+        head.textContent = '讀到 ' + parsed.list.length + ' 題可以匯入' + (parsed.bad.length ? '，' + parsed.bad.length + ' 列有問題會跳過' : '');
+        pv.appendChild(head);
+        parsed.list.slice(0, 3).forEach(function (q) {
+            const d = document.createElement('div');
+            d.className = 'set-hint';
+            d.textContent = '・' + q.text + '（答案 ' + OPTION_LETTERS[q.answer] + '：' + q.options[q.answer] + '）';
+            pv.appendChild(d);
+        });
+        parsed.bad.slice(0, 8).forEach(function (b) {
+            const d = document.createElement('div');
+            d.className = 'qb-import-bad';
+            d.textContent = b;
+            pv.appendChild(d);
+        });
+        if (parsed.bad.length > 8) {
+            const d = document.createElement('div');
+            d.className = 'qb-import-bad';
+            d.textContent = '…還有 ' + (parsed.bad.length - 8) + ' 列';
+            pv.appendChild(d);
+        }
+    }
+
+    function cancelQuestionImport() {
+        qbImportList = null;
+        document.getElementById('qb-import').style.display = 'none';
+    }
+
+    function confirmQuestionImport() {
+        if (!requireTeacher('匯入題目')) return;
+        if (!qbImportList || !qbImportList.length) return;
+        const modeEl = document.querySelector('input[name="qb-import-mode"]:checked');
+        const replace = modeEl && modeEl.value === 'replace';
+        const base = replace ? [] : questions;
+        const room = QUESTION_MAX - base.length;
+        const total = qbImportList.length;
+        const adding = qbImportList.slice(0, Math.max(0, room));
+        questions = sanitizeQuestions(base.concat(adding));
+        saveQuestions();
+        cancelQuestionImport();
+        renderQuestionList();
+        showNotify('已匯入 ' + adding.length + ' 題' + (adding.length < total ?'（題庫最多 ' + QUESTION_MAX + ' 題，多的沒放進去）' : '') + '，題庫共 ' + questions.length + ' 題');
+    }
+
+    // ══ 答題對戰 ══
+    const DUEL_HP = 100;
+    const DUEL_BASE_DMG = 30;
+    const DUEL_MAX_BONUS = 0.3;
+    const DUEL_AUTO_NEXT_MS = 3000;
+    const DUEL_KEYS = { L: ['1', '2', '3', '4'], R: ['7', '8', '9', '0'] };
+    const DUEL_REWARD = {
+        solo: { win: { coins: 50, exp: 30 }, lose: { coins: 0, exp: 10 } },
+        sect: { win: { coins: 30, exp: 20 }, lose: { coins: 0, exp: 5 } }
+    };
+
+    let duelMode = 'solo';
+    let duel = null;
+
+    // 戰力比較高的一方傷害加成：每高出對方 1 倍加 30%，最多 +30%；比較低的一方永遠是基本傷害
+    function duelDamage(myCp, oppCp) {
+        let bonus = 0;
+        if (myCp > oppCp) bonus = oppCp > 0 ? Math.min(DUEL_MAX_BONUS, (myCp / oppCp - 1) * DUEL_MAX_BONUS) : DUEL_MAX_BONUS;
+        return { dmg: Math.round(DUEL_BASE_DMG * (1 + bonus)), bonus: bonus };
+    }
+
+    // picks：{ L: { choice, ms } 或 null, R: ... }；choice 是原始選項位置
+    function duelJudge(answerIdx, picks) {
+        const ok = function (k) { return !!picks[k] && picks[k].choice === answerIdx; };
+        const L = ok('L'), R = ok('R');
+        if (L && !R) return { winner: 'L', reason: 'only' };
+        if (R && !L) return { winner: 'R', reason: 'only' };
+        if (!L && !R) return { winner: null, reason: 'none' };
+        const diff = picks.L.ms - picks.R.ms;
+        if (diff === 0) return { winner: null, reason: 'tie', diffMs: 0 };
+        return { winner: diff < 0 ? 'L' : 'R', reason: 'faster', diffMs: Math.abs(diff) };
+    }
+
+    function shuffled(arr) {
+        const a = arr.slice();
+        for (let i = a.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            const t = a[i]; a[i] = a[j]; a[j] = t;
+        }
+        return a;
+    }
+
+    function presentMembers(sectId) {
+        return sectMembers(sectId).filter(function (s) { return !isOnLeave(s); });
+    }
+    function sectAvgCp(sectId) {
+        const m = presentMembers(sectId);
+        if (!m.length) return 0;
+        return Math.round(m.reduce(function (sum, s) { return sum + calculateCP(s); }, 0) / m.length);
+    }
+
+    // ── 開場視窗 ──
+    function openDuelSetup() {
+        if (!requireTeacher('對戰')) return;
+        if (!questions.length) { showNotify('題庫還沒有題目，先到「📜 題庫」加題目'); return; }
+        playSfx(sfxClick);
+        setDuelMode(duelMode);
+        fillScopeSelect(document.getElementById('duel-scope'), document.getElementById('duel-scope').value);
+        document.getElementById('duel-setup-modal').style.display = 'flex';
+    }
+    function closeDuelSetup() {
+        playSfx(sfxClick);
+        document.getElementById('duel-setup-modal').style.display = 'none';
+    }
+
+    function setDuelMode(mode) {
+        duelMode = mode === 'sect' ? 'sect' : 'solo';
+        document.getElementById('duel-tab-solo').classList.toggle('active', duelMode === 'solo');
+        document.getElementById('duel-tab-sect').classList.toggle('active', duelMode === 'sect');
+        document.getElementById('duel-random-btn').innerText = duelMode === 'solo' ? '🎲 隨機挑兩位' : '🎲 隨機挑兩派';
+        ['duel-left', 'duel-right'].forEach(function (id, n) {
+            const sel = document.getElementById(id);
+            const keep = sel.dataset.mode === duelMode ? sel.value : '';
+            sel.innerHTML = '';
+            const items = duelMode === 'solo'
+                ? students.filter(function (s) { return !isOnLeave(s); }).map(function (s) { return { id: String(s.id), label: s.name }; })
+                : sects.map(function (k) { return { id: k.id, label: k.emblem + ' ' + k.name + '（' + presentMembers(k.id).length + ' 人）' }; });
+            items.forEach(function (it) {
+                const o = document.createElement('option');
+                o.value = it.id;
+                o.textContent = it.label;
+                sel.appendChild(o);
+            });
+            sel.dataset.mode = duelMode;
+            if (items.some(function (it) { return it.id === keep; })) sel.value = keep;
+            else if (items[n]) sel.value = items[n].id;
+        });
+        updateDuelSetupInfo();
+    }
+
+    function duelSideCp(id) {
+        if (duelMode === 'solo') { const s = findStudentById(id); return s ? calculateCP(s) : 0; }
+        return sectAvgCp(id);
+    }
+
+    function updateDuelSetupInfo() {
+        const l = document.getElementById('duel-left').value;
+        const r = document.getElementById('duel-right').value;
+        const lc = l ? duelSideCp(l) : 0, rc = r ? duelSideCp(r) : 0;
+        const unit = duelMode === 'solo' ? '戰力 ' : '平均戰力 ';
+        document.getElementById('duel-left-cp').innerText = l ? unit + lc : '';
+        document.getElementById('duel-right-cp').innerText = r ? unit + rc : '';
+        const hint = document.getElementById('duel-hint');
+        const n = questionsInScope(document.getElementById('duel-scope').value).length;
+        let msg = '題目範圍 ' + n + ' 題';
+        if (l && r && l !== r && lc !== rc) {
+            const strong = lc > rc ? 'L' : 'R';
+            const d = duelDamage(Math.max(lc, rc), Math.min(lc, rc));
+            const strongName = document.getElementById(strong === 'L' ? 'duel-left' : 'duel-right').selectedOptions[0].textContent;
+            const weakName = document.getElementById(strong === 'L' ? 'duel-right' : 'duel-left').selectedOptions[0].textContent;
+            msg += '｜' + strongName + ' 戰力較高，傷害 +' + Math.round(d.bonus * 100) + '%；' + weakName + ' 打贏算以弱勝強，獎勵 ×2';
+        }
+        hint.textContent = msg;
+    }
+
+    function duelRandomPick() {
+        const sels = [document.getElementById('duel-left'), document.getElementById('duel-right')];
+        const ids = Array.prototype.map.call(sels[0].options, function (o) { return o.value; });
+        if (ids.length < 2) { showNotify(duelMode === 'solo' ? '至少要有兩位沒請假的弟子' : '至少要有兩個門派'); return; }
+        const pick = shuffled(ids).slice(0, 2);
+        sels[0].value = pick[0];
+        sels[1].value = pick[1];
+        playSfx(sfxClick);
+        updateDuelSetupInfo();
+    }
+
+    // ── 開戰 ──
+    function startDuel() {
+        if (!requireTeacher('對戰')) return;
+        const l = document.getElementById('duel-left').value;
+        const r = document.getElementById('duel-right').value;
+        if (!l || !r) { showNotify(duelMode === 'solo' ? '左右兩邊都要選弟子' : '左右兩邊都要選門派'); return; }
+        if (l === r) { showNotify('左右兩邊不能選同一個'); return; }
+        const pool = questionsInScope(document.getElementById('duel-scope').value);
+        if (!pool.length) { showNotify('這個範圍沒有題目'); return; }
+        const makeSide = function (key, id) {
+            if (duelMode === 'solo') {
+                const s = findStudentById(id);
+                if (!s) return null;
+                return { key: key, id: String(s.id), name: s.name, cp: calculateCP(s), hp: DUEL_HP, rep: s, queue: [] };
+            }
+            const k = getSect(id);
+            if (!k || !presentMembers(k.id).length) return null;
+            return { key: key, id: k.id, name: k.emblem + ' ' + k.name, color: k.color, cp: sectAvgCp(k.id), hp: DUEL_HP, rep: null, queue: [] };
+        };
+        const L = makeSide('L', l), R = makeSide('R', r);
+        if (!L || !R) { showNotify(duelMode === 'solo' ? '找不到選的弟子' : '選的門派今天沒有可以上場的人'); return; }
+        duel = {
+            mode: duelMode,
+            sides: { L: L, R: R },
+            timeLimit: Math.max(5, Math.min(60, Number(document.getElementById('duel-time').value) || 20)) * 1000,
+            pool: pool.map(function (q) { return q.id; }),
+            deck: [],
+            round: 0,
+            phase: 'idle',
+            paused: false,
+            picks: { L: null, R: null },
+            current: null,
+            timerId: null,
+            autoId: null
+        };
+        document.getElementById('duel-setup-modal').style.display = 'none';
+        document.getElementById('duel-stage').style.backgroundImage = `url('${BATTLE_BG[Math.floor(Math.random() * BATTLE_BG.length)]}')`;
+        document.getElementById('duel-modal').style.display = 'flex';
+        document.getElementById('duel-answers').style.display = '';
+        document.getElementById('duel-quit-btn').innerText = '結束對戰';
+        document.getElementById('duel-quit-btn').onclick = endDuelEarly;
+        document.getElementById('duel-pause-btn').style.display = '';
+        playSfx(sfxClick);
+        playBGM('battle');
+        duelNextQuestion();
+    }
+
+    // 門派每題換一位代表：沒請假的成員洗牌輪流，輪完一遍才重來
+    function duelPickRep(side) {
+        if (duel.mode === 'solo') return side.rep;
+        const alive = presentMembers(side.id).map(function (s) { return String(s.id); });
+        side.queue = side.queue.filter(function (id) { return alive.indexOf(id) >= 0; });
+        if (!side.queue.length) side.queue = shuffled(alive);
+        const id = side.queue.shift();
+        side.rep = findStudentById(id);
+        return side.rep;
+    }
+
+    function duelDrawQuestion() {
+        if (!duel.deck.length) duel.deck = shuffled(duel.pool);
+        while (duel.deck.length) {
+            const id = duel.deck.shift();
+            const q = questions.find(function (x) { return x.id === id; });
+            if (q) return q;
+        }
+        return null;
+    }
+
+    function renderDuelSide(side) {
+        const k = side.key;
+        const rep = side.rep;
+        document.getElementById('duel-name-' + k).textContent = side.name;
+        document.getElementById('duel-sub-' + k).textContent = (duel.mode === 'sect' && rep ? '代表：' + rep.name + '　' : '') + (duel.mode === 'sect' ? '平均戰力 ' : '戰力 ') + side.cp;
+        const pct = Math.max(0, side.hp) / DUEL_HP * 100;
+        const fill = document.getElementById('duel-hp-' + k);
+        fill.style.width = pct + '%';
+        fill.classList.toggle('low', pct <= 34);
+        document.getElementById('duel-hp-text-' + k).textContent = Math.max(0, side.hp) + ' / ' + DUEL_HP;
+        const img = document.getElementById('duel-img-' + k);
+        const gear = document.getElementById('duel-gear-' + k);
+        if (rep) {
+            const info = getStudentInfo(rep);
+            if (img.dataset.src !== info.battleAvatar) { img.src = info.battleAvatar; img.dataset.src = info.battleAvatar; }
+            gear.innerHTML = gearLayersHtml(rep);
+        } else {
+            img.removeAttribute('src');
+            gear.innerHTML = '';
+        }
+    }
+
+    function duelNextQuestion() {
+        if (!duel || duel.phase === 'end') return;
+        clearTimeout(duel.autoId);
+        const q = duelDrawQuestion();
+        if (!q) { showNotify('題目都被刪掉了，對戰結束'); closeDuel(); return; }
+        duel.round++;
+        duelPickRep(duel.sides.L);
+        duelPickRep(duel.sides.R);
+        if (!duel.sides.L.rep || !duel.sides.R.rep) { showNotify('有一方沒有可以上場的人，對戰結束'); closeDuel(); return; }
+        // 左右兩邊用同一個洗牌後的順序
+        duel.current = { q: q, order: shuffled(q.options.map(function (_, i) { return i; })) };
+        duel.picks = { L: null, R: null };
+        duel.phase = 'answer';
+        duel.paused = false;
+        duel.elapsed = 0;
+        duel.startedAt = performance.now();
+        document.getElementById('duel-round').textContent = '第 ' + duel.round + ' 題' + (q.subject || q.unit ? '｜' + [q.subject, q.unit].filter(Boolean).join(' ') : '');
+        document.getElementById('duel-question').textContent = q.text;
+        document.getElementById('duel-result').textContent = '';
+        document.getElementById('duel-next-btn').style.display = 'none';
+        document.getElementById('duel-pause-btn').innerText = '⏸ 暫停';
+        ['L', 'R'].forEach(function (k) { renderDuelSide(duel.sides[k]); renderDuelOptions(k); });
+        clearInterval(duel.timerId);
+        duel.timerId = setInterval(duelTick, 100);
+        duelTick();
+    }
+
+    function renderDuelOptions(k) {
+        const box = document.getElementById('duel-opts-' + k);
+        box.innerHTML = '';
+        box.className = 'duel-opts side-' + k;
+        const lock = document.createElement('div');
+        lock.className = 'duel-lock';
+        lock.textContent = '已作答';
+        box.appendChild(lock);
+        duel.current.order.forEach(function (optIdx, pos) {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'duel-opt';
+            b.dataset.opt = optIdx;
+            const letter = document.createElement('span');
+            letter.className = 'duel-letter';
+            letter.textContent = OPTION_LETTERS[pos];
+            const txt = document.createElement('span');
+            txt.textContent = duel.current.q.options[optIdx];
+            const key = document.createElement('span');
+            key.className = 'duel-key';
+            key.textContent = DUEL_KEYS[k][pos];
+            b.appendChild(letter);
+            b.appendChild(txt);
+            b.appendChild(key);
+            // pointerdown：電子白板上兩個人同時按都算得到，也比 click 早一點觸發
+            b.addEventListener('pointerdown', function (e) { e.preventDefault(); duelAnswer(k, pos); });
+            b.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); duelAnswer(k, pos); } });
+            box.appendChild(b);
+        });
+    }
+
+    function duelElapsed() {
+        if (!duel) return 0;
+        return duel.elapsed + (duel.paused ? 0 : performance.now() - duel.startedAt);
+    }
+
+    function duelTick() {
+        if (!duel || duel.phase !== 'answer') return;
+        const left = Math.max(0, duel.timeLimit - duelElapsed());
+        const t = document.getElementById('duel-timer');
+        t.textContent = duel.paused ? '暫停中' : Math.ceil(left / 1000);
+        t.classList.toggle('urgent', !duel.paused && left <= 5000);
+        if (!duel.paused && left <= 0) duelReveal();
+    }
+
+    // pos：按下的是畫面上第幾個按鈕
+    function duelAnswer(k, pos) {
+        if (!duel || duel.phase !== 'answer' || duel.paused || duel.picks[k]) return;
+        const optIdx = duel.current.order[pos];
+        if (optIdx === undefined) return;
+        duel.picks[k] = { choice: optIdx, ms: Math.round(duelElapsed()) };
+        playSfx(sfxClick);
+        const box = document.getElementById('duel-opts-' + k);
+        box.classList.add('locked');
+        const btn = box.querySelectorAll('.duel-opt')[pos];
+        if (btn) btn.classList.add('picked');
+        if (duel.picks.L && duel.picks.R) duelReveal();
+    }
+
+    function duelReveal() {
+        if (!duel || duel.phase !== 'answer') return;
+        duel.phase = 'reveal';
+        clearInterval(duel.timerId);
+        document.getElementById('duel-timer').textContent = '';
+        const q = duel.current.q;
+        ['L', 'R'].forEach(function (k) {
+            const box = document.getElementById('duel-opts-' + k);
+            box.classList.remove('locked');
+            box.classList.add('revealed');
+            box.querySelectorAll('.duel-opt').forEach(function (b) {
+                const idx = Number(b.dataset.opt);
+                b.classList.toggle('correct', idx === q.answer);
+                b.classList.toggle('wrong', idx !== q.answer);
+            });
+        });
+        const res = duelJudge(q.answer, duel.picks);
+        const resultEl = document.getElementById('duel-result');
+        const ansText = '正確答案：' + OPTION_LETTERS[duel.current.order.indexOf(q.answer)] + ' ' + q.options[q.answer];
+        const nameOf = function (k) { const s = duel.sides[k]; return duel.mode === 'sect' && s.rep ? s.rep.name + '（' + s.name + '）' : s.name; };
+        if (!res.winner) {
+            resultEl.textContent = (res.reason === 'tie' ? '兩邊同時答對，平手！' : '兩邊都沒答對，沒有人受傷。') + '\n' + ansText;
+            playSfx(sfxAttack);
+            duelAfterRound();
+            return;
+        }
+        const att = duel.sides[res.winner];
+        const def = duel.sides[res.winner === 'L' ? 'R' : 'L'];
+        const d = duelDamage(att.cp, def.cp);
+        def.hp = Math.max(0, def.hp - d.dmg);
+        resultEl.textContent = nameOf(res.winner) + (res.reason === 'faster' ? ' 快了 ' + (res.diffMs / 1000).toFixed(1) + ' 秒，' : ' 答對，') + '造成 ' + d.dmg + ' 傷害' + (d.bonus > 0 ? '（戰力壓制 +' + Math.round(d.bonus * 100) + '%）' : '') + '\n' + ansText;
+        duelStrikeAnim(res.winner, d.dmg);
+        setTimeout(function () {
+            if (!duel) return;
+            renderDuelSide(def);
+            if (def.hp <= 0) setTimeout(function () { if (duel) finishDuel(att.key); }, 900);
+            else duelAfterRound();
+        }, 560);
+    }
+
+    function duelAfterRound() {
+        document.getElementById('duel-next-btn').style.display = '';
+        clearTimeout(duel.autoId);
+        duel.autoId = setTimeout(function () {
+            if (duel && duel.phase === 'reveal' && !duel.paused) duelNextQuestion();
+        }, DUEL_AUTO_NEXT_MS);
+    }
+
+    // 攻擊動畫：有飛劍就飛劍砍過去，沒有就直接打出火花
+    function duelStrikeAnim(attKey, dmg) {
+        const defKey = attKey === 'L' ? 'R' : 'L';
+        const fromImg = document.getElementById('duel-img-' + attKey);
+        const toImg = document.getElementById('duel-img-' + defKey);
+        const stage = document.getElementById('duel-stage');
+        const rep = duel.sides[attKey].rep;
+        const sword = rep && rep.equipped && rep.equipped.sword ? getItemData(rep.equipped.sword) : null;
+        playSfx(sfxWin);
+        const hit = function () {
+            toImg.classList.remove('shake-effect'); void toImg.offsetWidth; toImg.classList.add('shake-effect');
+            playHitEffect(toImg, attKey === 'L' ? '#7fd8ff' : '#ff8a7a');
+            const fig = toImg.parentElement.parentElement;
+            const n = document.createElement('div');
+            n.className = 'duel-dmg';
+            n.textContent = '-' + dmg;
+            fig.style.position = 'relative';
+            fig.appendChild(n);
+            setTimeout(function () { n.remove(); }, 1400);
+            playSfx(sfxAttack);
+        };
+        if (sword && sword.src && stage.animate) {
+            const st = stage.getBoundingClientRect();
+            const a = fromImg.getBoundingClientRect();
+            const b = toImg.getBoundingClientRect();
+            const x0 = a.left + a.width / 2 - st.left - stage.clientLeft;
+            const y0 = a.top + a.height * 0.35 - st.top - stage.clientTop;
+            const dx = (b.left + b.width / 2) - (a.left + a.width / 2);
+            const dy = (b.top + b.height / 2) - (a.top + a.height * 0.35);
+            const img = document.createElement('img');
+            img.src = sword.src; img.className = 'flying-sword'; img.alt = '';
+            img.style.setProperty('--glow', sword.glow || '#ffd700');
+            img.style.left = x0 + 'px'; img.style.top = y0 + 'px';
+            stage.appendChild(img);
+            // 從右邊往左砍時把劍左右翻過來，劍尖才會朝向對手
+            const flip = attKey === 'R' ? ' scaleX(-1)' : '';
+            img.animate([
+                { transform: 'translate(-50%,-50%) translateY(0)' + flip + ' rotate(-20deg) scale(0.6)', opacity: 0, easing: 'ease-out' },
+                { transform: 'translate(-50%,-50%) translateY(-70px)' + flip + ' rotate(60deg) scale(1)', opacity: 1, offset: 0.4, easing: 'ease-in' },
+                { transform: `translate(-50%,-50%) translate(${dx}px, ${dy}px)` + flip + ' rotate(60deg) scale(1.15)', opacity: 1 }
+            ], { duration: SWORD_FLY_MS, easing: 'linear' }).onfinish = function () { img.remove(); };
+            setTimeout(hit, SWORD_FLY_MS - 20);
+        } else {
+            hit();
+        }
+        const flash = document.getElementById('duel-flash');
+        flash.style.animation = 'flash 0.4s';
+        setTimeout(function () { flash.style.animation = ''; }, 400);
+    }
+
+    function toggleDuelPause() {
+        if (!duel || duel.phase === 'end') return;
+        playSfx(sfxClick);
+        if (!duel.paused) {
+            duel.elapsed = duelElapsed();
+            duel.paused = true;
+            clearTimeout(duel.autoId);
+            document.getElementById('duel-pause-btn').innerText = '▶ 繼續';
+        } else {
+            duel.paused = false;
+            duel.startedAt = performance.now();
+            document.getElementById('duel-pause-btn').innerText = '⏸ 暫停';
+            if (duel.phase === 'reveal') duelAfterRound();
+        }
+        duelTick();
+    }
+
+    // 算獎勵（純計算，方便測試）：回傳每位弟子要加多少
+    function duelRewardPlan(d, winKey) {
+        const loseKey = winKey === 'L' ? 'R' : 'L';
+        const win = d.sides[winKey], lose = d.sides[loseKey];
+        const underdog = win.cp < lose.cp;
+        const mult = underdog ? 2 : 1;
+        const table = DUEL_REWARD[d.mode];
+        const people = function (side) {
+            if (d.mode === 'solo') { const s = findStudentById(side.id); return s ? [s] : []; }
+            return presentMembers(side.id);
+        };
+        return {
+            underdog: underdog,
+            win: { people: people(win), coins: table.win.coins * mult, exp: table.win.exp * mult },
+            lose: { people: people(lose), coins: table.lose.coins, exp: table.lose.exp }
+        };
+    }
+
+    function finishDuel(winKey) {
+        if (!duel || duel.phase === 'end') return;
+        duel.phase = 'end';
+        clearInterval(duel.timerId);
+        clearTimeout(duel.autoId);
+        const win = duel.sides[winKey], lose = duel.sides[winKey === 'L' ? 'R' : 'L'];
+        const plan = duelRewardPlan(duel, winKey);
+        pushUndo('對戰：' + win.name + ' 勝 ' + lose.name);
+        let leveledUp = false;
+        const give = function (group) {
+            group.people.forEach(function (s) {
+                if (group.coins) s.coins = Math.max(0, parseInt(s.coins || 0) + group.coins);
+                if (group.exp) {
+                    const old = calculateLevel(s.exp);
+                    s.exp = Math.max(0, (s.exp || 0) + group.exp);
+                    if (calculateLevel(s.exp) > old) leveledUp = true;
+                }
+            });
+        };
+        give(plan.win);
+        give(plan.lose);
+        saveQuiet();
+        renderGrid();
+        if (leveledUp) { playSfx(sfxLevelUp); showLevelUpEffect(); } else playSfx(sfxGetItem);
+
+        const each = duel.mode === 'sect' ? '每人 ' : '';
+        const fmt = function (g) { return [g.coins ? '妖丹 +' + g.coins : '', g.exp ? '修為 +' + g.exp : ''].filter(Boolean).join('、'); };
+        const center = document.getElementById('duel-question');
+        center.innerHTML = '';
+        const end = document.createElement('div');
+        end.className = 'duel-end';
+        const h = document.createElement('h2');
+        h.textContent = '🏆 ' + win.name + ' 獲勝！';
+        end.appendChild(h);
+        if (plan.underdog) {
+            const u = document.createElement('div');
+            u.className = 'duel-underdog';
+            u.textContent = '以弱勝強！獎勵 ×2';
+            end.appendChild(u);
+        }
+        const r = document.createElement('div');
+        r.className = 'duel-reward';
+        r.textContent = win.name + ' ' + each + fmt(plan.win) + '\n' + lose.name + ' ' + each + fmt(plan.lose) + '（參加獎）';
+        r.style.whiteSpace = 'pre-line';
+        end.appendChild(r);
+        center.appendChild(end);
+        document.getElementById('duel-round').textContent = '對戰結束（共 ' + duel.round + ' 題）';
+        document.getElementById('duel-timer').textContent = '';
+        document.getElementById('duel-answers').style.display = 'none';
+        document.getElementById('duel-next-btn').style.display = 'none';
+        document.getElementById('duel-pause-btn').style.display = 'none';
+        const quit = document.getElementById('duel-quit-btn');
+        quit.innerText = '關閉';
+        quit.onclick = closeDuel;
+    }
+
+    function endDuelEarly() {
+        if (!duel) return;
+        const wasPaused = duel.paused;
+        if (!wasPaused) toggleDuelPause();
+        showCustomModal({
+            title: '結束對戰',
+            msg: '現在結束不會發獎勵。確定結束？',
+            showCancel: true,
+            onConfirm: closeDuel,
+            onCancel: function () { if (duel && !wasPaused && duel.paused) toggleDuelPause(); }
+        });
+    }
+
+    function closeDuel() {
+        if (duel) { clearInterval(duel.timerId); clearTimeout(duel.autoId); }
+        duel = null;
+        document.getElementById('duel-modal').style.display = 'none';
+        document.getElementById('duel-quit-btn').onclick = endDuelEarly;
+        playBGM('main');
+    }
+
+    // 鍵盤：左邊 1 2 3 4、右邊 7 8 9 0（數字鍵盤也可以）
+    document.addEventListener('keydown', function (e) {
+        if (!duel || duel.phase !== 'answer') return;
+        if (document.getElementById('duel-modal').style.display !== 'flex') return;
+        if (document.getElementById('system-modal').style.display === 'flex') return;
+        const key = e.key;
+        ['L', 'R'].forEach(function (k) {
+            const pos = DUEL_KEYS[k].indexOf(key);
+            if (pos >= 0 && pos < duel.current.order.length) { e.preventDefault(); duelAnswer(k, pos); }
+        });
+    });
 </script>
 </body>
 </html>
