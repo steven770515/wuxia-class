@@ -1945,7 +1945,7 @@
             const onLeave = isOnLeave(s);
             const card = document.createElement('div'); card.className = 'student-card pixel-border' + (onLeave ? ' on-leave' : ''); card.id = `card-${index}`;
             card.innerHTML = `
-                <button class="card-edit-btn teacher-only" onclick="openEditModal('${escHtml(s.id)}')">⚙️</button>
+                <button class="card-edit-btn teacher-only" onclick="openEditModal(String(students[${index}].id))">⚙️</button>
                 <div class="card-header">
                     <div class="student-name">${escHtml(s.name)} ${onLeave ? '<span class="leave-badge">請假</span>' : ''} ${s.title ? `<span class="title-badge">${escHtml(titleName(s.title))}</span>` : ''} ${sectBadgeHtml(s)}</div>
                     <div class="level-badge">Lv.${info.level}</div>
@@ -2022,9 +2022,11 @@
             const drawn = settings.drawnIds.map(String);
             let remain = pool.filter(i => drawn.indexOf(String(students[i].id)) < 0);
             if (!remain.length) {
-                settings.drawnIds = [];
+                // 只重設今天有來的人；請假的人維持原本有沒有被抽過，回來後這一輪的機會還在
+                const presentIds = pool.map(i => String(students[i].id));
+                settings.drawnIds = drawn.filter(id => presentIds.indexOf(id) < 0);
                 saveSettings();
-                showNotify('全班都抽過一輪了，重新開始');
+                showNotify(present.length < students.length ? '今天有來的人都抽過一輪了，重新開始（請假的人不受影響）' : '全班都抽過一輪了，重新開始');
                 remain = pool.slice();
             }
             pool = remain;
@@ -2900,6 +2902,8 @@
         reader.readAsText(file);
     }
 
+    var SAFE_ID_RE = /^[A-Za-z0-9_-]{1,40}$/;
+
     // 匯入是外來資料的入口，全欄位洗過才寫進遊戲
     function sanitizeImport(raw) {
         // 原版（chunsheng612/GameWuxia）存的是純弟子陣列，沒有門派和設定，包成新版格式再照常清洗
@@ -2916,7 +2920,8 @@
         var seenSect = {};
         (Array.isArray(raw.sects) ? raw.sects : []).slice(0, 12).forEach(function (k, i) {
             if (!k || typeof k !== 'object') return;
-            var id = k.id != null ? String(k.id).slice(0, 40) : uidSect();
+            // 編號只收英數字，別人改過的備份檔不能在編號裡夾帶程式碼
+            var id = (k.id != null && SAFE_ID_RE.test(String(k.id))) ? String(k.id) : uidSect();
             if (seenSect[id]) return;
             seenSect[id] = true;
             cleanSects.push({
@@ -2931,7 +2936,7 @@
         var seenId = {};
         raw.students.slice(0, 300).forEach(function (s, i) {
             if (!s || typeof s !== 'object') return;
-            var id = s.id != null ? String(s.id).slice(0, 40) : String(Date.now() + i);
+            var id = (s.id != null && SAFE_ID_RE.test(String(s.id))) ? String(s.id) : String(Date.now() + i);
             if (seenId[id]) return;
             seenId[id] = true;
 
@@ -4379,7 +4384,7 @@
     }
 
     function duelNextQuestion() {
-        if (!duel || duel.phase === 'end') return;
+        if (!duel || duel.phase === 'end' || duel.phase === 'finishing') return;
         clearTimeout(duel.autoId);
         const q = duelDrawQuestion();
         if (!q) { showNotify('題目都被刪掉了，對戰結束'); closeDuel(); return; }
@@ -4494,12 +4499,15 @@
         const def = duel.sides[res.winner === 'L' ? 'R' : 'L'];
         const d = duelDamage(att.cp, def.cp);
         def.hp = Math.max(0, def.hp - d.dmg);
+        // 最後一擊：勝負已定，之後按「結束對戰」會直接結算，不會變成「不發獎勵」
+        if (def.hp <= 0) { duel.phase = 'finishing'; duel.winKey = att.key; }
         resultEl.textContent = nameOf(res.winner) + (res.reason === 'faster' ? ' 快了 ' + (res.diffMs / 1000).toFixed(1) + ' 秒，' : ' 答對，') + '造成 ' + d.dmg + ' 傷害' + (d.bonus > 0 ? '（戰力壓制 +' + Math.round(d.bonus * 100) + '%）' : '') + '\n' + ansText;
         duelStrikeAnim(res.winner, d.dmg);
+        const thisDuel = duel;
         setTimeout(function () {
-            if (!duel) return;
+            if (duel !== thisDuel) return;
             renderDuelSide(def);
-            if (def.hp <= 0) setTimeout(function () { if (duel) finishDuel(att.key); }, 900);
+            if (def.hp <= 0) setTimeout(function () { if (duel === thisDuel && duel.phase === 'finishing') finishDuel(att.key); }, 900);
             else duelAfterRound();
         }, 560);
     }
@@ -4563,7 +4571,7 @@
     }
 
     function toggleDuelPause() {
-        if (!duel || duel.phase === 'end') return;
+        if (!duel || duel.phase === 'end' || duel.phase === 'finishing') return;
         playSfx(sfxClick);
         if (!duel.paused) {
             duel.elapsed = duelElapsed();
@@ -4655,6 +4663,7 @@
 
     function endDuelEarly() {
         if (!duel) return;
+        if (duel.phase === 'finishing') { finishDuel(duel.winKey); return; }
         const wasPaused = duel.paused;
         if (!wasPaused) toggleDuelPause();
         showCustomModal({
