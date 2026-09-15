@@ -149,6 +149,14 @@
         .student-card.on-leave .avatar-area, .student-card.on-leave .card-header, .student-card.on-leave .stat-row { filter: grayscale(0.9); opacity: 0.55; }
         .leave-badge { padding: 2px 6px; border: 1px solid #aaa; color: #ddd; background: rgba(0,0,0,0.4); border-radius: 6px; font-size: 0.75rem; }
         #item-get-swatch { width: 100px; height: 100px; margin: 0 auto; }
+        /* ── v7：設定分標籤、萬寶閣價格、版本列 ── */
+        [hidden] { display: none !important; }
+        .set-tabs { position: sticky; top: -20px; z-index: 5; background: var(--panel-bg); padding: 6px 0; }
+        .set-tab-page { display: flex; flex-direction: column; gap: 12px; }
+        .set-price-group { display: flex; flex-direction: column; gap: 4px; padding-bottom: 6px; border-bottom: 1px dashed rgba(112, 80, 48, 0.4); }
+        .set-price-title { color: var(--text-gold); font-size: 0.88rem; margin-top: 4px; }
+        .set-price-row .set-price-hint { width: 84px; }
+        .app-footer { text-align: center; color: #777; font-size: 0.72rem; padding: 6px 0 2px; }
         /* ── v6：寶箱圖、題庫、答題對戰 ── */
         .shop-card img.chest-img { width: 120px; height: 120px; margin: -12px 0; }
         .chest-credit { color: #888; font-size: 0.72rem; border-bottom: none; text-align: center; }
@@ -461,6 +469,7 @@
     </header>
 
     <div class="grid-container" id="studentGrid"></div>
+    <div class="app-footer">宗門啟示錄 Steven 加強版 v7 · 2026-09-16　｜　原版：chunsheng612／GameWuxia（經作者同意改作與公開）　｜　寶箱圖：DustDFG（CC-BY 4.0）</div>
 </div>
 
 <!-- 戰鬥模態框 -->
@@ -526,6 +535,7 @@
             <select id="shop-student-select" onchange="switchShopStudent()"></select>
             <span id="shop-balance-display" class="label-tag">妖丹 0</span>
             <span class="shop-note">寵物僅能在此購買；打寶不會掉寵物。</span>
+            <button class="pixel-btn action-btn-small teacher-only" style="display:none;" onclick="openShopPriceSettings()">⚙️ 改價格</button>
         </div>
         <div class="shop-tabs">
             <div class="shop-tab active" data-tab="gear" onclick="switchShopTab('gear')">神兵 / 靈獸</div>
@@ -878,17 +888,23 @@
 <div id="settings-modal">
     <div class="pixel-border sect-panel" style="width:560px;">
         <h2 class="sect-panel-title">⚙️ 設定</h2>
+        <div class="lb-tabs set-tabs">
+            <button class="pixel-btn action-btn-small lb-tab" data-set-tab="general" onclick="switchSettingsTab('general')">一般</button>
+            <button class="pixel-btn action-btn-small lb-tab" data-set-tab="shop" onclick="switchSettingsTab('shop')">萬寶閣</button>
+            <button class="pixel-btn action-btn-small lb-tab" data-set-tab="save" onclick="switchSettingsTab('save')">存檔</button>
+        </div>
 
+        <div class="set-tab-page" data-set-page="general">
         <div class="sect-section-label">師尊口令</div>
         <div class="set-block">
             <p id="set-pw-state" class="set-state"></p>
             <div class="set-row">
+                <input type="password" id="set-pw-old" placeholder="目前的口令" maxlength="30">
                 <input type="password" id="set-pw-new" placeholder="新口令" maxlength="30">
                 <input type="password" id="set-pw-again" placeholder="再輸入一次" maxlength="30">
                 <button class="pixel-btn action-btn-small success" onclick="changePassword()">更新</button>
-                <button class="pixel-btn action-btn-small" id="set-pw-clear" onclick="clearPassword()" style="display:none;">取消自訂</button>
             </div>
-            <p class="set-hint">這道口令只是把老師的按鈕藏起來，不是資安防護。原本的備用口令永遠有效，忘記自訂口令時可以用。</p>
+            <p class="set-hint">這道口令只是把老師的按鈕藏起來，不是資安防護。忘記口令時，在登入框輸入 admin 可以重設；重設過的話，下次登入會跳提醒。</p>
         </div>
 
         <div class="sect-section-label">卡片加扣分按鈕</div>
@@ -902,6 +918,27 @@
             <p class="set-hint">改完數值要按「儲存按鈕」才會生效。項目選妖丹就是加扣妖丹。</p>
         </div>
 
+        <div class="sect-section-label">隨機點名</div>
+        <div class="set-block">
+            <label class="set-check"><input type="checkbox" id="set-draw-norepeat" onchange="toggleDrawNoRepeat()"> 抽過的人不會再被抽到</label>
+            <p id="set-draw-state" class="set-state"></p>
+            <div class="set-row set-actions">
+                <button class="pixel-btn action-btn-small" onclick="resetDrawn()">重設抽籤紀錄</button>
+            </div>
+        </div>
+        </div>
+
+        <div class="set-tab-page" data-set-page="shop">
+        <div class="sect-section-label">萬寶閣價格</div>
+        <div class="set-block">
+            <p class="set-hint">「約 N 天」是用表現好的學生一天賺 200 妖丹來估。學生已經買的東西不受影響。</p>
+            <div id="set-shop-prices"></div>
+            <div class="set-row set-actions">
+                <button class="pixel-btn action-btn-small success" onclick="saveShopPrices()">儲存價格</button>
+                <button class="pixel-btn action-btn-small" onclick="resetShopPrices()">還原建議價格</button>
+            </div>
+        </div>
+
         <div class="sect-section-label">校園特權卡</div>
         <div class="set-block">
             <div id="set-card-list" class="sect-scroll" style="max-height:320px;"></div>
@@ -912,16 +949,9 @@
             </div>
             <p class="set-hint">名稱最多 8 字、說明最多 40 字。改完要按「儲存特權卡」才會生效。刪掉的卡萬寶閣不再賣，但學生已經買的還在行囊裡，照樣可以使用。</p>
         </div>
-
-        <div class="sect-section-label">隨機點名</div>
-        <div class="set-block">
-            <label class="set-check"><input type="checkbox" id="set-draw-norepeat" onchange="toggleDrawNoRepeat()"> 抽過的人不會再被抽到</label>
-            <p id="set-draw-state" class="set-state"></p>
-            <div class="set-row set-actions">
-                <button class="pixel-btn action-btn-small" onclick="resetDrawn()">重設抽籤紀錄</button>
-            </div>
         </div>
 
+        <div class="set-tab-page" data-set-page="save">
         <div class="sect-section-label">存檔與名單</div>
         <div class="set-block">
             <div class="set-row set-actions">
@@ -930,6 +960,8 @@
                 <button class="pixel-btn action-btn-small info" onclick="openExcelModal()">📊 Excel 匯入名單</button>
                 <button class="pixel-btn action-btn-small" style="background:#581212;" onclick="resetAll()">💀 重置</button>
             </div>
+            <p class="set-hint">資料存在這台電腦的瀏覽器裡，換電腦、清瀏覽器資料就會不見，下課前記得按 📤 匯出存檔。</p>
+        </div>
         </div>
 
         <button class="pixel-btn" onclick="closeSettingsModal()">關閉</button>
@@ -1026,24 +1058,24 @@
 
     // 武器與萬寶閣專屬寵物
     const ITEMS = {
-        sword_fire:  { id:'sword_fire', glow:'#ff7a2a',  name:"炎陽劍", type:'sword', src: BASE_URL+"images/swords/sword_fire_sprite.png",  icon: BASE_URL+"images/swords/sword_fire_icon.png",  cp:320, price:380, desc:"熾熱劍鋒，灼燒敵人。", stats:{atk:48,crit:6} },
-        sword_wood:  { id:'sword_wood', glow:'#7dd87d',  name:"青木劍", type:'sword', src: BASE_URL+"images/swords/sword_wood_sprite.png",  icon: BASE_URL+"images/swords/sword_wood_icon.png",  cp:240, price:260, desc:"靈木淬鍊，穩定增益。", stats:{atk:30,def:10} },
-        sword_gold:  { id:'sword_gold', glow:'#ffd700',  name:"銳金劍", type:'sword', src: BASE_URL+"images/swords/sword_gold_sprite.png",  icon: BASE_URL+"images/swords/sword_gold_icon.png",  cp:300, price:320, desc:"破甲利器，暴擊加成。", stats:{atk:46,crit:8} },
-        sword_ice:   { id:'sword_ice', glow:'#8fe3ff',   name:"冰晶劍", type:'sword', src: BASE_URL+"images/swords/sword_ice_sprite.png",   icon: BASE_URL+"images/swords/sword_ice_icon.png",   cp:260, price:300, desc:"寒霜封鋒，穩定防禦。", stats:{atk:34,def:8} },
-        sword_light: { id:'sword_light', glow:'#fff3a0', name:"晨曦劍", type:'sword', src: BASE_URL+"images/swords/sword_light_sprite.png", icon: BASE_URL+"images/swords/sword_light_icon.png", cp:380, price:420, desc:"曙光加持，超高爆擊。", stats:{atk:55,crit:12} },
-        pet_kunpeng: { id:'pet_kunpeng', glow:'#6fd6e8', name:"神獸鯤鵬", type:'pet',  src: BASE_URL+"images/pets/kunpeng_sprite.gif", icon: BASE_URL+"images/pets/kunpeng_icon.png", cp:2500, price:3000, desc:"振翅九天，速度與氣勢兼備。" },
-        pet_zhuque:  { id:'pet_zhuque', glow:'#ff6a3d',  name:"神獸朱雀", type:'pet',  src: BASE_URL+"images/pets/zhuque_sprite.gif",  icon: BASE_URL+"images/pets/zhuque_icon.png",  cp:2500, price:3000, desc:"炎羽護主，增強爆發。" },
-        pet_qinglong:{ id:'pet_qinglong', glow:'#3fd1a0',name:"神獸青龍", type:'pet',  src: BASE_URL+"images/pets/qinglong_sprite.gif", icon: BASE_URL+"images/pets/qinglong_icon.png", cp:2500, price:3000, desc:"龍威加持，全面提升戰力。" },
-        pet_whelp:   { id:'pet_whelp', glow:'#b36bff',   name:"幽冥幼龍", type:'pet',  src: BASE_URL+"images/pets/pet_nether_whelp_sprite.gif", icon: BASE_URL+"images/pets/pet_nether_whelp_icon.png", cp:3000, price:3600, desc:"冥炎纏繞，屬性全面提升。" }
+        sword_fire:  { id:'sword_fire', glow:'#ff7a2a',  name:"炎陽劍", type:'sword', src: BASE_URL+"images/swords/sword_fire_sprite.png",  icon: BASE_URL+"images/swords/sword_fire_icon.png",  cp:320, price:650, desc:"熾熱劍鋒，灼燒敵人。", stats:{atk:48,crit:6} },
+        sword_wood:  { id:'sword_wood', glow:'#7dd87d',  name:"青木劍", type:'sword', src: BASE_URL+"images/swords/sword_wood_sprite.png",  icon: BASE_URL+"images/swords/sword_wood_icon.png",  cp:240, price:300, desc:"靈木淬鍊，穩定增益。", stats:{atk:30,def:10} },
+        sword_gold:  { id:'sword_gold', glow:'#ffd700',  name:"銳金劍", type:'sword', src: BASE_URL+"images/swords/sword_gold_sprite.png",  icon: BASE_URL+"images/swords/sword_gold_icon.png",  cp:300, price:500, desc:"破甲利器，暴擊加成。", stats:{atk:46,crit:8} },
+        sword_ice:   { id:'sword_ice', glow:'#8fe3ff',   name:"冰晶劍", type:'sword', src: BASE_URL+"images/swords/sword_ice_sprite.png",   icon: BASE_URL+"images/swords/sword_ice_icon.png",   cp:260, price:400, desc:"寒霜封鋒，穩定防禦。", stats:{atk:34,def:8} },
+        sword_light: { id:'sword_light', glow:'#fff3a0', name:"晨曦劍", type:'sword', src: BASE_URL+"images/swords/sword_light_sprite.png", icon: BASE_URL+"images/swords/sword_light_icon.png", cp:380, price:800, desc:"曙光加持，超高爆擊。", stats:{atk:55,crit:12} },
+        pet_kunpeng: { id:'pet_kunpeng', glow:'#6fd6e8', name:"神獸鯤鵬", type:'pet',  src: BASE_URL+"images/pets/kunpeng_sprite.gif", icon: BASE_URL+"images/pets/kunpeng_icon.png", cp:2500, price:4000, desc:"振翅九天，速度與氣勢兼備。" },
+        pet_zhuque:  { id:'pet_zhuque', glow:'#ff6a3d',  name:"神獸朱雀", type:'pet',  src: BASE_URL+"images/pets/zhuque_sprite.gif",  icon: BASE_URL+"images/pets/zhuque_icon.png",  cp:2500, price:4000, desc:"炎羽護主，增強爆發。" },
+        pet_qinglong:{ id:'pet_qinglong', glow:'#3fd1a0',name:"神獸青龍", type:'pet',  src: BASE_URL+"images/pets/qinglong_sprite.gif", icon: BASE_URL+"images/pets/qinglong_icon.png", cp:2500, price:4000, desc:"龍威加持，全面提升戰力。" },
+        pet_whelp:   { id:'pet_whelp', glow:'#b36bff',   name:"幽冥幼龍", type:'pet',  src: BASE_URL+"images/pets/pet_nether_whelp_sprite.gif", icon: BASE_URL+"images/pets/pet_nether_whelp_icon.png", cp:3000, price:5500, desc:"冥炎纏繞，屬性全面提升。" }
     };
 
     // v4：氣場（純外觀，不加戰力；原本想做衣服換色，但濾鏡會連臉一起染，改成換光暈顏色）
     const AURAS = {
         aura_crimson: { id:'aura_crimson', name:'赤霞氣場', type:'aura', rgb:'255,90,74',   price:600,  desc:'身旁泛起赤紅霞光。' },
         aura_jade:    { id:'aura_jade',    name:'碧落氣場', type:'aura', rgb:'63,209,160',  price:600,  desc:'青碧靈氣環繞周身。' },
-        aura_frost:   { id:'aura_frost',   name:'寒月氣場', type:'aura', rgb:'150,225,255', price:900,  desc:'月華如霜，清冷出塵。' },
-        aura_thunder: { id:'aura_thunder', name:'紫電氣場', type:'aura', rgb:'180,110,255', price:900,  desc:'紫電縈繞，氣勢逼人。' },
-        aura_gold:    { id:'aura_gold',    name:'金光氣場', type:'aura', rgb:'255,215,0',   price:1200, desc:'金光護體，一代宗師風範。' }
+        aura_frost:   { id:'aura_frost',   name:'寒月氣場', type:'aura', rgb:'150,225,255', price:1000,  desc:'月華如霜，清冷出塵。' },
+        aura_thunder: { id:'aura_thunder', name:'紫電氣場', type:'aura', rgb:'180,110,255', price:1000,  desc:'紫電縈繞，氣勢逼人。' },
+        aura_gold:    { id:'aura_gold',    name:'金光氣場', type:'aura', rgb:'255,215,0',   price:2000, desc:'金光護體，一代宗師風範。' }
     };
 
     // v4：造型（原版 4 階角色圖，升到該等級解鎖，之後可自由換穿）
@@ -1056,7 +1088,7 @@
 
     // v4：神獸覺醒（花妖丹升星，守護靈變亮、加戰力；3 星多一圈光環）
     const AWAKEN_MAX = 3;
-    const AWAKEN_COST = { 2: 2000, 3: 4000 };
+    const AWAKEN_COST = { 2: 3000, 3: 6000 };
     const AWAKEN_CP_PER_STAR = 600;
 
     // 稱號系統
@@ -1071,13 +1103,13 @@
     // 校園特權卡（貼近台灣學生且非請客，移除加分券）
     // v5：這是預設的 7 張；老師在設定裡改過的存在 settings.rewardCards，REAL_REWARDS 是目前萬寶閣在賣的
     const DEFAULT_REWARD_CARDS = [
-        { id: 'card_vocab',     name: '減字訣',     type: 'consumable', icon: BASE_URL + 'images/ui/icon_scroll_pixel.png', price: 800,  desc: "作業或圈詞可少寫一遍" },
-        { id: 'card_nap',       name: '逍遙午休',   type: 'consumable', icon: BASE_URL + 'images/monsters/placeholder_monster.gif', price: 500, desc: "午休/早自習可安靜趴睡一次" },
-        { id: 'card_seat',      name: '移形換位',   type: 'consumable', icon: BASE_URL + 'images/ui/icon_bag_pixel.png', price: 2500, desc: "下週優先選擇座位一次" },
+        { id: 'card_vocab',     name: '減字訣',     type: 'consumable', icon: BASE_URL + 'images/ui/icon_scroll_pixel.png', price: 600,  desc: "作業或圈詞可少寫一遍" },
+        { id: 'card_nap',       name: '逍遙午休',   type: 'consumable', icon: BASE_URL + 'images/monsters/placeholder_monster.gif', price: 400, desc: "午休/早自習可安靜趴睡一次" },
+        { id: 'card_seat',      name: '移形換位',   type: 'consumable', icon: BASE_URL + 'images/ui/icon_bag_pixel.png', price: 2000, desc: "下週優先選擇座位一次" },
         { id: 'card_pardon',    name: '免死金牌',   type: 'consumable', icon: BASE_URL + 'images/ui/icon_save_pixel.png', price: 3000, desc: "抵銷一次小缺點或處罰" },
-        { id: 'card_late',      name: '雲影步',     type: 'consumable', icon: BASE_URL + 'images/ui/icon_reward_pixel.png', price: 1200, desc: "一次小遲到補救，記錄不列入" },
-        { id: 'card_extension', name: '緩衝符',     type: 'consumable', icon: BASE_URL + 'images/ui/icon_scroll_pixel.png', price: 1500, desc: "一次作業或報告可順延一天繳交" },
-        { id: 'card_cleanup',   name: '風清掃',     type: 'consumable', icon: BASE_URL + 'images/ui/icon_bag_pixel.png', price: 900,  desc: "一次值日/打掃可換班同學代班（需老師同意）" }
+        { id: 'card_late',      name: '雲影步',     type: 'consumable', icon: BASE_URL + 'images/ui/icon_reward_pixel.png', price: 1000, desc: "一次小遲到補救，記錄不列入" },
+        { id: 'card_extension', name: '緩衝符',     type: 'consumable', icon: BASE_URL + 'images/ui/icon_scroll_pixel.png', price: 1200, desc: "一次作業或報告可順延一天繳交" },
+        { id: 'card_cleanup',   name: '風清掃',     type: 'consumable', icon: BASE_URL + 'images/ui/icon_bag_pixel.png', price: 800,  desc: "一次值日/打掃可換班同學代班（需老師同意）" }
     ];
     let REAL_REWARDS = DEFAULT_REWARD_CARDS.map(c => Object.assign({}, c));
     const REWARD_CARD_MAX = 15;
@@ -1085,9 +1117,9 @@
 
     // v5：萬寶閣寶箱（三類 × 三級）。等級越高越容易開到好東西，便宜的寶箱有機會是空的
     const CHEST_KINDS = [
-        { kind: 'sword', name: '神兵箱', icon: '🗡️', prices: [150, 250, 400] },
+        { kind: 'sword', name: '神兵箱', icon: '🗡️', prices: [200, 350, 500] },
         { kind: 'aura',  name: '氣場箱', icon: '✨', prices: [400, 700, 1100] },
-        { kind: 'pet',   name: '靈獸箱', icon: '🐉', prices: [1500, 2400, 3400] }
+        { kind: 'pet',   name: '靈獸箱', icon: '🐉', prices: [1800, 3000, 4500] }
     ];
     const CHEST_TIERS = [
         { tier: 1, name: '凡品', emptyRate: 0.3 },
@@ -1327,17 +1359,19 @@
 
     function toggleTeacherMode() {
         if (!isTeacherMode) {
+            if (!settings.passwordHash) {
+                // 第一次使用：老師自己設口令
+                askNewPassword('第一次使用', '請設定師尊口令（至少 2 個字，之後登入要用）', function (h) {
+                    settings.passwordHash = h;
+                    settings.lastLoginAt = Date.now();
+                    saveSettings();
+                    enterTeacherMode('口令設定好了，師尊降臨！');
+                });
+                return;
+            }
             showCustomModal({
                 title: "師尊驗證", msg: "請輸入師尊口令", hasInput: true, isPassword: true, showCancel: true,
-                onConfirm: (val) => {
-                    checkPassword(val).then((ok) => {
-                        if (ok) {
-                            isTeacherMode = true; document.getElementById('loginBtn').innerText = "🔓 師尊登出";
-                            showNotify("師尊降臨，權限已解鎖！");
-                            updateTeacherUI();
-                        } else { showNotify("口令錯誤！"); }
-                    });
-                }
+                onConfirm: loginWithPassword
             });
         } else { isTeacherMode = false; document.getElementById('loginBtn').innerText = "🔑 師尊登入"; showNotify("已切換回弟子視角。"); updateTeacherUI(); }
     }
@@ -2816,6 +2850,7 @@
                 rewardPrices: settings.rewardPrices,
                 rewardCards: settings.rewardCards,
                 retiredCards: settings.retiredCards,
+                shopPrices: settings.shopPrices,
                 drawNoRepeat: settings.drawNoRepeat,
                 malesUpTo: settings.malesUpTo
             },
@@ -2887,6 +2922,7 @@
                         settings = sanitizeSettings(result.settings, settings);
                         saveSettings();
                         applyRewardCards();
+                        applyShopPrices();
                     }
                     if (result.questions) {
                         questions = result.questions;
@@ -2995,7 +3031,8 @@
        ══════════════════════════════════════════════════════════ */
 
     const SETTINGS_KEY = 'wuxia_class_settings';
-    const BACKUP_PASSWORDS = ['admin', '師尊', '1234'];
+    // 忘記口令時在登入框輸入這個字，會進入重設流程（不能直接登入）
+    const RESET_WORD = 'admin';
     const XLSX_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
     const QUICK_BTN_MAX = 8;
     const DEFAULT_QUICK_BUTTONS = [
@@ -3028,6 +3065,166 @@
             settings = sanitizeSettings(raw, settings);
         }
         applyRewardCards();
+        applyShopPrices();
+    }
+
+    // ── v7：萬寶閣價格（神兵、靈獸、氣場、寶箱、覺醒）──
+    const DEFAULT_SHOP = {
+        items: {},
+        awaken: Object.assign({}, AWAKEN_COST),
+        chests: {}
+    };
+    Object.values(ITEMS).forEach(function (it) { DEFAULT_SHOP.items[it.id] = it.price; });
+    Object.values(AURAS).forEach(function (it) { DEFAULT_SHOP.items[it.id] = it.price; });
+    CHEST_KINDS.forEach(function (k) { DEFAULT_SHOP.chests[k.kind] = k.prices.slice(); });
+    const PRICE_DAY = 200;   // 「約 N 天」用表現好的學生一天賺多少來估
+
+    function cleanPrice(v) {
+        const n = Math.round(Number(v));
+        return (isFinite(n) && n >= 1 && n <= 99999) ? n : null;
+    }
+
+    // 只留跟預設不一樣、而且合法的價格；全部一樣就回傳 null
+    function sanitizeShopPrices(raw) {
+        if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+        const out = { items: {}, awaken: {}, chests: {} };
+        let any = false;
+        const src = raw.items && typeof raw.items === 'object' ? raw.items : {};
+        Object.keys(DEFAULT_SHOP.items).forEach(function (id) {
+            const v = cleanPrice(src[id]);
+            if (v !== null && v !== DEFAULT_SHOP.items[id]) { out.items[id] = v; any = true; }
+        });
+        const aw = raw.awaken && typeof raw.awaken === 'object' ? raw.awaken : {};
+        Object.keys(DEFAULT_SHOP.awaken).forEach(function (star) {
+            const v = cleanPrice(aw[star]);
+            if (v !== null && v !== DEFAULT_SHOP.awaken[star]) { out.awaken[star] = v; any = true; }
+        });
+        const ch = raw.chests && typeof raw.chests === 'object' ? raw.chests : {};
+        Object.keys(DEFAULT_SHOP.chests).forEach(function (kind) {
+            if (!Array.isArray(ch[kind])) return;
+            const arr = DEFAULT_SHOP.chests[kind].map(function (d, i) { const v = cleanPrice(ch[kind][i]); return v === null ? d : v; });
+            if (arr.some(function (v, i) { return v !== DEFAULT_SHOP.chests[kind][i]; })) { out.chests[kind] = arr; any = true; }
+        });
+        return any ? out : null;
+    }
+
+    function applyShopPrices() {
+        const sp = settings.shopPrices || { items: {}, awaken: {}, chests: {} };
+        Object.keys(DEFAULT_SHOP.items).forEach(function (id) {
+            const it = ITEMS[id] || AURAS[id];
+            if (it) it.price = sp.items[id] || DEFAULT_SHOP.items[id];
+        });
+        Object.keys(DEFAULT_SHOP.awaken).forEach(function (star) {
+            AWAKEN_COST[star] = sp.awaken[star] || DEFAULT_SHOP.awaken[star];
+        });
+        CHEST_KINDS.forEach(function (k) {
+            k.prices = (sp.chests[k.kind] || DEFAULT_SHOP.chests[k.kind]).slice();
+        });
+    }
+
+    function dayHint(price) {
+        const d = price / PRICE_DAY;
+        return d < 1 ? '不到 1 天' : '約 ' + (d < 10 ? Math.round(d * 2) / 2 : Math.round(d)) + ' 天';
+    }
+
+    function renderShopPriceEditor() {
+        const box = document.getElementById('set-shop-prices');
+        box.innerHTML = '';
+        const group = function (title) {
+            const g = document.createElement('div');
+            g.className = 'set-price-group';
+            const t = document.createElement('div');
+            t.className = 'set-price-title';
+            t.textContent = title;
+            g.appendChild(t);
+            box.appendChild(g);
+            return g;
+        };
+        const row = function (parent, label, sub, value, attrs) {
+            const r = document.createElement('div');
+            r.className = 'set-row set-price-row';
+            const nm = document.createElement('span');
+            nm.className = 'set-price-name';
+            nm.textContent = label;
+            if (sub) { const s = document.createElement('small'); s.textContent = '　' + sub; s.style.color = '#999'; nm.appendChild(s); }
+            const inp = document.createElement('input');
+            inp.type = 'number'; inp.min = 1; inp.max = 99999; inp.value = value;
+            inp.className = 'set-price-input';
+            Object.keys(attrs).forEach(function (k) { inp.dataset[k] = attrs[k]; });
+            const hint = document.createElement('span');
+            hint.className = 'set-price-hint';
+            hint.textContent = dayHint(value);
+            inp.oninput = function () { const v = cleanPrice(inp.value); hint.textContent = v ? dayHint(v) : '要 1～99999'; };
+            r.appendChild(nm); r.appendChild(inp); r.appendChild(hint);
+            parent.appendChild(r);
+        };
+        const g1 = group('🗡️ 神兵');
+        Object.values(ITEMS).filter(function (it) { return it.type === 'sword'; }).forEach(function (it) { row(g1, it.name, '戰力 +' + it.cp, it.price, { item: it.id }); });
+        const g2 = group('🐉 靈獸');
+        Object.values(ITEMS).filter(function (it) { return it.type === 'pet'; }).forEach(function (it) { row(g2, it.name, '戰力 +' + it.cp, it.price, { item: it.id }); });
+        const g3 = group('✨ 氣場（純外觀）');
+        Object.values(AURAS).forEach(function (it) { row(g3, it.name, '', it.price, { item: it.id }); });
+        const g4 = group('🌟 神獸覺醒');
+        Object.keys(AWAKEN_COST).forEach(function (star) { row(g4, '覺醒到 ' + star + ' 星', '戰力再 +' + AWAKEN_CP_PER_STAR, AWAKEN_COST[star], { awaken: star }); });
+        const g5 = group('🎁 寶箱');
+        CHEST_KINDS.forEach(function (k) {
+            CHEST_TIERS.forEach(function (t, i) { row(g5, t.name + k.name, '', k.prices[i], { chest: k.kind, tier: i }); });
+        });
+    }
+
+    function saveShopPrices() {
+        if (!requireTeacher('修改價格')) return;
+        const raw = { items: {}, awaken: {}, chests: {} };
+        let bad = 0;
+        document.querySelectorAll('#set-shop-prices .set-price-input').forEach(function (inp) {
+            const v = cleanPrice(inp.value);
+            if (v === null) { bad++; return; }
+            if (inp.dataset.item) raw.items[inp.dataset.item] = v;
+            else if (inp.dataset.awaken) raw.awaken[inp.dataset.awaken] = v;
+            else if (inp.dataset.chest) {
+                if (!raw.chests[inp.dataset.chest]) raw.chests[inp.dataset.chest] = DEFAULT_SHOP.chests[inp.dataset.chest].slice();
+                raw.chests[inp.dataset.chest][Number(inp.dataset.tier)] = v;
+            }
+        });
+        if (bad) { showNotify('有 ' + bad + ' 個價格不對，要填 1 到 99999'); return; }
+        settings.shopPrices = sanitizeShopPrices(raw);
+        saveSettings();
+        applyShopPrices();
+        renderShopPriceEditor();
+        showNotify('萬寶閣價格已更新（學生已經買的東西不受影響）');
+    }
+
+    function resetShopPrices() {
+        if (!requireTeacher('修改價格')) return;
+        showCustomModal({
+            title: '還原建議價格',
+            msg: '神兵、靈獸、氣場、寶箱、覺醒的價格會換回建議價格（特權卡不受影響）。',
+            showCancel: true,
+            onConfirm: function () {
+                settings.shopPrices = null;
+                saveSettings();
+                applyShopPrices();
+                renderShopPriceEditor();
+                showNotify('已還原建議價格');
+            }
+        });
+    }
+
+    // ── v7：設定分標籤 ──
+    let settingsTab = 'general';
+    function switchSettingsTab(tab, silent) {
+        if (['general', 'shop', 'save'].indexOf(tab) < 0) tab = 'general';
+        // 特權卡改到一半切標籤，內容要留著
+        if (!silent && cardDraft === null && tab !== 'shop' && settingsTab === 'shop') cardDraft = readCardRows();
+        settingsTab = tab;
+        document.querySelectorAll('#settings-modal .set-tab-page').forEach(function (p) { p.hidden = p.dataset.setPage !== tab; });
+        document.querySelectorAll('#settings-modal [data-set-tab]').forEach(function (b) { b.classList.toggle('active', b.dataset.setTab === tab); });
+        if (!silent) playSfx(sfxClick);
+    }
+
+    function openShopPriceSettings() {
+        document.getElementById('shop-modal').style.display = 'none';
+        openSettingsModal('shop');
     }
 
     function saveSettings() {
@@ -3048,7 +3245,13 @@
             malesUpTo: (function () {
                 const n = Math.round(Number(raw.malesUpTo));
                 return (isFinite(n) && n >= 0 && n <= 300) ? n : base.malesUpTo;
-            })()
+            })(),
+            // 備份檔不帶口令相關紀錄，匯入時沿用這台電腦原本的
+            pwResets: Array.isArray(raw.pwResets)
+                ? raw.pwResets.map(Number).filter(function (t) { return isFinite(t) && t > 0; }).slice(-10)
+                : (base.pwResets || []),
+            lastLoginAt: (isFinite(Number(raw.lastLoginAt)) && Number(raw.lastLoginAt) > 0) ? Number(raw.lastLoginAt) : (base.lastLoginAt || 0),
+            shopPrices: raw.shopPrices !== undefined ? sanitizeShopPrices(raw.shopPrices) : (base.shopPrices || null)
         };
         const rp = (raw.rewardPrices && typeof raw.rewardPrices === 'object') ? raw.rewardPrices : {};
         DEFAULT_REWARD_CARDS.forEach(function (r) {
@@ -3193,42 +3396,96 @@
         return Promise.resolve('fb' + h.toString(16));
     }
 
+    // v7：只認老師自己設的口令；RESET_WORD 不能登入，只能進重設流程
     function checkPassword(input) {
-        if (!settings.passwordHash) {
-            return Promise.resolve(BACKUP_PASSWORDS.indexOf(input) >= 0);
-        }
-        return hashPassword(input).then(function (h) {
-            return h === settings.passwordHash || BACKUP_PASSWORDS.indexOf(input) >= 0;
+        if (!settings.passwordHash) return Promise.resolve(false);
+        return hashPassword(input).then(function (h) { return h === settings.passwordHash; });
+    }
+
+    function passwordProblem(a) {
+        if (!a || a.length < 2) return '口令至少要 2 個字';
+        if (a === RESET_WORD) return '不能用 ' + RESET_WORD + ' 當口令';
+        return '';
+    }
+
+    // 輸入兩次新口令，對得上才把雜湊交給 done
+    function askNewPassword(title, msg, done) {
+        showCustomModal({
+            title: title, msg: msg, hasInput: true, isPassword: true, showCancel: true,
+            onConfirm: function (a) {
+                const bad = passwordProblem(a);
+                if (bad) { showNotify(bad); return; }
+                showCustomModal({
+                    title: title, msg: '再輸入一次新口令', hasInput: true, isPassword: true, showCancel: true,
+                    onConfirm: function (b) {
+                        if (a !== b) { showNotify('兩次輸入的口令不一樣，請重來'); return; }
+                        hashPassword(a).then(done);
+                    }
+                });
+            }
+        });
+    }
+
+    function fmtTime(ts) {
+        const d = new Date(ts);
+        const p = function (n) { return String(n).padStart(2, '0'); };
+        return (d.getMonth() + 1) + '/' + d.getDate() + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+    }
+
+    function enterTeacherMode(msg) {
+        isTeacherMode = true;
+        document.getElementById('loginBtn').innerText = "🔓 師尊登出";
+        showNotify(msg || "師尊降臨，權限已解鎖！");
+        updateTeacherUI();
+    }
+
+    function startPasswordReset() {
+        const past = (settings.pwResets || []).slice(-3).map(fmtTime);
+        askNewPassword('重設師尊口令',
+            '忘記口令了嗎？請設定新的口令。' + (past.length ? '\n（這台電腦之前在 ' + past.join('、') + ' 重設過口令，如果不是你，請檢查資料）' : ''),
+            function (h) {
+                settings.passwordHash = h;
+                settings.pwResets = (settings.pwResets || []).concat([Date.now()]).slice(-10);
+                settings.lastLoginAt = Date.now();
+                saveSettings();
+                enterTeacherMode('口令已重設，師尊降臨！');
+            });
+    }
+
+    function loginWithPassword(val) {
+        if (val === RESET_WORD) { startPasswordReset(); return; }
+        checkPassword(val).then(function (ok) {
+            if (!ok) { showNotify("口令錯誤！（忘記口令可以輸入 " + RESET_WORD + " 重設）"); return; }
+            const since = settings.lastLoginAt || 0;
+            const resets = (settings.pwResets || []).filter(function (t) { return t > since; });
+            settings.lastLoginAt = Date.now();
+            saveSettings();
+            enterTeacherMode();
+            if (resets.length) {
+                showCustomModal({
+                    title: '⚠️ 口令被重設過',
+                    msg: '口令在 ' + resets.map(fmtTime).join('、') + ' 用 ' + RESET_WORD + ' 重設過。\n如果不是你本人，請馬上到設定改口令，並檢查弟子的修為妖丹（可以用復原或備份檔還原）。'
+                });
+            }
         });
     }
 
     function changePassword() {
+        const old = document.getElementById('set-pw-old').value;
         const a = document.getElementById('set-pw-new').value;
         const b = document.getElementById('set-pw-again').value;
-        if (!a) { showNotify('請輸入新口令'); return; }
-        if (a.length < 2) { showNotify('口令至少要 2 個字'); return; }
-        if (a !== b) { showNotify('兩次輸入的口令不一樣'); return; }
-        hashPassword(a).then(function (h) {
-            settings.passwordHash = h;
-            saveSettings();
-            document.getElementById('set-pw-new').value = '';
-            document.getElementById('set-pw-again').value = '';
-            renderSettingsModal();
-            showNotify('口令已更新（備用口令仍然有效）');
-        });
-    }
-
-    function clearPassword() {
-        showCustomModal({
-            title: '取消自訂口令',
-            msg: '要改回只用備用口令嗎？',
-            showCancel: true,
-            onConfirm: function () {
-                settings.passwordHash = null;
+        const bad = passwordProblem(a);
+        if (bad) { showNotify(bad); return; }
+        if (a !== b) { showNotify('兩次輸入的新口令不一樣'); return; }
+        checkPassword(old).then(function (ok) {
+            if (!ok) { showNotify('目前的口令不對'); return; }
+            hashPassword(a).then(function (h) {
+                settings.passwordHash = h;
                 saveSettings();
+                ['set-pw-old', 'set-pw-new', 'set-pw-again'].forEach(function (id) { document.getElementById(id).value = ''; });
                 renderSettingsModal();
-                showNotify('已取消自訂口令');
-            }
+                showNotify('口令已更新');
+            });
         });
     }
 
@@ -3293,9 +3550,10 @@
     }
 
     // ── 設定面板 ──
-    function openSettingsModal() {
+    function openSettingsModal(tab) {
         if (!requireTeacher('設定')) return;
         playSfx(sfxClick);
+        if (typeof tab === 'string') settingsTab = tab;
         cardDraft = null;   // 上次沒儲存的特權卡修改不留
         renderSettingsModal();
         document.getElementById('settings-modal').style.display = 'flex';
@@ -3308,10 +3566,9 @@
     function renderSettingsModal() {
         // 口令狀態
         const pwState = document.getElementById('set-pw-state');
-        pwState.innerText = settings.passwordHash
-            ? '目前使用你自訂的口令（備用口令仍然有效）'
-            : '目前使用備用口令';
-        document.getElementById('set-pw-clear').style.display = settings.passwordHash ? 'inline-block' : 'none';
+        pwState.innerText = settings.passwordHash ? '已設定師尊口令' : '還沒設定口令';
+        switchSettingsTab(settingsTab, true);
+        renderShopPriceEditor();
 
         // 卡片快捷按鈕
         const list = document.getElementById('set-quick-list');
