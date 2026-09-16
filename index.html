@@ -552,7 +552,7 @@
         </div>
     </div>
     <div class="grid-container" id="studentGrid"></div>
-    <div class="app-footer">宗門啟示錄 Steven 加強版 v9.2 · 2026-09-17　｜　原版：chunsheng612／GameWuxia（經作者同意改作與公開）　｜　寶箱圖：DustDFG（CC-BY 4.0）</div>
+    <div class="app-footer">宗門啟示錄 Steven 加強版 v9.3 · 2026-09-17　｜　原版：chunsheng612／GameWuxia（經作者同意改作與公開）　｜　寶箱圖：DustDFG（CC-BY 4.0）</div>
 </div>
 
 <!-- 戰鬥模態框 -->
@@ -1209,7 +1209,13 @@
     // v4：神獸覺醒（花妖丹升星，守護靈變亮、加戰力；3 星多一圈光環）
     const AWAKEN_MAX = 3;
     const AWAKEN_COST = { 2: 3000, 3: 6000 };
-    const AWAKEN_CP_PER_STAR = 600;
+    // v9.3：每升一星加多少戰力（原本每星 +600，跟價格比太不划算）
+    const AWAKEN_CP = { 2: 1200, 3: 2400 };
+    function awakenCpBonus(stars) {
+        let n = 0;
+        for (let st = 2; st <= stars; st++) n += AWAKEN_CP[st] || 0;
+        return n;
+    }
 
     // 稱號系統
     const TITLES = {
@@ -1395,7 +1401,7 @@
         const lvl = calculateLevel(student.exp);
         let cp = (lvl * 100) + Math.floor(student.exp * 0.1);
         if (student.equipped) {
-            if (student.equipped.pet) { const item = getItemData(student.equipped.pet); if(item) cp += (item.cp || 300) + (petStars(student, student.equipped.pet) - 1) * AWAKEN_CP_PER_STAR; }
+            if (student.equipped.pet) { const item = getItemData(student.equipped.pet); if(item) cp += (item.cp || 300) + awakenCpBonus(petStars(student, student.equipped.pet)); }
             if (student.equipped.sword) { const item = getItemData(student.equipped.sword); if(item) cp += (item.cp || 500); }
         }
         if (student.title && TITLES[student.title]) cp += TITLES[student.title].bonus?.cp || 0;
@@ -1884,7 +1890,7 @@
                     const isEquipped = (eq.pet === itemId || eq.sword === itemId || eq.aura === itemId);
                     const isConsumable = itemData.type === 'consumable';
                     const stars = itemData.type === 'pet' ? petStars(s, itemId) : 0;
-                    const cpText = itemData.cp ? itemData.cp + (stars > 1 ? (stars - 1) * AWAKEN_CP_PER_STAR : 0) : 0;
+                    const cpText = itemData.cp ? itemData.cp + awakenCpBonus(stars) : 0;
                     const div = document.createElement('div');
                     div.className = `inventory-item ${isEquipped ? 'equipped' : ''}`;
                     div.innerHTML = `
@@ -1954,7 +1960,7 @@
         const starText = '★'.repeat(stars) + '☆'.repeat(AWAKEN_MAX - stars);
         const info = stars >= AWAKEN_MAX
             ? '已覺醒至最高星，守護靈光環全開'
-            : `覺醒到 ${next} 星：${salePrice(AWAKEN_COST[next])} 妖丹${fortuneIs('sale') ? '（特賣）' : ''}，戰力再 +${AWAKEN_CP_PER_STAR}` + (next === AWAKEN_MAX ? '，多一圈光環' : '');
+            : `覺醒到 ${next} 星：${salePrice(AWAKEN_COST[next])} 妖丹${fortuneIs('sale') ? '（特賣）' : ''}，戰力再 +${AWAKEN_CP[next]}` + (next === AWAKEN_MAX ? '，多一圈光環' : '');
         box.innerHTML = `<div class="awaken-box">
                 <img src="${pet.icon || pet.src}" alt="">
                 <div class="awaken-info">${pet.name}　<span class="awaken-stars">${starText}</span><br><span style="color:#aaa;">${info}</span></div>
@@ -4041,7 +4047,7 @@
         const g3 = group('✨ 氣場（純外觀）');
         Object.values(AURAS).forEach(function (it) { row(g3, it.name, '', it.price, { item: it.id }); });
         const g4 = group('🌟 神獸覺醒');
-        Object.keys(AWAKEN_COST).forEach(function (star) { row(g4, '覺醒到 ' + star + ' 星', '戰力再 +' + AWAKEN_CP_PER_STAR, AWAKEN_COST[star], { awaken: star }); });
+        Object.keys(AWAKEN_COST).forEach(function (star) { row(g4, '覺醒到 ' + star + ' 星', '戰力再 +' + AWAKEN_CP[star], AWAKEN_COST[star], { awaken: star }); });
         const g5 = group('🎁 寶箱');
         CHEST_KINDS.forEach(function (k) {
             k.tiers.forEach(function (tier) { row(g5, tierName(tier) + k.name, '', k.prices[tier - 1], { chest: k.kind, tier: tier - 1 }); });
