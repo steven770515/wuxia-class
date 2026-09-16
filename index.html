@@ -66,9 +66,18 @@
         .pixel-btn:disabled { filter: grayscale(1); cursor: not-allowed; opacity: 0.7; transform: none; box-shadow: none; }
 
         #app-container { max-width: 1200px; margin: 0 auto; padding: 20px; display: flex; flex-direction: column; height: 100vh; box-sizing: border-box; }
-        header { text-align: center; padding: 15px; background: var(--panel-bg); margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; position: relative; flex-wrap: wrap; gap: 10px; }
+        header { text-align: center; padding: 15px; background: var(--panel-bg); margin-bottom: 20px; display: flex; flex-direction: column; align-items: stretch; position: relative; gap: 10px; }
+        /* v9.1：上方按鈕分三組（江湖／上課／管理選單） */
+        .header-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .header-icons { display: flex; gap: 8px; align-items: center; }
+        .controls.teacher-row { border-top: 1px dashed rgba(140,111,79,0.6); padding-top: 10px; }
+        .row-label { color: var(--text-brown); font-size: 0.85rem; margin-right: 2px; }
+        .menu-wrap { position: relative; }
+        .manage-menu { position: absolute; top: calc(100% + 6px); left: 0; z-index: 900; display: flex; flex-direction: column; gap: 6px; min-width: 170px; padding: 8px; background: var(--panel-bg); border: 3px solid var(--border-color); box-shadow: 0 6px 18px rgba(0,0,0,0.6); }
+        .manage-menu[hidden] { display: none; }
+        .manage-menu .pixel-btn { text-align: left; white-space: nowrap; }
         h1 { margin: 0; font-size: 2rem; color: var(--text-gold); text-shadow: 2px 2px 0 #000, 0 0 10px rgba(255, 215, 0, 0.5); letter-spacing: 2px; }
-        .controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: flex-start; }
         .teacher-only { display: none !important; }
         input[type="text"], input[type="password"], input[type="number"] { background: rgba(0,0,0,0.3); border: 2px solid var(--border-color); color: var(--text-beige); padding: 8px; font-family: inherit; outline: none; }
         input:focus { border-color: var(--text-gold); background: rgba(0,0,0,0.5); }
@@ -428,8 +437,8 @@
         .shop-card p { font-size: 0.85rem; color: #cfc2a6; margin: 0; min-height: 32px;}
 
         /* Modals */
-        #battle-modal, #system-modal, #inventory-modal, #edit-student-modal, #batch-modal, #loading-overlay, #leaderboard-modal, #shop-modal, #sect-modal, #grant-modal, #settings-modal, #excel-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; flex-direction: column; }
-        #system-modal, #edit-student-modal, #batch-modal, #leaderboard-modal, #shop-modal, #sect-modal, #grant-modal, #settings-modal, #excel-modal { z-index: 2000; }
+        #battle-modal, #system-modal, #inventory-modal, #edit-student-modal, #batch-modal, #recruit-modal, #loading-overlay, #leaderboard-modal, #shop-modal, #sect-modal, #grant-modal, #settings-modal, #excel-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; flex-direction: column; }
+        #system-modal, #edit-student-modal, #batch-modal, #recruit-modal, #leaderboard-modal, #shop-modal, #sect-modal, #grant-modal, #settings-modal, #excel-modal { z-index: 2000; }
         #system-modal { z-index: 2500; }
         #loading-overlay { z-index: 9999; background: #1a1a1a; display: flex; }
         #battle-stage { width: 820px; height: 520px; background-color: #1f1812; background-size: cover; position: relative; border: 4px solid #302010; box-shadow: 0 0 50px rgba(0,0,0,0.8); display: flex; flex-direction: column; justify-content: space-between; padding: 20px; transition: background-image 0.5s ease; }
@@ -476,39 +485,58 @@
 
 <div id="app-container">
     <header class="pixel-border">
-        <div style="display: flex; align-items: center; gap: 15px;">
-            <img id="header-icon" src="" width="40" alt="Icon">
-            <h1>宗門名錄</h1>
-        </div>
-        <div class="controls">
-            <button class="pixel-btn" id="musicBtn" onclick="toggleMusic()">🔇 音樂</button>
-            <button class="pixel-btn gold" onclick="openShopDirect()">💰 萬寶閣</button>
-            <button class="pixel-btn gold" onclick="openLeaderboard()">🏆 戰力榜</button>
-            <button class="pixel-btn primary" onclick="openBossModal()">🐲 世界 Boss</button>
-            <button class="pixel-btn info" onclick="openQuestModal()">📋 門派任務</button>
-            <button class="pixel-btn teacher-only" style="display:none;" onclick="openBattleModal()">⚔️ 隨機歷練</button>
-            <button class="pixel-btn primary teacher-only" style="display:none;" onclick="openDuelSetup()">🥊 對戰</button>
-            <button class="pixel-btn teacher-only" style="display:none;" onclick="openQbankModal()">📜 題庫</button>
-            <div style="width: 20px;"></div>
-
-            <button id="loginBtn" class="pixel-btn" onclick="toggleTeacherMode()">🔑 師尊登入</button>
-            <div class="teacher-only teacher-controls-header" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                <input type="text" id="newStudentName" placeholder="輸入弟子名號" style="width:100px;">
-                <div class="gender-radio">
-                    <label><input type="radio" name="newStudentGender" value="male" checked>男</label>
-                    <label><input type="radio" name="newStudentGender" value="female">女</label>
-                </div>
-                <button class="pixel-btn success" onclick="addStudent()">招收</button>
-                <button class="pixel-btn info" onclick="openBatchModal()">📚 批量</button>
-                <button class="pixel-btn info" onclick="openSectModal()">🏯 門派</button>
-                <button class="pixel-btn success" onclick="openGrantModal()">🎁 獎賞</button>
-                <button class="pixel-btn" id="undoBtn" onclick="undoLast()" disabled style="opacity:0.45;">↩️ 復原</button>
-                <button class="pixel-btn" id="backupBtn" onclick="exportSave()" title="下載備份檔到「下載」資料夾">📤 備份</button>
-                <button class="pixel-btn info" onclick="openSettingsModal()">⚙️ 設定</button>
-                <input type="file" id="import-file" accept="application/json,.json" style="display:none;" onchange="importSaveFile(this)">
+        <div class="header-top">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <img id="header-icon" src="" width="40" alt="Icon">
+                <h1>宗門名錄</h1>
+            </div>
+            <div class="header-icons">
+                <button class="pixel-btn" id="musicBtn" onclick="toggleMusic()" title="音樂開關">🔇</button>
+                <button id="loginBtn" class="pixel-btn" onclick="toggleTeacherMode()">🔑 登入</button>
             </div>
         </div>
+        <div class="controls">
+            <button class="pixel-btn gold" onclick="openLeaderboard()">🏆 戰力榜</button>
+            <button class="pixel-btn gold" onclick="openShopDirect()">💰 萬寶閣</button>
+            <button class="pixel-btn primary" onclick="openBossModal()">🐲 世界 Boss</button>
+            <button class="pixel-btn info" onclick="openQuestModal()">📋 門派任務</button>
+        </div>
+        <div class="controls teacher-row teacher-only teacher-controls-header" style="display: none;">
+            <button class="pixel-btn" onclick="openBattleModal()">⚔️ 隨機歷練</button>
+            <button class="pixel-btn primary" onclick="openDuelSetup()">🥊 對戰</button>
+            <button class="pixel-btn success" onclick="openGrantModal()">🎁 獎賞</button>
+            <button class="pixel-btn" id="undoBtn" onclick="undoLast()" disabled style="opacity:0.45;">↩️ 復原</button>
+            <div class="menu-wrap">
+                <button class="pixel-btn info" id="manageBtn" onclick="toggleManageMenu(event)">🧰 管理 ▾</button>
+                <div class="manage-menu" id="manage-menu" hidden>
+                    <button class="pixel-btn success" onclick="manageDo(openRecruitModal)">➕ 招收弟子</button>
+                    <button class="pixel-btn info" onclick="manageDo(openBatchModal)">📚 批量生成</button>
+                    <button class="pixel-btn info" onclick="manageDo(openSectModal)">🏯 門派管理</button>
+                    <button class="pixel-btn" onclick="manageDo(openQbankModal)">📜 題庫</button>
+                    <button class="pixel-btn" id="backupBtn" onclick="manageDo(exportSave)" title="下載備份檔到「下載」資料夾">📤 備份</button>
+                    <button class="pixel-btn info" onclick="manageDo(openSettingsModal)">⚙️ 設定</button>
+                </div>
+            </div>
+            <input type="file" id="import-file" accept="application/json,.json" style="display:none;" onchange="importSaveFile(this)">
+        </div>
     </header>
+
+<!-- v9.1：招收弟子（原本在上方工具列） -->
+<div id="recruit-modal">
+    <div class="pixel-border" style="background:var(--panel-bg); padding:20px; width:300px; text-align:center; display:flex; flex-direction:column; gap:15px;">
+        <h3 style="margin:0; color:var(--text-gold);">招收弟子</h3>
+        <input type="text" id="newStudentName" placeholder="輸入弟子名號" maxlength="12" onkeydown="if (event.key === 'Enter') addStudent()">
+        <div class="gender-radio" style="justify-content:center; color:var(--text-beige);">
+            <label><input type="radio" name="newStudentGender" value="male" checked>男</label>
+            <label><input type="radio" name="newStudentGender" value="female">女</label>
+        </div>
+        <p style="color:#aaa; margin:0; font-size:0.85rem;">按 Enter 也可以招收，視窗不會關，可以連續輸入</p>
+        <div style="display:flex; justify-content:center; gap:10px;">
+            <button class="pixel-btn" onclick="closeRecruitModal()">關閉</button>
+            <button class="pixel-btn success" onclick="addStudent()">招收</button>
+        </div>
+    </div>
+</div>
 
     <div id="today-bar">
         <div id="tb-fortune"></div>
@@ -521,7 +549,7 @@
         </div>
     </div>
     <div class="grid-container" id="studentGrid"></div>
-    <div class="app-footer">宗門啟示錄 Steven 加強版 v9 · 2026-09-17　｜　原版：chunsheng612／GameWuxia（經作者同意改作與公開）　｜　寶箱圖：DustDFG（CC-BY 4.0）</div>
+    <div class="app-footer">宗門啟示錄 Steven 加強版 v9.1 · 2026-09-17　｜　原版：chunsheng612／GameWuxia（經作者同意改作與公開）　｜　寶箱圖：DustDFG（CC-BY 4.0）</div>
 </div>
 
 <!-- 戰鬥模態框 -->
@@ -1102,7 +1130,7 @@
     const bgmBattle = new Audio(BASE_URL + 'audio/bgm_battle.mp3'); bgmBattle.loop = true; bgmBattle.volume = 0.3;
     let isMusicEnabled = false;
     function playSfx(audio) { try { audio.currentTime = 0; audio.play().catch(() => {}); } catch(e) {} }
-    function toggleMusic() { isMusicEnabled = !isMusicEnabled; const btn = document.getElementById('musicBtn'); if (isMusicEnabled) { btn.innerText = "🎵 音樂"; playBGM('main'); } else { btn.innerText = "🔇 音樂"; stopBGM(); } }
+    function toggleMusic() { isMusicEnabled = !isMusicEnabled; const btn = document.getElementById('musicBtn'); if (isMusicEnabled) { btn.innerText = "🎵"; playBGM('main'); } else { btn.innerText = "🔇"; stopBGM(); } }
     function playBGM(type) { if (!isMusicEnabled) return; bgmMain.pause(); bgmBattle.pause(); try { if (type === 'main') bgmMain.play().catch(()=>{}); else if (type === 'battle') { bgmBattle.currentTime = 0; bgmBattle.play().catch(()=>{}); } } catch(e) {} }
     function stopBGM() { bgmMain.pause(); bgmBattle.pause(); }
     document.addEventListener('click', () => { if (isMusicEnabled && bgmMain.paused && bgmBattle.paused && document.getElementById('battle-modal').style.display === 'none') playBGM('main'); }, {once:true});
@@ -1492,7 +1520,7 @@
                 title: "師尊驗證", msg: "請輸入師尊口令", hasInput: true, isPassword: true, showCancel: true,
                 onConfirm: loginWithPassword
             });
-        } else { isTeacherMode = false; document.getElementById('loginBtn').innerText = "🔑 師尊登入"; showNotify("已切換回弟子視角。"); updateTeacherUI(); }
+        } else { isTeacherMode = false; document.getElementById('loginBtn').innerText = "🔑 登入"; showNotify("已切換回弟子視角。"); updateTeacherUI(); }
     }
 
     function updateTeacherUI() {
@@ -2021,7 +2049,27 @@
         pushUndo('招收 ' + name);
         students.push(normalizeStudent({ id: Date.now(), name, gender }));
         input.value = ''; saveData(); renderGrid(); showNotify(`歡迎 ${name} 加入宗門！`);
+        input.focus();
     }
+    function openRecruitModal() {
+        document.getElementById('recruit-modal').style.display = 'flex';
+        document.getElementById('newStudentName').focus();
+    }
+    function closeRecruitModal() { playSfx(sfxClick); document.getElementById('recruit-modal').style.display = 'none'; }
+    function toggleManageMenu(e) {
+        e.stopPropagation();
+        playSfx(sfxClick);
+        const m = document.getElementById('manage-menu');
+        m.hidden = !m.hidden;
+    }
+    function manageDo(fn) {
+        document.getElementById('manage-menu').hidden = true;
+        fn();
+    }
+    document.addEventListener('click', function (e) {
+        const m = document.getElementById('manage-menu');
+        if (m && !m.hidden && !(e.target.closest && e.target.closest('.menu-wrap'))) m.hidden = true;
+    });
 
     function openBatchModal() { updateBatchHint(); document.getElementById('batch-modal').style.display = 'flex'; }
     function readBatchCount(id) {
@@ -3692,6 +3740,8 @@
         if (!btn) return;
         var dirty = isBackupDirty();
         btn.innerText = dirty ? '📤 備份 ●' : '📤 備份';
+        var mb = document.getElementById('manageBtn');
+        if (mb) { mb.innerText = dirty ? '🧰 管理 ● ▾' : '🧰 管理 ▾'; mb.title = dirty ? '有新的變動還沒備份（在管理選單裡）' : ''; }
         btn.title = dirty ? '有新的變動還沒備份，按一下下載備份檔' : '下載備份檔到「下載」資料夾';
     }
     // 瀏覽器規定離開時只能跳它自己的固定提醒，不能自訂文字或直接下載
@@ -4257,7 +4307,7 @@
 
     function enterTeacherMode(msg) {
         isTeacherMode = true;
-        document.getElementById('loginBtn').innerText = "🔓 師尊登出";
+        document.getElementById('loginBtn').innerText = "🔓 登出";
         showNotify(msg || "師尊降臨，權限已解鎖！");
         updateTeacherUI();
         if (events.season && Date.now() - events.season.startedAt >= SEASON_REMIND_MS) {
