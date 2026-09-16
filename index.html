@@ -385,7 +385,7 @@
         .ev-hp-fill { height: 100%; background: linear-gradient(to bottom, #ff8a7a, #b83224); transition: width 0.5s ease-out; }
         .ev-hp span { position: absolute; inset: 0; text-align: center; font-size: 0.75rem; line-height: 14px; color: #fff; text-shadow: 1px 1px 0 #000; }
         .tb-dmg { position: absolute; right: 20%; top: -8px; color: #ffd45a; font-size: 1.6rem; font-weight: bold; text-shadow: 2px 2px 0 #000; animation: levelUpFloat 1.4s forwards; pointer-events: none; z-index: 5; }
-        #boss-modal, #event-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1100; justify-content: center; align-items: center; }
+        #boss-modal, #event-modal, #season-modal, #quest-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1100; justify-content: center; align-items: center; }
         .ev-panel { background: var(--panel-bg); padding: 20px; width: min(520px, 94vw); max-height: 90vh; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; box-sizing: border-box; }
         .ev-panel h2, .ev-panel h3 { margin: 0; color: var(--text-gold); text-align: center; text-shadow: 2px 2px 0 #000; }
         .ev-panel p { margin: 0; color: var(--text-beige); text-align: center; line-height: 1.6; }
@@ -398,6 +398,19 @@
         .fortune-card { width: 140px; height: 180px; margin: 10px auto; display: flex; align-items: center; justify-content: center; font-size: 4rem; background: linear-gradient(135deg, #5a3d22, #2b1d10); border: 3px solid var(--border-color); animation: shake 0.3s infinite; }
         .fortune-card.revealed { animation: popIn 0.5s; background: linear-gradient(135deg, #ffe9a8, #c89a6a); }
         .sale-tag { color: #ff6b6b; font-size: 0.75rem; }
+        /* v9：賽季、門派任務 */
+        #event-modal { z-index: 1150; }
+        .season-info { text-align: center; color: var(--text-beige); font-size: 0.9rem; }
+        .season-row, .quest-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; color: var(--text-beige); flex-wrap: wrap; }
+        .season-row input { width: 90px; }
+        .season-section { color: var(--text-gold); border-bottom: 1px solid #503010; padding-bottom: 2px; margin-top: 6px; }
+        .quest-box { border: 2px solid var(--border-color); background: rgba(0,0,0,0.25); padding: 10px; display: flex; flex-direction: column; gap: 6px; }
+        .quest-box textarea { width: 100%; box-sizing: border-box; min-height: 48px; font-family: inherit; font-size: 1rem; }
+        .quest-preview div { color: var(--text-beige); font-size: 0.9rem; line-height: 1.6; }
+        .quest-edit-row { display: grid; grid-template-columns: 1fr 70px 70px auto; gap: 6px; align-items: center; color: var(--text-beige); }
+        .quest-edit-row input { width: 100%; box-sizing: border-box; }
+        .lb-history { color: #bbb; font-size: 0.85rem; line-height: 1.6; }
+        .lb-history summary { cursor: pointer; color: var(--text-gold); }
         .tier-tag { font-size: 0.7rem; padding: 0 4px; margin-right: 4px; border: 1px solid #a88; color: #ddd; vertical-align: middle; }
         .tier-tag.tier-2 { border-color: #00d2ff; color: #8fe3ff; }
         .tier-tag.tier-3 { border-color: #c792ea; color: #e0c3ff; }
@@ -472,6 +485,7 @@
             <button class="pixel-btn gold" onclick="openShopDirect()">💰 萬寶閣</button>
             <button class="pixel-btn gold" onclick="openLeaderboard()">🏆 戰力榜</button>
             <button class="pixel-btn primary" onclick="openBossModal()">🐲 世界 Boss</button>
+            <button class="pixel-btn info" onclick="openQuestModal()">📋 門派任務</button>
             <button class="pixel-btn teacher-only" style="display:none;" onclick="openBattleModal()">⚔️ 隨機歷練</button>
             <button class="pixel-btn primary teacher-only" style="display:none;" onclick="openDuelSetup()">🥊 對戰</button>
             <button class="pixel-btn teacher-only" style="display:none;" onclick="openQbankModal()">📜 題庫</button>
@@ -507,7 +521,7 @@
         </div>
     </div>
     <div class="grid-container" id="studentGrid"></div>
-    <div class="app-footer">宗門啟示錄 Steven 加強版 v8 · 2026-09-16　｜　原版：chunsheng612／GameWuxia（經作者同意改作與公開）　｜　寶箱圖：DustDFG（CC-BY 4.0）</div>
+    <div class="app-footer">宗門啟示錄 Steven 加強版 v9 · 2026-09-17　｜　原版：chunsheng612／GameWuxia（經作者同意改作與公開）　｜　寶箱圖：DustDFG（CC-BY 4.0）</div>
 </div>
 
 <!-- 戰鬥模態框 -->
@@ -549,6 +563,11 @@
     <div class="pixel-border" style="background:var(--panel-bg); padding:20px; width:450px; max-height:80vh; display:flex; flex-direction:column; gap:10px;">
         <h2 style="margin:0; color:var(--text-gold); text-align:center; text-shadow: 2px 2px 0 #000;">🏆 宗門戰力榜</h2>
         <div class="lb-tabs">
+            <button class="pixel-btn action-btn-small lb-tab active" id="lb-scope-season" onclick="setLbScope('season')">本季</button>
+            <button class="pixel-btn action-btn-small lb-tab" id="lb-scope-all" onclick="setLbScope('all')">總戰力</button>
+        </div>
+        <div class="season-info" id="lb-season-info"></div>
+        <div class="lb-tabs">
             <button class="pixel-btn action-btn-small lb-tab active" id="lb-tab-student" onclick="setLbMode('student')">弟子榜</button>
             <button class="pixel-btn action-btn-small lb-tab" id="lb-tab-sect" onclick="setLbMode('sect')">門派榜</button>
         </div>
@@ -560,6 +579,8 @@
             <span id="lb-head-left">排名 / 弟子</span><span id="lb-head-right">戰鬥力 (CP)</span>
         </div>
         <div id="lb-container" style="flex-grow:1; overflow-y:auto;"></div>
+        <button class="pixel-btn gold" id="lb-settle-btn" onclick="openSeasonSettle()" style="display:none;">🏁 結算本季</button>
+        <details class="lb-history" id="lb-season-history" style="display:none;"><summary>歷屆賽季</summary><div id="lb-season-history-list"></div></details>
         <button class="pixel-btn" onclick="document.getElementById('leaderboard-modal').style.display='none'">關閉</button>
     </div>
 </div>
@@ -763,6 +784,19 @@
         <div id="boss-body" style="display:flex; flex-direction:column; gap:10px;"></div>
         <div class="boss-history" id="boss-history"></div>
         <button class="pixel-btn" onclick="closeBossModal()">關閉</button>
+    </div>
+</div>
+<!-- v9：賽季結算、門派任務 -->
+<div id="season-modal">
+    <div class="pixel-border ev-panel">
+        <div id="season-body" style="display:flex; flex-direction:column; gap:8px;"></div>
+    </div>
+</div>
+<div id="quest-modal">
+    <div class="pixel-border ev-panel">
+        <h2>📋 門派任務</h2>
+        <div id="quest-body" style="display:flex; flex-direction:column; gap:10px;"></div>
+        <button class="pixel-btn" onclick="closeQuestModal()">關閉</button>
     </div>
 </div>
 <!-- v8：奇遇翻牌、打倒 Boss 慶祝 -->
@@ -1254,12 +1288,22 @@
         { id: 'coin2',    icon: '💰', name: '妖丹雨',       desc: '今天所有加妖丹 ×2' },
         { id: 'sale',     icon: '🏷️', name: '萬寶閣特賣',   desc: '今天萬寶閣全部八折' },
         { id: 'bossweak', icon: '🎯', name: '妖王弱點暴露', desc: '今天對世界 Boss 的傷害 ×2', need: function () { return !!events.boss; } },
-        { id: 'duel2',    icon: '🥊', name: '以武會友',     desc: '今天對戰勝負雙方的獎勵 ×2' }
+        { id: 'duel2',    icon: '🥊', name: '以武會友',     desc: '今天對戰勝負雙方的獎勵 ×2' },
+        { id: 'sect2',    icon: '🤝', name: '同門齊心',     desc: '今天門派任務獎勵 ×2', need: function () { return sects.length > 0 && events.quests.length > 0; } }
     ];
+    // v9：門派任務預設清單（kind 'homework' 用缺交座號自動判斷）
+    const DEFAULT_QUESTS = [
+        { id: 'q_homework', name: '作業全交齊', kind: 'homework', coins: 50, exp: 30 },
+        { id: 'q_quiet',    name: '午休安靜',   kind: 'custom',   coins: 30, exp: 20 },
+        { id: 'q_clean',    name: '打掃區域乾淨', kind: 'custom', coins: 30, exp: 20 }
+    ];
+    const QUEST_MAX = 10;
+    const SEASON_REMIND_MS = 30 * 86400000;
     let events = sanitizeEvents(null);
     try { events = sanitizeEvents(JSON.parse(localStorage.getItem(EVENTS_KEY))); } catch (e) {}
     let undoStack = [];
     let lastPickedStudentId = null;
+    let lbScope = 'season';   // v9：排行榜 season 本季 / all 總戰力
     let lbMode = 'student';   // 排行榜：student 弟子榜 / sect 門派榜
     let lbAgg = 'sum';        // 門派榜：sum 總和 / avg 平均
     let sectPickedColor = SECT_COLORS[0];
@@ -1297,6 +1341,7 @@
 
     window.onload = () => {
         loadSettings();
+        ensureSeason();
         updateBackupBtn();
         students = (students || []).map(normalizeStudent);
         preloadAssets();
@@ -1463,6 +1508,14 @@
         const container = document.getElementById('lb-container');
         container.innerHTML = '';
 
+        const season = lbScope === 'season';
+        document.getElementById('lb-scope-season').classList.toggle('active', season);
+        document.getElementById('lb-scope-all').classList.toggle('active', !season);
+        const sInfo = document.getElementById('lb-season-info');
+        sInfo.textContent = season && events.season ? seasonLabel() : '';
+        sInfo.style.display = season ? 'block' : 'none';
+        document.getElementById('lb-settle-btn').style.display = (season && isTeacherMode) ? '' : 'none';
+        renderSeasonHistory();
         document.getElementById('lb-tab-student').classList.toggle('active', lbMode === 'student');
         document.getElementById('lb-tab-sect').classList.toggle('active', lbMode === 'sect');
         document.getElementById('lb-agg-tabs').style.display = (lbMode === 'sect') ? 'flex' : 'none';
@@ -1471,28 +1524,30 @@
 
         if (lbMode === 'sect') {
             document.getElementById('lb-head-left').innerText = '排名 / 門派';
-            document.getElementById('lb-head-right').innerText = (lbAgg === 'sum') ? '總戰力' : '平均戰力';
+            document.getElementById('lb-head-right').innerText = season ? ((lbAgg === 'sum') ? '本季修為總和' : '本季修為平均') : ((lbAgg === 'sum') ? '總戰力' : '平均戰力');
             renderSectLeaderboard(container);
         } else {
             document.getElementById('lb-head-left').innerText = '排名 / 弟子';
-            document.getElementById('lb-head-right').innerText = '戰鬥力 (CP)';
+            document.getElementById('lb-head-right').innerText = season ? '本季修為' : '戰鬥力 (CP)';
             renderStudentLeaderboard(container);
         }
         modal.style.display = 'flex';
     }
 
+    function setLbScope(scope) { lbScope = scope; playSfx(sfxClick); openLeaderboard(true); }
     function setLbMode(mode) { lbMode = mode; playSfx(sfxClick); openLeaderboard(true); }
     function setLbAgg(agg) { lbAgg = agg; playSfx(sfxClick); openLeaderboard(true); }
 
     function renderStudentLeaderboard(container) {
-        const sortedStudents = [...students].sort((a, b) => calculateCP(b) - calculateCP(a));
+        const valueOf = s => lbScope === 'season' ? seasonScore(s) : calculateCP(s);
+        const sortedStudents = [...students].sort((a, b) => valueOf(b) - valueOf(a));
         if (sortedStudents.length === 0) {
             container.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa;">暫無弟子數據</div>';
             return;
         }
         sortedStudents.forEach((s, i) => {
             const info = getStudentInfo(s);
-            const cp = calculateCP(s);
+            const cp = valueOf(s);
             const row = document.createElement('div');
             row.className = `leaderboard-row rank-${i+1}`;
             row.innerHTML = `
@@ -1511,26 +1566,30 @@
         }
         const rows = sects.map(sect => {
             const members = sectMembers(sect.id);
-            let cp = 0, coins = 0;
-            members.forEach(s => { cp += calculateCP(s); coins += (s.coins || 0); });
-            return {
+            let cp = 0, coins = 0, ss = 0;
+            members.forEach(s => { cp += calculateCP(s); coins += (s.coins || 0); ss += seasonScore(s); });
+            const r = {
                 sect: sect,
                 count: members.length,
                 cp: cp,
                 coins: coins,
-                avgCp: members.length ? Math.round(cp / members.length) : 0
+                avgCp: members.length ? Math.round(cp / members.length) : 0,
+                ss: ss,
+                avgSs: members.length ? Math.round(ss / members.length) : 0
             };
-        }).sort((a, b) => (lbAgg === 'sum' ? b.cp - a.cp : b.avgCp - a.avgCp));
+            r.value = lbScope === 'season' ? (lbAgg === 'sum' ? r.ss : r.avgSs) : (lbAgg === 'sum' ? r.cp : r.avgCp);
+            return r;
+        }).sort((a, b) => b.value - a.value);
 
         rows.forEach((r, i) => {
             const row = document.createElement('div');
             row.className = `leaderboard-row rank-${i+1}`;
-            const value = (lbAgg === 'sum') ? r.cp : r.avgCp;
+            const value = r.value;
             row.innerHTML = `
                 <div class="rank-num">${i+1}</div>
                 <div style="width:40px; margin-right:10px; text-align:center; font-size:1.8rem;">${r.sect.emblem}</div>
                 <div class="lb-name" style="color:${escHtml(r.sect.color)}">${escHtml(r.sect.name)}
-                    <span style="display:block; font-size:0.7em; color:#aaa;">${r.count} 人　總戰力 ${r.cp}　平均 ${r.avgCp}　妖丹 ${r.coins}</span>
+                    <span style="display:block; font-size:0.7em; color:#aaa;">${r.count} 人　總戰力 ${r.cp}　平均 ${r.avgCp}　本季 ${r.ss}　妖丹 ${r.coins}</span>
                 </div>
                 <div class="lb-cp">${value}</div>`;
             container.appendChild(row);
@@ -2301,7 +2360,7 @@
         localStorage.setItem(SECT_KEY, JSON.stringify(sects));
         markBackupDirty();
     }
-    function resetAll() { showCustomModal({ title: "解散宗門", msg: "確定要燒毀名冊？所有資料將消失。", showCancel: true, onConfirm: () => { pushUndo('重置前的名冊'); localStorage.removeItem('wuxia_class_data'); localStorage.removeItem(SECT_KEY); students = []; sects = []; events = sanitizeEvents({ fortune: events.fortune }); saveEvents(); renderGrid(); showNotify("一切回歸虛無...（可按復原救回）"); } }); }
+    function resetAll() { showCustomModal({ title: "解散宗門", msg: "確定要燒毀名冊？所有資料將消失。", showCancel: true, onConfirm: () => { pushUndo('重置前的名冊'); localStorage.removeItem('wuxia_class_data'); localStorage.removeItem(SECT_KEY); students = []; sects = []; events = sanitizeEvents({ fortune: events.fortune }); ensureSeason(); saveEvents(); renderGrid(); showNotify("一切回歸虛無...（可按復原救回）"); } }); }
     /* ══════════════════════════════════════════════════════════
        以下為加購功能：門派、獎賞、復原、匯出匯入
        原版沒有這些，其餘玩法與畫面皆維持原樣
@@ -2364,8 +2423,16 @@
     // ── v8：世界 Boss、每日奇遇 ──
     function cleanTime(v) { const n = Number(v); return (isFinite(n) && n > 0) ? Math.floor(n) : Date.now(); }
     function sanitizeEvents(raw) {
-        const out = { boss: null, bossHistory: [], fortune: null };
+        const out = {
+            boss: null, bossHistory: [], fortune: null,
+            season: null, seasonHistory: [], seasonRewards: { sect: [300, 200, 100], student: [300, 200, 100] },
+            quests: DEFAULT_QUESTS.map(function (q) { return Object.assign({}, q); }), questDone: null
+        };
         if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return out;
+        // 這裡會在程式很早的時候執行，不能用後面才宣告的 cleanName／SAFE_ID_RE
+        const evName = function (v, max) { return typeof v === 'string' ? v.replace(/[<>\u0000-\u001F\u007F]/g, '').trim().slice(0, max) : ''; };
+        const evId = function (v) { return (typeof v === 'string' && /^[A-Za-z0-9_-]{1,40}$/.test(v)) ? v : null; };
+        const small = function (v) { return Math.min(99999, cleanInt(v)); };
         const isMonster = function (id) { return typeof id === 'string' && MONSTERS.some(function (m) { return m.id === id; }); };
         const b = raw.boss;
         if (b && typeof b === 'object' && isMonster(b.monsterId)) {
@@ -2388,6 +2455,49 @@
         if (f && typeof f === 'object' && typeof f.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(f.date)
             && FORTUNES.some(function (x) { return x.id === f.id; })) {
             out.fortune = { date: f.date, id: f.id };
+        }
+        const se = raw.season;
+        if (se && typeof se === 'object') out.season = { no: Math.max(1, Math.min(9999, cleanInt(se.no))), startedAt: cleanTime(se.startedAt) };
+        (Array.isArray(raw.seasonHistory) ? raw.seasonHistory : []).slice(0, 24).forEach(function (h) {
+            if (!h || typeof h !== 'object') return;
+            out.seasonHistory.push({
+                no: Math.max(1, Math.min(9999, cleanInt(h.no))), startedAt: cleanTime(h.startedAt), endedAt: cleanTime(h.endedAt),
+                sects: (Array.isArray(h.sects) ? h.sects : []).slice(0, 3).map(function (k) {
+                    k = k || {};
+                    return { name: evName(k.name, NAME_MAX) || '門派', emblem: SECT_EMBLEMS.indexOf(k.emblem) >= 0 ? k.emblem : '', avg: cleanInt(k.avg) };
+                }),
+                students: (Array.isArray(h.students) ? h.students : []).slice(0, 3).map(function (s) {
+                    s = s || {};
+                    return { name: evName(s.name, NAME_MAX) || '弟子', score: cleanInt(s.score) };
+                })
+            });
+        });
+        const sr = raw.seasonRewards;
+        if (sr && typeof sr === 'object') {
+            ['sect', 'student'].forEach(function (key) {
+                if (Array.isArray(sr[key])) out.seasonRewards[key] = [0, 1, 2].map(function (i) { return small(sr[key][i]); });
+            });
+        }
+        if (Array.isArray(raw.quests)) {
+            const seen = {};
+            out.quests = [];
+            raw.quests.slice(0, QUEST_MAX).forEach(function (q) {
+                if (!q || typeof q !== 'object') return;
+                const id = evId(q.id);
+                const name = evName(q.name, 16);
+                if (!id || seen[id] || !name) return;
+                seen[id] = true;
+                out.quests.push({ id: id, name: name, kind: q.kind === 'homework' ? 'homework' : 'custom', coins: small(q.coins), exp: small(q.exp) });
+            });
+        }
+        const qd = raw.questDone;
+        if (qd && typeof qd === 'object' && typeof qd.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(qd.date) && qd.map && typeof qd.map === 'object') {
+            const map = {};
+            Object.keys(qd.map).slice(0, QUEST_MAX * 2).forEach(function (k) {
+                if (!evId(k) || !Array.isArray(qd.map[k])) return;
+                map[k] = qd.map[k].map(function (x) { return evId(String(x)); }).filter(Boolean).slice(0, 12);
+            });
+            out.questDone = { date: qd.date, map: map };
         }
         return out;
     }
@@ -2637,6 +2747,345 @@
                 showNotify('妖王撤退了');
             }
         });
+    }
+
+    // ── v9：賽季制 ──
+    function seasonScore(s) { return (s.exp || 0) - ((typeof s.seasonBase === 'number') ? s.seasonBase : 0); }
+    function fmtMD(ms) { const d = new Date(ms); return (d.getMonth() + 1) + '/' + d.getDate(); }
+    function seasonLabel() {
+        const se = events.season;
+        const day = Math.floor((Date.now() - se.startedAt) / 86400000) + 1;
+        return '第 ' + se.no + ' 季 · ' + fmtMD(se.startedAt) + ' 起（第 ' + day + ' 天）';
+    }
+    // 第一次用 v9、舊備份匯入、重置後：開新的一季，以前的修為不算
+    function ensureSeason() {
+        if (events.season) return;
+        const last = events.seasonHistory[0];
+        events.season = { no: last ? last.no + 1 : 1, startedAt: Date.now() };
+        students.forEach(function (s) { s.seasonBase = s.exp || 0; });
+        saveEvents();
+        saveQuiet();
+    }
+    function seasonRanking() {
+        const sectRows = sects.map(function (k) {
+            const m = sectMembers(k.id);
+            const sum = m.reduce(function (n, s) { return n + seasonScore(s); }, 0);
+            return { sect: k, members: m, avg: m.length ? Math.round(sum / m.length) : 0 };
+        }).filter(function (r) { return r.members.length && r.avg > 0; })
+          .sort(function (a, b) { return b.avg - a.avg; }).slice(0, 3);
+        const stuRows = students.map(function (s) { return { s: s, score: seasonScore(s) }; })
+            .filter(function (r) { return r.score > 0; })
+            .sort(function (a, b) { return b.score - a.score; }).slice(0, 3);
+        return { sectRows: sectRows, stuRows: stuRows };
+    }
+    const MEDALS = ['🥇', '🥈', '🥉'];
+    function renderSeasonHistory() {
+        const box = document.getElementById('lb-season-history');
+        const list = document.getElementById('lb-season-history-list');
+        list.innerHTML = '';
+        box.style.display = (lbScope === 'season' && events.seasonHistory.length) ? '' : 'none';
+        events.seasonHistory.forEach(function (h) {
+            const row = document.createElement('div');
+            const sectText = h.sects.map(function (k, i) { return MEDALS[i] + k.emblem + k.name + '（平均 ' + k.avg + '）'; }).join(' ');
+            const stuText = h.students.map(function (s, i) { return MEDALS[i] + s.name + ' ' + s.score; }).join(' ');
+            row.textContent = '第 ' + h.no + ' 季（' + fmtMD(h.startedAt) + '～' + fmtMD(h.endedAt) + '）' + (sectText ? '　門派：' + sectText : '') + (stuText ? '　個人：' + stuText : '');
+            list.appendChild(row);
+        });
+    }
+    function openSeasonSettle() {
+        if (!requireTeacher('結算賽季')) return;
+        playSfx(sfxClick);
+        document.getElementById('leaderboard-modal').style.display = 'none';
+        const body = document.getElementById('season-body');
+        body.innerHTML = '';
+        const add = function (tag, cls, text) {
+            const e = document.createElement(tag);
+            if (cls) e.className = cls;
+            if (text != null) e.textContent = text;
+            body.appendChild(e);
+            return e;
+        };
+        const rk = seasonRanking();
+        const rw = events.seasonRewards;
+        add('h2', '', '🏁 結算第 ' + events.season.no + ' 季');
+        add('div', 'season-info', seasonLabel());
+        const rewardRow = function (label, id, value) {
+            const row = add('div', 'season-row');
+            const l = document.createElement('span'); l.textContent = label;
+            const right = document.createElement('span'); right.textContent = '妖丹 +';
+            const inp = document.createElement('input'); inp.type = 'number'; inp.min = 0; inp.max = 99999; inp.value = value; inp.id = id;
+            right.appendChild(inp);
+            row.appendChild(l); row.appendChild(right);
+        };
+        add('div', 'season-section', '門派（依本季修為平均，每人都發，請假的也發）');
+        if (!rk.sectRows.length) add('p', '', '還沒有門派拿到本季修為');
+        rk.sectRows.forEach(function (r, i) { rewardRow(MEDALS[i] + ' ' + r.sect.emblem + ' ' + r.sect.name + '　平均 ' + r.avg + '（' + r.members.length + ' 人）', 'season-r-sect-' + i, rw.sect[i]); });
+        add('div', 'season-section', '個人（本季修為前 3 名）');
+        if (!rk.stuRows.length) add('p', '', '還沒有人拿到本季修為');
+        rk.stuRows.forEach(function (r, i) { rewardRow(MEDALS[i] + ' ' + r.s.name + '　本季修為 ' + r.score, 'season-r-stu-' + i, rw.student[i]); });
+        add('p', '', '結算後新一季從 0 開始，等級、裝備、妖丹都不會少；按復原可以退回。').style.color = '#aaa';
+        const btns = add('div', 'season-row');
+        btns.style.justifyContent = 'center';
+        const ok = document.createElement('button'); ok.className = 'pixel-btn success'; ok.textContent = '確認結算'; ok.onclick = settleSeason;
+        const cancel = document.createElement('button'); cancel.className = 'pixel-btn'; cancel.textContent = '取消';
+        cancel.onclick = function () { playSfx(sfxClick); document.getElementById('season-modal').style.display = 'none'; };
+        btns.appendChild(ok); btns.appendChild(cancel);
+        document.getElementById('season-modal').style.display = 'flex';
+    }
+    function settleSeason() {
+        if (!requireTeacher('結算賽季')) return;
+        const readReward = function (id, fallback) {
+            const el = document.getElementById(id);
+            if (!el || !el.isConnected) return fallback;
+            const n = Math.round(Number(el.value));
+            return (isFinite(n) && n >= 0 && n <= 99999) ? n : NaN;
+        };
+        const rw = {
+            sect: [0, 1, 2].map(function (i) { return readReward('season-r-sect-' + i, events.seasonRewards.sect[i]); }),
+            student: [0, 1, 2].map(function (i) { return readReward('season-r-stu-' + i, events.seasonRewards.student[i]); })
+        };
+        if (rw.sect.concat(rw.student).some(function (n) { return isNaN(n); })) { showNotify('獎勵要填 0 到 99999'); return; }
+        const rk = seasonRanking();
+        const se = events.season;
+        pushUndo('結算第 ' + se.no + ' 季');
+        rk.sectRows.forEach(function (r, i) { r.members.forEach(function (s) { s.coins = parseInt(s.coins || 0) + rw.sect[i]; }); });
+        rk.stuRows.forEach(function (r, i) { r.s.coins = parseInt(r.s.coins || 0) + rw.student[i]; });
+        events.seasonRewards = rw;
+        events.seasonHistory.unshift({
+            no: se.no, startedAt: se.startedAt, endedAt: Date.now(),
+            sects: rk.sectRows.map(function (r) { return { name: r.sect.name, emblem: r.sect.emblem, avg: r.avg }; }),
+            students: rk.stuRows.map(function (r) { return { name: r.s.name, score: r.score }; })
+        });
+        events.seasonHistory = events.seasonHistory.slice(0, 24);
+        events.season = { no: se.no + 1, startedAt: Date.now() };
+        students.forEach(function (s) { s.seasonBase = s.exp || 0; });
+        saveEvents();
+        saveQuiet();
+        renderGrid();
+        document.getElementById('season-modal').style.display = 'none';
+        const body = document.getElementById('event-body');
+        body.innerHTML = '';
+        const line = function (tag, text) { const e = document.createElement(tag); e.textContent = text; body.appendChild(e); };
+        line('h2', '🏆 第 ' + se.no + ' 季結算完成');
+        rk.sectRows.forEach(function (r, i) { line('p', MEDALS[i] + ' ' + r.sect.emblem + ' ' + r.sect.name + '　每人妖丹 +' + rw.sect[i]); });
+        rk.stuRows.forEach(function (r, i) { line('p', MEDALS[i] + ' ' + r.s.name + '　妖丹 +' + rw.student[i]); });
+        line('p', '第 ' + (se.no + 1) + ' 季開始，大家從 0 重新出發！');
+        document.getElementById('event-modal').style.display = 'flex';
+        playSfx(sfxLevelUp); showLevelUpEffect();
+    }
+
+    // ── v9：門派任務 ──
+    function questDoneList(qid) {
+        const d = events.questDone;
+        if (!d || d.date !== todayStr()) return [];
+        return d.map[qid] || [];
+    }
+    function markQuestDone(qid, sid) {
+        if (!events.questDone || events.questDone.date !== todayStr()) events.questDone = { date: todayStr(), map: {} };
+        const arr = events.questDone.map[qid] || (events.questDone.map[qid] = []);
+        if (arr.indexOf(sid) < 0) arr.push(sid);
+    }
+    function questReward(q) {
+        const fm = fortuneIs('sect2') ? 2 : 1;
+        return { coins: boostCoins(q.coins * fm), exp: boostExp(q.exp * fm) };
+    }
+    function findQuest(qid) { return events.quests.find(function (q) { return q.id === qid; }) || null; }
+    // 不記復原點，呼叫的人要先 pushUndo
+    function giveQuest(q, sect) {
+        const members = presentMembers(sect.id);
+        const r = questReward(q);
+        members.forEach(function (s) {
+            if (r.coins) s.coins = Math.max(0, parseInt(s.coins || 0) + r.coins);
+            if (r.exp) s.exp = Math.max(0, (s.exp || 0) + r.exp);
+        });
+        markQuestDone(q.id, String(sect.id));
+        return r.exp * members.length;
+    }
+    function afterQuestGrant(dmg, text) {
+        bossHit(dmg);
+        saveEvents();
+        saveQuiet();
+        renderGrid();
+        renderQuestModal();
+        playSfx(sfxGetItem);
+        showNotify(text);
+    }
+    function completeQuest(qid, sid) {
+        if (!requireTeacher('門派任務')) return;
+        const q = findQuest(qid), sect = getSect(sid);
+        if (!q || !sect) return;
+        if (questDoneList(qid).indexOf(String(sect.id)) >= 0) { showNotify(sect.name + ' 今天已經拿過這個任務的獎勵'); return; }
+        if (!presentMembers(sect.id).length) { showNotify(sect.name + ' 今天沒有來的弟子'); return; }
+        pushUndo(sect.name + ' 達成「' + q.name + '」');
+        const dmg = giveQuest(q, sect);
+        afterQuestGrant(dmg, sect.name + ' 達成「' + q.name + '」！');
+    }
+    function parseSeats(text) {
+        const miss = [], bad = [];
+        (String(text || '').match(/\d+/g) || []).forEach(function (x) {
+            const n = Number(x);
+            if (n >= 1 && n <= students.length) { if (miss.indexOf(n) < 0) miss.push(n); } else bad.push(n);
+        });
+        return { miss: miss, bad: bad };
+    }
+    function checkHomework(qid) {
+        if (!requireTeacher('門派任務')) return;
+        const q = findQuest(qid);
+        const input = document.getElementById('hw-input-' + qid);
+        const preview = document.getElementById('hw-preview-' + qid);
+        if (!q || !input || !preview) return;
+        const parsed = parseSeats(input.value);
+        const seatOf = function (s) { return students.indexOf(s) + 1; };
+        const done = questDoneList(qid);
+        const line = function (text, color) { const d = document.createElement('div'); d.textContent = text; if (color) d.style.color = color; preview.appendChild(d); };
+        preview.innerHTML = '';
+        const winners = [];
+        sects.forEach(function (k) {
+            const members = presentMembers(k.id);
+            const missing = members.filter(function (s) { return parsed.miss.indexOf(seatOf(s)) >= 0; });
+            const head = k.emblem + ' ' + k.name + '　';
+            if (done.indexOf(String(k.id)) >= 0) line(head + '✔ 今天已經發過', '#aaa');
+            else if (!members.length) line(head + '今天沒有來的人', '#aaa');
+            else if (missing.length) line(head + '❌ 缺 ' + missing.map(function (s) { return seatOf(s) + ' 號 ' + s.name; }).join('、'));
+            else { line(head + '✅ 全交齊', '#7dd87d'); winners.push(k.id); }
+        });
+        const missStudents = parsed.miss.map(function (n) { return students[n - 1]; });
+        const onLeave = missStudents.filter(isOnLeave);
+        if (onLeave.length) line('請假不算缺交：' + onLeave.map(function (s) { return seatOf(s) + ' 號 ' + s.name; }).join('、'), '#aaa');
+        const noSect = missStudents.filter(function (s) { return !isOnLeave(s) && !getSect(s.sectId); });
+        if (noSect.length) line('沒有門派：' + noSect.map(function (s) { return seatOf(s) + ' 號 ' + s.name; }).join('、'), '#aaa');
+        if (parsed.bad.length) line('超出座號範圍，已忽略：' + parsed.bad.join('、'), '#ff8a7a');
+        if (winners.length) {
+            const btn = document.createElement('button');
+            btn.className = 'pixel-btn success';
+            btn.textContent = '發獎給 ' + winners.length + ' 個全交齊的門派';
+            btn.onclick = function () { grantHomework(qid, winners); };
+            preview.appendChild(btn);
+        } else {
+            line('沒有可以發獎的門派');
+        }
+    }
+    function grantHomework(qid, sids) {
+        if (!requireTeacher('門派任務')) return;
+        const q = findQuest(qid);
+        if (!q) return;
+        const done = questDoneList(qid);
+        const list = sids.map(getSect).filter(function (k) { return k && done.indexOf(String(k.id)) < 0 && presentMembers(k.id).length; });
+        if (!list.length) { showNotify('這些門派今天都已經發過了'); return; }
+        pushUndo('「' + q.name + '」：' + list.map(function (k) { return k.name; }).join('、'));
+        let dmg = 0;
+        list.forEach(function (k) { dmg += giveQuest(q, k); });
+        afterQuestGrant(dmg, list.map(function (k) { return k.name; }).join('、') + ' 達成「' + q.name + '」！');
+    }
+    function openQuestModal() { playSfx(sfxClick); renderQuestModal(); document.getElementById('quest-modal').style.display = 'flex'; }
+    function closeQuestModal() { playSfx(sfxClick); document.getElementById('quest-modal').style.display = 'none'; }
+    function renderQuestModal() {
+        const body = document.getElementById('quest-body');
+        body.innerHTML = '';
+        const el = function (parent, tag, cls, text) {
+            const e = document.createElement(tag);
+            if (cls) e.className = cls;
+            if (text != null) e.textContent = text;
+            parent.appendChild(e);
+            return e;
+        };
+        if (fortuneIs('sect2')) el(body, 'p', '', '🎴 今日奇遇「同門齊心」：任務獎勵 ×2').style.color = 'var(--text-gold)';
+        if (!sects.length) el(body, 'p', '', '還沒有門派，先到「🏯 門派」立派');
+        if (!events.quests.length) el(body, 'p', '', '目前沒有任務');
+        events.quests.forEach(function (q) {
+            const box = el(body, 'div', 'quest-box');
+            el(box, 'h3', '', q.name);
+            const r = questReward(q);
+            el(box, 'p', '', '達成的門派，今天有來的人每人 ' + ([r.coins ? '妖丹 +' + r.coins : '', r.exp ? '修為 +' + r.exp : ''].filter(Boolean).join('、') || '（沒有獎勵）'));
+            const done = questDoneList(q.id);
+            if (q.kind === 'homework' && isTeacherMode && sects.length) {
+                el(box, 'p', '', '把作業系統的缺交座號打進來（頓號、空白、換行都可以），沒有人缺交就留空，按「檢查」先看結果').style.color = '#aaa';
+                const ta = el(box, 'textarea');
+                ta.id = 'hw-input-' + q.id;
+                ta.placeholder = '例如：3、15 22';
+                const btn = el(box, 'button', 'pixel-btn info', '檢查');
+                btn.onclick = function () { checkHomework(q.id); };
+                const pv = el(box, 'div', 'quest-preview');
+                pv.id = 'hw-preview-' + q.id;
+            }
+            sects.forEach(function (k) {
+                const row = el(box, 'div', 'quest-row');
+                const name = el(row, 'span', '', k.emblem + ' ' + k.name);
+                name.style.color = k.color;
+                if (done.indexOf(String(k.id)) >= 0) el(row, 'span', '', '✅ 今天已達成');
+                else if (q.kind === 'custom' && isTeacherMode) {
+                    const b = el(row, 'button', 'pixel-btn success action-btn-small', '達成');
+                    b.onclick = function () { completeQuest(q.id, k.id); };
+                } else el(row, 'span', '', '尚未達成').style.color = '#aaa';
+            });
+        });
+        if (!isTeacherMode) return;
+        const ed = el(body, 'div', 'quest-box');
+        el(ed, 'h3', '', '編輯任務');
+        const hdr = el(ed, 'div', 'quest-edit-row');
+        ['任務名稱', '妖丹', '修為', ''].forEach(function (x) { el(hdr, 'span', '', x); });
+        events.quests.forEach(function (q) {
+            const row = el(ed, 'div', 'quest-edit-row');
+            row.dataset.qid = q.id;
+            const n = el(row, 'input'); n.maxLength = 16; n.value = q.name; n.className = 'qe-name';
+            if (q.kind === 'homework') n.title = '這個任務用缺交座號判斷';
+            const c = el(row, 'input'); c.type = 'number'; c.min = 0; c.max = 99999; c.value = q.coins; c.className = 'qe-coins';
+            const x = el(row, 'input'); x.type = 'number'; x.min = 0; x.max = 99999; x.value = q.exp; x.className = 'qe-exp';
+            const del = el(row, 'button', 'pixel-btn primary action-btn-small', '刪除');
+            del.onclick = function () { deleteQuest(q.id); };
+        });
+        const btns = el(ed, 'div', 'quest-row');
+        const save = el(btns, 'button', 'pixel-btn success action-btn-small', '儲存修改'); save.onclick = saveQuestEdits;
+        const addB = el(btns, 'button', 'pixel-btn info action-btn-small', '＋ 新增任務'); addB.onclick = addQuest;
+        const resetB = el(btns, 'button', 'pixel-btn action-btn-small', '還原預設'); resetB.onclick = resetQuests;
+    }
+    function saveQuestEdits() {
+        if (!requireTeacher('編輯任務')) return;
+        const rows = document.querySelectorAll('#quest-body .quest-edit-row[data-qid]');
+        const next = [];
+        let bad = '';
+        rows.forEach(function (row) {
+            const q = findQuest(row.dataset.qid);
+            if (!q) return;
+            const name = cleanName(row.querySelector('.qe-name').value, 16);
+            const coins = Math.round(Number(row.querySelector('.qe-coins').value));
+            const exp = Math.round(Number(row.querySelector('.qe-exp').value));
+            if (!name) bad = '任務名稱不能空白';
+            else if (!(coins >= 0 && coins <= 99999) || !(exp >= 0 && exp <= 99999)) bad = '獎勵要填 0 到 99999';
+            next.push({ id: q.id, name: name, kind: q.kind, coins: coins, exp: exp });
+        });
+        if (bad) { showNotify(bad); return; }
+        pushUndo('修改門派任務');
+        events.quests = next;
+        saveEvents();
+        renderQuestModal();
+        showNotify('任務已儲存');
+    }
+    function addQuest() {
+        if (!requireTeacher('編輯任務')) return;
+        if (events.quests.length >= QUEST_MAX) { showNotify('最多 ' + QUEST_MAX + ' 個任務'); return; }
+        pushUndo('新增門派任務');
+        events.quests.push({ id: 'q_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name: '新任務', kind: 'custom', coins: 30, exp: 20 });
+        saveEvents();
+        renderQuestModal();
+    }
+    function deleteQuest(qid) {
+        if (!requireTeacher('編輯任務')) return;
+        const q = findQuest(qid);
+        if (!q) return;
+        pushUndo('刪除任務「' + q.name + '」');
+        events.quests = events.quests.filter(function (x) { return x.id !== qid; });
+        saveEvents();
+        renderQuestModal();
+        showNotify('已刪除「' + q.name + '」（可以按復原）');
+    }
+    function resetQuests() {
+        if (!requireTeacher('編輯任務')) return;
+        pushUndo('還原預設任務');
+        events.quests = DEFAULT_QUESTS.map(function (q) { return Object.assign({}, q); });
+        saveEvents();
+        renderQuestModal();
+        showNotify('已還原預設任務');
     }
 
     // ── 復原上一步 ──
@@ -3291,7 +3740,11 @@
                         result.events.fortune = events.fortune;
                         events = result.events;
                         saveEvents();
+                    } else {
+                        // 舊備份沒有賽季：以前累積的修為不算進本季
+                        students.forEach(function (s) { s.seasonBase = s.exp || 0; });
                     }
+                    ensureSeason();
                     lastPickedStudentId = null;
                     saveQuiet();
                     renderGrid();
@@ -3375,7 +3828,8 @@
                 outfit: (Number.isInteger(s.outfit) && s.outfit >= 0 && s.outfit < OUTFITS.length) ? s.outfit : null,
                 petStars: petStarsClean,
                 sectId: (sid && seenSect[sid]) ? sid : null,
-                leaveDate: (typeof s.leaveDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s.leaveDate)) ? s.leaveDate : null
+                leaveDate: (typeof s.leaveDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s.leaveDate)) ? s.leaveDate : null,
+                seasonBase: (typeof s.seasonBase === 'number' && isFinite(s.seasonBase)) ? cleanInt(s.seasonBase) : 0
             }));
         });
 
@@ -3806,6 +4260,10 @@
         document.getElementById('loginBtn').innerText = "🔓 師尊登出";
         showNotify(msg || "師尊降臨，權限已解鎖！");
         updateTeacherUI();
+        if (events.season && Date.now() - events.season.startedAt >= SEASON_REMIND_MS) {
+            const no = events.season.no;
+            setTimeout(function () { showNotify('第 ' + no + ' 季已經滿一個月，記得到 🏆 戰力榜結算'); }, 2500);
+        }
     }
 
     function startPasswordReset() {
