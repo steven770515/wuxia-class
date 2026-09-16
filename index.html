@@ -2726,7 +2726,11 @@
 
         var all = document.createElement('option');
         all.value = 'all';
-        all.textContent = '全班（' + students.length + ' 人）';
+        var countLabel = function (list) {
+            var leave = list.filter(isOnLeave).length;
+            return '（' + (list.length - leave) + ' 人' + (leave ? '，' + leave + ' 人請假不發' : '') + '）';
+        };
+        all.textContent = '全班' + countLabel(students);
         sel.appendChild(all);
 
         if (sects.length) {
@@ -2735,7 +2739,7 @@
             sects.forEach(function (k) {
                 var o = document.createElement('option');
                 o.value = 'sect:' + k.id;
-                o.textContent = k.emblem + ' ' + k.name + '（' + sectMembers(k.id).length + ' 人）';
+                o.textContent = k.emblem + ' ' + k.name + countLabel(sectMembers(k.id));
                 g1.appendChild(o);
             });
             sel.appendChild(g1);
@@ -2783,13 +2787,14 @@
         if (coins === 0 && exp === 0) { showNotify('請先填要獎賞的妖丹或修為'); return; }
 
         var targets = [], label = '';
+        var present = function (s) { return !isOnLeave(s); };
         if (target === 'all') {
-            targets = students.slice();
+            targets = students.filter(present);
             label = '全班';
         } else if (target.indexOf('sect:') === 0) {
             var sect = getSect(target.slice(5));
             if (!sect) { showNotify('找不到這個門派'); return; }
-            targets = sectMembers(sect.id);
+            targets = sectMembers(sect.id).filter(present);
             label = sect.name;
         } else if (target.indexOf('student:') === 0) {
             var one = findStudentById(target.slice(8));
@@ -2797,7 +2802,7 @@
             targets = [one];
             label = one.name;
         }
-        if (!targets.length) { showNotify('這個對象目前沒有弟子'); return; }
+        if (!targets.length) { showNotify(target.indexOf('student:') === 0 ? '這個對象目前沒有弟子' : '這個對象今天沒有來的弟子（都請假了）'); return; }
 
         var signed = function (n) { return (n > 0 ? '+' : '') + n; };
         var parts = [];
