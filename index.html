@@ -374,6 +374,9 @@
         .inventory-item:hover .item-tooltip { display: block; }
         .cp-bonus { color: #00f2fe; font-weight: bold; }
         .item-price { color: #ffd700; font-size: 0.9rem; margin-top: 5px;}
+        .tier-tag { font-size: 0.7rem; padding: 0 4px; margin-right: 4px; border: 1px solid #a88; color: #ddd; vertical-align: middle; }
+        .tier-tag.tier-2 { border-color: #00d2ff; color: #8fe3ff; }
+        .tier-tag.tier-3 { border-color: #c792ea; color: #e0c3ff; }
 
         /* 萬寶閣 Tabs */
         .shop-tabs { display:flex; gap:10px; margin-bottom:10px; justify-content:center; flex-wrap:wrap; }
@@ -469,7 +472,7 @@
     </header>
 
     <div class="grid-container" id="studentGrid"></div>
-    <div class="app-footer">宗門啟示錄 Steven 加強版 v7 · 2026-09-16　｜　原版：chunsheng612／GameWuxia（經作者同意改作與公開）　｜　寶箱圖：DustDFG（CC-BY 4.0）</div>
+    <div class="app-footer">宗門啟示錄 Steven 加強版 v7.1 · 2026-09-16　｜　原版：chunsheng612／GameWuxia（經作者同意改作與公開）　｜　寶箱圖：DustDFG（CC-BY 4.0）</div>
 </div>
 
 <!-- 戰鬥模態框 -->
@@ -1058,24 +1061,24 @@
 
     // 武器與萬寶閣專屬寵物
     const ITEMS = {
-        sword_fire:  { id:'sword_fire', glow:'#ff7a2a',  name:"炎陽劍", type:'sword', src: BASE_URL+"images/swords/sword_fire_sprite.png",  icon: BASE_URL+"images/swords/sword_fire_icon.png",  cp:320, price:650, desc:"熾熱劍鋒，灼燒敵人。", stats:{atk:48,crit:6} },
-        sword_wood:  { id:'sword_wood', glow:'#7dd87d',  name:"青木劍", type:'sword', src: BASE_URL+"images/swords/sword_wood_sprite.png",  icon: BASE_URL+"images/swords/sword_wood_icon.png",  cp:240, price:300, desc:"靈木淬鍊，穩定增益。", stats:{atk:30,def:10} },
-        sword_gold:  { id:'sword_gold', glow:'#ffd700',  name:"銳金劍", type:'sword', src: BASE_URL+"images/swords/sword_gold_sprite.png",  icon: BASE_URL+"images/swords/sword_gold_icon.png",  cp:300, price:500, desc:"破甲利器，暴擊加成。", stats:{atk:46,crit:8} },
-        sword_ice:   { id:'sword_ice', glow:'#8fe3ff',   name:"冰晶劍", type:'sword', src: BASE_URL+"images/swords/sword_ice_sprite.png",   icon: BASE_URL+"images/swords/sword_ice_icon.png",   cp:260, price:400, desc:"寒霜封鋒，穩定防禦。", stats:{atk:34,def:8} },
-        sword_light: { id:'sword_light', glow:'#fff3a0', name:"晨曦劍", type:'sword', src: BASE_URL+"images/swords/sword_light_sprite.png", icon: BASE_URL+"images/swords/sword_light_icon.png", cp:380, price:800, desc:"曙光加持，超高爆擊。", stats:{atk:55,crit:12} },
-        pet_kunpeng: { id:'pet_kunpeng', glow:'#6fd6e8', name:"神獸鯤鵬", type:'pet',  src: BASE_URL+"images/pets/kunpeng_sprite.gif", icon: BASE_URL+"images/pets/kunpeng_icon.png", cp:2500, price:4000, desc:"振翅九天，速度與氣勢兼備。" },
-        pet_zhuque:  { id:'pet_zhuque', glow:'#ff6a3d',  name:"神獸朱雀", type:'pet',  src: BASE_URL+"images/pets/zhuque_sprite.gif",  icon: BASE_URL+"images/pets/zhuque_icon.png",  cp:2500, price:4000, desc:"炎羽護主，增強爆發。" },
-        pet_qinglong:{ id:'pet_qinglong', glow:'#3fd1a0',name:"神獸青龍", type:'pet',  src: BASE_URL+"images/pets/qinglong_sprite.gif", icon: BASE_URL+"images/pets/qinglong_icon.png", cp:2500, price:4000, desc:"龍威加持，全面提升戰力。" },
-        pet_whelp:   { id:'pet_whelp', glow:'#b36bff',   name:"幽冥幼龍", type:'pet',  src: BASE_URL+"images/pets/pet_nether_whelp_sprite.gif", icon: BASE_URL+"images/pets/pet_nether_whelp_icon.png", cp:3000, price:5500, desc:"冥炎纏繞，屬性全面提升。" }
+        sword_fire:  { id:'sword_fire', glow:'#ff7a2a',  name:"炎陽劍", type:'sword', chestTier:2, src: BASE_URL+"images/swords/sword_fire_sprite.png",  icon: BASE_URL+"images/swords/sword_fire_icon.png",  cp:320, price:650, desc:"熾熱劍鋒，灼燒敵人。", stats:{atk:48,crit:6} },
+        sword_wood:  { id:'sword_wood', glow:'#7dd87d',  name:"青木劍", type:'sword', chestTier:1, src: BASE_URL+"images/swords/sword_wood_sprite.png",  icon: BASE_URL+"images/swords/sword_wood_icon.png",  cp:240, price:300, desc:"靈木淬鍊，穩定增益。", stats:{atk:30,def:10} },
+        sword_gold:  { id:'sword_gold', glow:'#ffd700',  name:"銳金劍", type:'sword', chestTier:2, src: BASE_URL+"images/swords/sword_gold_sprite.png",  icon: BASE_URL+"images/swords/sword_gold_icon.png",  cp:300, price:500, desc:"破甲利器，暴擊加成。", stats:{atk:46,crit:8} },
+        sword_ice:   { id:'sword_ice', glow:'#8fe3ff',   name:"冰晶劍", type:'sword', chestTier:1, src: BASE_URL+"images/swords/sword_ice_sprite.png",   icon: BASE_URL+"images/swords/sword_ice_icon.png",   cp:260, price:400, desc:"寒霜封鋒，穩定防禦。", stats:{atk:34,def:8} },
+        sword_light: { id:'sword_light', glow:'#fff3a0', name:"晨曦劍", type:'sword', chestTier:3, src: BASE_URL+"images/swords/sword_light_sprite.png", icon: BASE_URL+"images/swords/sword_light_icon.png", cp:380, price:800, desc:"曙光加持，超高爆擊。", stats:{atk:55,crit:12} },
+        pet_kunpeng: { id:'pet_kunpeng', glow:'#6fd6e8', name:"神獸鯤鵬", type:'pet', chestTier:2,  src: BASE_URL+"images/pets/kunpeng_sprite.gif", icon: BASE_URL+"images/pets/kunpeng_icon.png", cp:2500, price:4000, desc:"振翅九天，速度與氣勢兼備。" },
+        pet_zhuque:  { id:'pet_zhuque', glow:'#ff6a3d',  name:"神獸朱雀", type:'pet', chestTier:2,  src: BASE_URL+"images/pets/zhuque_sprite.gif",  icon: BASE_URL+"images/pets/zhuque_icon.png",  cp:2500, price:4000, desc:"炎羽護主，增強爆發。" },
+        pet_qinglong:{ id:'pet_qinglong', glow:'#3fd1a0',name:"神獸青龍", type:'pet', chestTier:2,  src: BASE_URL+"images/pets/qinglong_sprite.gif", icon: BASE_URL+"images/pets/qinglong_icon.png", cp:2500, price:4000, desc:"龍威加持，全面提升戰力。" },
+        pet_whelp:   { id:'pet_whelp', glow:'#b36bff',   name:"幽冥幼龍", type:'pet', chestTier:3,  src: BASE_URL+"images/pets/pet_nether_whelp_sprite.gif", icon: BASE_URL+"images/pets/pet_nether_whelp_icon.png", cp:3000, price:5500, desc:"冥炎纏繞，屬性全面提升。" }
     };
 
     // v4：氣場（純外觀，不加戰力；原本想做衣服換色，但濾鏡會連臉一起染，改成換光暈顏色）
     const AURAS = {
-        aura_crimson: { id:'aura_crimson', name:'赤霞氣場', type:'aura', rgb:'255,90,74',   price:600,  desc:'身旁泛起赤紅霞光。' },
-        aura_jade:    { id:'aura_jade',    name:'碧落氣場', type:'aura', rgb:'63,209,160',  price:600,  desc:'青碧靈氣環繞周身。' },
-        aura_frost:   { id:'aura_frost',   name:'寒月氣場', type:'aura', rgb:'150,225,255', price:1000,  desc:'月華如霜，清冷出塵。' },
-        aura_thunder: { id:'aura_thunder', name:'紫電氣場', type:'aura', rgb:'180,110,255', price:1000,  desc:'紫電縈繞，氣勢逼人。' },
-        aura_gold:    { id:'aura_gold',    name:'金光氣場', type:'aura', rgb:'255,215,0',   price:2000, desc:'金光護體，一代宗師風範。' }
+        aura_crimson: { id:'aura_crimson', name:'赤霞氣場', type:'aura', chestTier:1, rgb:'255,90,74',   price:600,  desc:'身旁泛起赤紅霞光。' },
+        aura_jade:    { id:'aura_jade',    name:'碧落氣場', type:'aura', chestTier:1, rgb:'63,209,160',  price:600,  desc:'青碧靈氣環繞周身。' },
+        aura_frost:   { id:'aura_frost',   name:'寒月氣場', type:'aura', chestTier:2, rgb:'150,225,255', price:1000,  desc:'月華如霜，清冷出塵。' },
+        aura_thunder: { id:'aura_thunder', name:'紫電氣場', type:'aura', chestTier:2, rgb:'180,110,255', price:1000,  desc:'紫電縈繞，氣勢逼人。' },
+        aura_gold:    { id:'aura_gold',    name:'金光氣場', type:'aura', chestTier:3, rgb:'255,215,0',   price:2000, desc:'金光護體，一代宗師風範。' }
     };
 
     // v4：造型（原版 4 階角色圖，升到該等級解鎖，之後可自由換穿）
@@ -1117,10 +1120,13 @@
 
     // v5：萬寶閣寶箱（三類 × 三級）。等級越高越容易開到好東西，便宜的寶箱有機會是空的
     const CHEST_KINDS = [
-        { kind: 'sword', name: '神兵箱', icon: '🗡️', prices: [200, 350, 500] },
-        { kind: 'aura',  name: '氣場箱', icon: '✨', prices: [400, 700, 1100] },
-        { kind: 'pet',   name: '靈獸箱', icon: '🐉', prices: [1800, 3000, 4500] }
+        { kind: 'sword', name: '神兵箱', icon: '🗡️', tiers: [1, 2, 3], prices: [250, 490, 760] },
+        { kind: 'aura',  name: '氣場箱', icon: '✨', tiers: [1, 2, 3], prices: [420, 850, 1900] },
+        // 靈獸只有兩種價位，沒有凡品箱；第 1 格價格不使用
+        { kind: 'pet',   name: '靈獸箱', icon: '🐉', tiers: [2, 3], prices: [0, 3400, 5230] }
     ];
+    // v7.1 前的預設箱價，讀到就換成新預設（老師改過的保留）
+    const OLD_CHEST_PRICES = { sword: [200, 350, 500], aura: [400, 700, 1100], pet: [1800, 3000, 4500] };
     const CHEST_TIERS = [
         { tier: 1, name: '凡品', emptyRate: 0.3 },
         { tier: 2, name: '靈品', emptyRate: 0.1 },
@@ -1517,7 +1523,7 @@
                     : `<button class="pixel-btn success action-btn-small" onclick="buyItem('${item.id}')">購買</button>`);
             card.innerHTML = `
                 ${imgHtml}
-                <h4>${escHtml(item.name)}</h4>
+                <h4>${item.chestTier ? `<span class="tier-tag tier-${item.chestTier}">${tierName(item.chestTier)}</span>` : ''}${escHtml(item.name)}</h4>
                 <p>${escHtml(item.desc || '')}</p>
                 ${extraHint}
                 ${item.bonus?.cp ? `<div class="cp-bonus">戰力 +${item.bonus.cp}</div>` : (item.cp ? `<div class="cp-bonus">戰力 +${item.cp}</div>` : '')}
@@ -1528,35 +1534,26 @@
     }
 
     // ── v5：寶箱 ──
-    // 同一類的東西依價格分高低（同價算同一階），凡品偏向便宜的、仙品偏向最貴的
-    function chestPool(kind) {
+    // v7.1：每樣東西固定一個等級（chestTier），寶箱只開得到同等級的
+    function chestPool(kind, tier) {
         const src = kind === 'aura' ? Object.values(AURAS) : Object.values(ITEMS).filter(it => it.type === kind);
-        const prices = [...new Set(src.map(it => it.price || 0))].sort((a, b) => a - b);
-        return src.map(it => ({ item: it, rank: prices.indexOf(it.price || 0), ranks: prices.length }));
+        return src.filter(it => it.chestTier === tier);
     }
-    function chestWeight(entry, tier) {
-        if (tier === 1) return Math.pow(entry.ranks - entry.rank, 2);
-        if (tier === 3) return Math.pow(entry.rank + 1, 2);
-        return 1;
-    }
-    function chestUnowned(s, kind) {
+    function chestUnowned(s, kind, tier) {
         const inv = (s && s.inventory) || [];
-        return chestPool(kind).filter(e => inv.indexOf(e.item.id) < 0);
+        return chestPool(kind, tier).filter(it => inv.indexOf(it.id) < 0);
     }
+    function tierName(tier) { const t = CHEST_TIERS.find(x => x.tier === tier); return t ? t.name : ''; }
     // 只抽學生還沒有的；rng 可以換掉，方便測試
     function rollChest(s, kind, tier, rng) {
         rng = rng || Math.random;
+        const k = CHEST_KINDS.find(x => x.kind === kind);
         const t = CHEST_TIERS.find(x => x.tier === tier);
-        const pool = chestUnowned(s, kind);
-        if (!t || !pool.length) return null;
+        if (!k || !t || k.tiers.indexOf(tier) < 0) return null;
+        const pool = chestUnowned(s, kind, tier);
+        if (!pool.length) return null;
         if (rng() < t.emptyRate) return { empty: true };
-        const total = pool.reduce((sum, e) => sum + chestWeight(e, tier), 0);
-        let r = rng() * total;
-        for (const e of pool) {
-            r -= chestWeight(e, tier);
-            if (r < 0) return { item: e.item };
-        }
-        return { item: pool[pool.length - 1].item };
+        return { item: pool[Math.min(pool.length - 1, Math.floor(rng() * pool.length))] };
     }
 
     function renderChestShop(container) {
@@ -1564,20 +1561,21 @@
         CHEST_KINDS.forEach(k => {
             const label = document.createElement('div');
             label.className = 'shop-group-label';
-            const left = s ? chestUnowned(s, k.kind).length : 0;
+            const left = s ? k.tiers.reduce((n, tier) => n + chestUnowned(s, k.kind, tier).length, 0) : 0;
             label.textContent = `${k.icon} ${k.name}　${s ? (left ? `${s.name} 還有 ${left} 種沒收集到` : `${s.name} 已經全部集齊`) : ''}`;
             container.appendChild(label);
-            CHEST_TIERS.forEach((t, i) => {
-                const price = k.prices[i];
+            CHEST_TIERS.filter(t => k.tiers.indexOf(t.tier) >= 0).forEach(t => {
+                const price = k.prices[t.tier - 1];
+                const tierLeft = s ? chestUnowned(s, k.kind, t.tier).length : 1;
                 const card = document.createElement('div');
                 card.className = `shop-card chest tier-${t.tier}`;
-                const odds = t.tier === 1 ? '比較容易開到便宜的' : (t.tier === 2 ? '每一種機會差不多' : '比較容易開到最好的');
+                const odds = '會開到：' + chestPool(k.kind, t.tier).map(it => escHtml(it.name)).join('、');
                 const empty = t.emptyRate ? `有 ${Math.round(t.emptyRate * 100)}% 是空箱（退一半妖丹）` : '一定開到東西';
                 const action = !isTeacherMode
                     ? `<div style="color:#888; font-size:0.78rem; padding:5px 0;">購買需師尊操作</div>`
-                    : (left
+                    : (tierLeft
                         ? `<button class="pixel-btn success action-btn-small" onclick="buyChest('${k.kind}', ${t.tier})">開箱</button>`
-                        : `<div style="color:#80ffea; font-size:0.78rem; padding:5px 0;">已集齊，不用再開</div>`);
+                        : `<div style="color:#80ffea; font-size:0.78rem; padding:5px 0;">這一階已集齊</div>`);
                 card.innerHTML = `
                     <img class="chest-img" src="${CHEST_IMG[t.tier + '_closed']}" alt="">
                     <h4>${t.name}${k.name}</h4>
@@ -1600,9 +1598,9 @@
         const k = CHEST_KINDS.find(x => x.kind === kind);
         const t = CHEST_TIERS.find(x => x.tier === tier);
         if (!s) { showNotify("請先選擇購買人"); return; }
-        if (!k || !t) { showNotify("寶箱不存在"); return; }
+        if (!k || !t || k.tiers.indexOf(tier) < 0) { showNotify("寶箱不存在"); return; }
         const price = k.prices[tier - 1];
-        if (!chestUnowned(s, kind).length) { showNotify(`${s.name} 的${k.name.replace('箱', '')}已經集齊了`); return; }
+        if (!chestUnowned(s, kind, tier).length) { showNotify(`${s.name} 的${t.name}${k.name.replace('箱', '')}已經集齊了`); return; }
         if ((s.coins || 0) < price) { showNotify(`${s.name} 的妖丹不足（有 ${s.coins || 0}，要 ${price}）`); return; }
         showCustomModal({
             title: '確認開箱',
@@ -3107,7 +3105,10 @@
         const ch = raw.chests && typeof raw.chests === 'object' ? raw.chests : {};
         Object.keys(DEFAULT_SHOP.chests).forEach(function (kind) {
             if (!Array.isArray(ch[kind])) return;
-            const arr = DEFAULT_SHOP.chests[kind].map(function (d, i) { const v = cleanPrice(ch[kind][i]); return v === null ? d : v; });
+            const arr = DEFAULT_SHOP.chests[kind].map(function (d, i) {
+                const v = cleanPrice(ch[kind][i]);
+                return (v === null || v === OLD_CHEST_PRICES[kind][i]) ? d : v;
+            });
             if (arr.some(function (v, i) { return v !== DEFAULT_SHOP.chests[kind][i]; })) { out.chests[kind] = arr; any = true; }
         });
         return any ? out : null;
@@ -3173,7 +3174,7 @@
         Object.keys(AWAKEN_COST).forEach(function (star) { row(g4, '覺醒到 ' + star + ' 星', '戰力再 +' + AWAKEN_CP_PER_STAR, AWAKEN_COST[star], { awaken: star }); });
         const g5 = group('🎁 寶箱');
         CHEST_KINDS.forEach(function (k) {
-            CHEST_TIERS.forEach(function (t, i) { row(g5, t.name + k.name, '', k.prices[i], { chest: k.kind, tier: i }); });
+            k.tiers.forEach(function (tier) { row(g5, tierName(tier) + k.name, '', k.prices[tier - 1], { chest: k.kind, tier: tier - 1 }); });
         });
     }
 
