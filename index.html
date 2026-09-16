@@ -374,6 +374,30 @@
         .inventory-item:hover .item-tooltip { display: block; }
         .cp-bonus { color: #00f2fe; font-weight: bold; }
         .item-price { color: #ffd700; font-size: 0.9rem; margin-top: 5px;}
+        /* v8：今日狀態列、世界 Boss、每日奇遇 */
+        #today-bar { display: none; gap: 12px; align-items: center; flex-wrap: wrap; margin: 0 auto 12px; padding: 8px 12px; background: rgba(30,22,14,0.9); border: 2px solid var(--border-color); box-sizing: border-box; }
+        .tb-fortune { color: var(--text-gold); font-size: 1.05rem; text-shadow: 1px 1px 0 #000; }
+        #tb-boss { flex: 1; min-width: 260px; display: none; align-items: center; gap: 10px; cursor: pointer; position: relative; }
+        #tb-boss img { height: 48px; image-rendering: pixelated; }
+        .tb-boss-main { flex: 1; min-width: 0; }
+        #tb-boss-name { color: #ff8a7a; font-weight: bold; }
+        .ev-hp { position: relative; height: 18px; background: rgba(0,0,0,0.7); border: 2px solid #000; }
+        .ev-hp-fill { height: 100%; background: linear-gradient(to bottom, #ff8a7a, #b83224); transition: width 0.5s ease-out; }
+        .ev-hp span { position: absolute; inset: 0; text-align: center; font-size: 0.75rem; line-height: 14px; color: #fff; text-shadow: 1px 1px 0 #000; }
+        .tb-dmg { position: absolute; right: 20%; top: -8px; color: #ffd45a; font-size: 1.6rem; font-weight: bold; text-shadow: 2px 2px 0 #000; animation: levelUpFloat 1.4s forwards; pointer-events: none; z-index: 5; }
+        #boss-modal, #event-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1100; justify-content: center; align-items: center; }
+        .ev-panel { background: var(--panel-bg); padding: 20px; width: min(520px, 94vw); max-height: 90vh; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; box-sizing: border-box; }
+        .ev-panel h2, .ev-panel h3 { margin: 0; color: var(--text-gold); text-align: center; text-shadow: 2px 2px 0 #000; }
+        .ev-panel p { margin: 0; color: var(--text-beige); text-align: center; line-height: 1.6; }
+        .boss-img { display: block; margin: 0 auto; height: 160px; max-width: 100%; image-rendering: pixelated; filter: drop-shadow(0 0 14px rgba(255,60,40,0.8)) saturate(1.3); }
+        .boss-img.defeated { filter: grayscale(1) brightness(0.7); }
+        .boss-form { display: grid; grid-template-columns: auto 1fr; gap: 8px 10px; align-items: center; color: var(--text-beige); }
+        .boss-form input, .boss-form select { width: 100%; box-sizing: border-box; }
+        .boss-presets { display: flex; gap: 6px; flex-wrap: wrap; grid-column: 1 / -1; }
+        .boss-history { font-size: 0.85rem; color: #bbb; border-top: 1px solid #503010; padding-top: 8px; line-height: 1.7; }
+        .fortune-card { width: 140px; height: 180px; margin: 10px auto; display: flex; align-items: center; justify-content: center; font-size: 4rem; background: linear-gradient(135deg, #5a3d22, #2b1d10); border: 3px solid var(--border-color); animation: shake 0.3s infinite; }
+        .fortune-card.revealed { animation: popIn 0.5s; background: linear-gradient(135deg, #ffe9a8, #c89a6a); }
+        .sale-tag { color: #ff6b6b; font-size: 0.75rem; }
         .tier-tag { font-size: 0.7rem; padding: 0 4px; margin-right: 4px; border: 1px solid #a88; color: #ddd; vertical-align: middle; }
         .tier-tag.tier-2 { border-color: #00d2ff; color: #8fe3ff; }
         .tier-tag.tier-3 { border-color: #c792ea; color: #e0c3ff; }
@@ -447,6 +471,7 @@
             <button class="pixel-btn" id="musicBtn" onclick="toggleMusic()">🔇 音樂</button>
             <button class="pixel-btn gold" onclick="openShopDirect()">💰 萬寶閣</button>
             <button class="pixel-btn gold" onclick="openLeaderboard()">🏆 戰力榜</button>
+            <button class="pixel-btn primary" onclick="openBossModal()">🐲 世界 Boss</button>
             <button class="pixel-btn teacher-only" style="display:none;" onclick="openBattleModal()">⚔️ 隨機歷練</button>
             <button class="pixel-btn primary teacher-only" style="display:none;" onclick="openDuelSetup()">🥊 對戰</button>
             <button class="pixel-btn teacher-only" style="display:none;" onclick="openQbankModal()">📜 題庫</button>
@@ -471,8 +496,18 @@
         </div>
     </header>
 
+    <div id="today-bar">
+        <div id="tb-fortune"></div>
+        <div id="tb-boss" onclick="openBossModal()" title="查看世界 Boss">
+            <img id="tb-boss-img" src="" alt="">
+            <div class="tb-boss-main">
+                <div id="tb-boss-name"></div>
+                <div class="ev-hp"><div class="ev-hp-fill" id="tb-boss-fill"></div><span id="tb-boss-text"></span></div>
+            </div>
+        </div>
+    </div>
     <div class="grid-container" id="studentGrid"></div>
-    <div class="app-footer">宗門啟示錄 Steven 加強版 v7.1 · 2026-09-16　｜　原版：chunsheng612／GameWuxia（經作者同意改作與公開）　｜　寶箱圖：DustDFG（CC-BY 4.0）</div>
+    <div class="app-footer">宗門啟示錄 Steven 加強版 v8 · 2026-09-16　｜　原版：chunsheng612／GameWuxia（經作者同意改作與公開）　｜　寶箱圖：DustDFG（CC-BY 4.0）</div>
 </div>
 
 <!-- 戰鬥模態框 -->
@@ -718,6 +753,23 @@
             <button class="pixel-btn" onclick="closeDuelSetup()">取消</button>
             <button class="pixel-btn success" onclick="startDuel()">⚔️ 開戰</button>
         </div>
+    </div>
+</div>
+
+<!-- v8：世界 Boss -->
+<div id="boss-modal">
+    <div class="pixel-border ev-panel">
+        <h2>🐲 世界 Boss</h2>
+        <div id="boss-body" style="display:flex; flex-direction:column; gap:10px;"></div>
+        <div class="boss-history" id="boss-history"></div>
+        <button class="pixel-btn" onclick="closeBossModal()">關閉</button>
+    </div>
+</div>
+<!-- v8：奇遇翻牌、打倒 Boss 慶祝 -->
+<div id="event-modal">
+    <div class="pixel-border ev-panel">
+        <div id="event-body" style="display:flex; flex-direction:column; gap:10px;"></div>
+        <button class="pixel-btn gold" onclick="closeEventModal()">好</button>
     </div>
 </div>
 
@@ -1192,6 +1244,20 @@
 
     let sects = [];
     try { sects = JSON.parse(localStorage.getItem(SECT_KEY)) || []; } catch (e) { sects = []; }
+
+    // v8：世界 Boss、每日奇遇（跟弟子資料分開存，但復原和備份都會一起帶）
+    const EVENTS_KEY = 'wuxia_class_events';
+    const BOSS_DAY_EXP = 200;   // 估血量用：一位弟子一天大約拿到的修為
+    const BOSS_PRESETS = [{ label: '約 3 天', days: 3 }, { label: '約 1 週', days: 5 }, { label: '約 2 週', days: 10 }];
+    const FORTUNES = [
+        { id: 'exp2',     icon: '🌊', name: '修為湧泉',     desc: '今天所有加修為 ×2' },
+        { id: 'coin2',    icon: '💰', name: '妖丹雨',       desc: '今天所有加妖丹 ×2' },
+        { id: 'sale',     icon: '🏷️', name: '萬寶閣特賣',   desc: '今天萬寶閣全部八折' },
+        { id: 'bossweak', icon: '🎯', name: '妖王弱點暴露', desc: '今天對世界 Boss 的傷害 ×2', need: function () { return !!events.boss; } },
+        { id: 'duel2',    icon: '🥊', name: '以武會友',     desc: '今天對戰勝負雙方的獎勵 ×2' }
+    ];
+    let events = sanitizeEvents(null);
+    try { events = sanitizeEvents(JSON.parse(localStorage.getItem(EVENTS_KEY))); } catch (e) {}
     let undoStack = [];
     let lastPickedStudentId = null;
     let lbMode = 'student';   // 排行榜：student 弟子榜 / sect 門派榜
@@ -1354,11 +1420,13 @@
         playSfx(sfxClick);
         const s = students[index];
         if (!s) return;
-        pushUndo(s.name + ' 修為 ' + (amount > 0 ? '+' : '') + amount);
+        const real = boostExp(amount);
+        pushUndo(s.name + ' 修為 ' + (real > 0 ? '+' : '') + real);
         const oldLvl = calculateLevel(s.exp);
-        s.exp = Math.max(0, s.exp + amount);
+        s.exp = Math.max(0, s.exp + real);
         const newLvl = calculateLevel(s.exp);
-        showFloatText(amount > 0 ? `+${amount} Exp` : `${amount}`, index);
+        showFloatText(real > 0 ? `+${real} Exp${real !== amount ? '（×2）' : ''}` : `${real}`, index);
+        bossHit(real);
         if (newLvl > oldLvl) { playSfx(sfxLevelUp); showLevelUpEffect(); showNotify(`恭喜 ${s.name} 升到了 Lv.${newLvl}！`); }
         saveQuiet(); renderGrid();
     }
@@ -1383,6 +1451,7 @@
     }
 
     function updateTeacherUI() {
+        renderTodayBar();
         const teacherElements = document.querySelectorAll('.teacher-only');
         teacherElements.forEach(el => { if (isTeacherMode) { if (el.classList.contains('card-actions')) el.style.setProperty('display', 'grid', 'important'); else if (el.classList.contains('teacher-controls-header')) el.style.setProperty('display', 'flex', 'important'); else el.style.setProperty('display', 'block', 'important'); } else el.style.setProperty('display', 'none', 'important'); });
     }
@@ -1515,7 +1584,7 @@
             const extraHint = item.type === 'aura' ? '<div style="color:#80ffea; font-size:0.78rem;">純外觀，不加戰力</div>'
                 : (item.type === 'pet' ? '<div style="color:#80ffea; font-size:0.78rem;">裝備後化為守護靈，可再覺醒升星</div>'
                 : (item.type === 'sword' ? '<div style="color:#80ffea; font-size:0.78rem;">裝備後化為飛劍繞身</div>' : ''));
-            const priceHtml = item.type === 'title' ? '<div class="item-price" style="color:#80ffea;">師尊可直接授予</div>' : `<div class="item-price">💰 ${item.price}</div>`;
+            const priceHtml = item.type === 'title' ? '<div class="item-price" style="color:#80ffea;">師尊可直接授予</div>' : priceTagHtml(item.price || 0);
             const actionBtn = !isTeacherMode
                 ? `<div style="color:#888; font-size:0.78rem; padding:5px 0;">購買需師尊操作</div>`
                 : (item.type === 'title'
@@ -1580,7 +1649,7 @@
                     <img class="chest-img" src="${CHEST_IMG[t.tier + '_closed']}" alt="">
                     <h4>${t.name}${k.name}</h4>
                     <div class="chest-odds">${odds}<br>${empty}<br>只會開到還沒有的</div>
-                    <div class="item-price">💰 ${price}</div>
+                    ${priceTagHtml(price)}
                     ${action}`;
                 container.appendChild(card);
             });
@@ -1599,7 +1668,7 @@
         const t = CHEST_TIERS.find(x => x.tier === tier);
         if (!s) { showNotify("請先選擇購買人"); return; }
         if (!k || !t || k.tiers.indexOf(tier) < 0) { showNotify("寶箱不存在"); return; }
-        const price = k.prices[tier - 1];
+        const price = salePrice(k.prices[tier - 1]);
         if (!chestUnowned(s, kind, tier).length) { showNotify(`${s.name} 的${t.name}${k.name.replace('箱', '')}已經集齊了`); return; }
         if ((s.coins || 0) < price) { showNotify(`${s.name} 的妖丹不足（有 ${s.coins || 0}，要 ${price}）`); return; }
         showCustomModal({
@@ -1669,7 +1738,7 @@
         if (!itemData) { showNotify("商品不存在"); return; }
         if (itemData.type === 'consumable' && !REAL_REWARDS.some(r => r.id === itemId)) { showNotify("這張特權卡已經下架了"); return; }
         if (!s) { showNotify("請先選擇購買人"); return; }
-        const price = itemData.price || 0;
+        const price = salePrice(itemData.price || 0);
         const isConsumable = itemData.type === 'consumable';
         if (!s.inventory) s.inventory = [];
         if (!isConsumable && s.inventory.includes(itemId)) { showNotify(`${s.name} 已經有${itemData.name}了`); return; }
@@ -1795,7 +1864,7 @@
         const starText = '★'.repeat(stars) + '☆'.repeat(AWAKEN_MAX - stars);
         const info = stars >= AWAKEN_MAX
             ? '已覺醒至最高星，守護靈光環全開'
-            : `覺醒到 ${next} 星：${AWAKEN_COST[next]} 妖丹，戰力再 +${AWAKEN_CP_PER_STAR}` + (next === AWAKEN_MAX ? '，多一圈光環' : '');
+            : `覺醒到 ${next} 星：${salePrice(AWAKEN_COST[next])} 妖丹${fortuneIs('sale') ? '（特賣）' : ''}，戰力再 +${AWAKEN_CP_PER_STAR}` + (next === AWAKEN_MAX ? '，多一圈光環' : '');
         box.innerHTML = `<div class="awaken-box">
                 <img src="${pet.icon || pet.src}" alt="">
                 <div class="awaken-info">${pet.name}　<span class="awaken-stars">${starText}</span><br><span style="color:#aaa;">${info}</span></div>
@@ -1812,7 +1881,7 @@
         if (!pet) return;
         const next = petStars(s, petId) + 1;
         if (next > AWAKEN_MAX) return;
-        const cost = AWAKEN_COST[next];
+        const cost = salePrice(AWAKEN_COST[next]);
         if ((s.coins || 0) < cost) { showNotify(`${s.name} 的妖丹不足（有 ${s.coins || 0}，要 ${cost}）`); return; }
         showCustomModal({
             title: '神獸覺醒',
@@ -2117,10 +2186,11 @@
             // 有裝飛劍：劍先飛過去再打中
             const flew = flySwordStrike(s, monsterImg);
             if (flew) setTimeout(hit, SWORD_FLY_MS - 20); else hit();
-            const expGain = isTreasureEncounter ? 100 : 50;
-            const coinGain = isTreasureEncounter ? 200 : 50;
+            const expBase = isTreasureEncounter ? 100 : 50;
+            const expGain = boostExp(expBase);
+            const coinGain = boostCoins(isTreasureEncounter ? 200 : 50);
             // 先加修為（這一步會記復原點），掉寶和妖丹放在後面，按復原才會一起退回
-            updateExp(currentBattleStudentIndex, expGain);
+            updateExp(currentBattleStudentIndex, expBase);
             if (isTreasureEncounter) { document.getElementById('battle-msg').innerText = `開啟成功！獲得 ${expGain} Exp / ${coinGain} 妖丹！`; checkWeaponDrop(currentBattleStudentIndex, true); }
             else { document.getElementById('battle-msg').innerText = `回答正確！獲得 ${expGain} Exp / ${coinGain} 妖丹！`; checkWeaponDrop(currentBattleStudentIndex, false); }
             s.coins = parseInt(s.coins || 0) + coinGain;
@@ -2231,7 +2301,7 @@
         localStorage.setItem(SECT_KEY, JSON.stringify(sects));
         markBackupDirty();
     }
-    function resetAll() { showCustomModal({ title: "解散宗門", msg: "確定要燒毀名冊？所有資料將消失。", showCancel: true, onConfirm: () => { pushUndo('重置前的名冊'); localStorage.removeItem('wuxia_class_data'); localStorage.removeItem(SECT_KEY); students = []; sects = []; renderGrid(); showNotify("一切回歸虛無...（可按復原救回）"); } }); }
+    function resetAll() { showCustomModal({ title: "解散宗門", msg: "確定要燒毀名冊？所有資料將消失。", showCancel: true, onConfirm: () => { pushUndo('重置前的名冊'); localStorage.removeItem('wuxia_class_data'); localStorage.removeItem(SECT_KEY); students = []; sects = []; events = sanitizeEvents({ fortune: events.fortune }); saveEvents(); renderGrid(); showNotify("一切回歸虛無...（可按復原救回）"); } }); }
     /* ══════════════════════════════════════════════════════════
        以下為加購功能：門派、獎賞、復原、匯出匯入
        原版沒有這些，其餘玩法與畫面皆維持原樣
@@ -2291,9 +2361,287 @@
         return '<span class="sect-badge" style="color:' + escHtml(k.color) + '">' + escHtml(k.emblem) + ' ' + escHtml(k.name) + '</span>';
     }
 
+    // ── v8：世界 Boss、每日奇遇 ──
+    function cleanTime(v) { const n = Number(v); return (isFinite(n) && n > 0) ? Math.floor(n) : Date.now(); }
+    function sanitizeEvents(raw) {
+        const out = { boss: null, bossHistory: [], fortune: null };
+        if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return out;
+        const isMonster = function (id) { return typeof id === 'string' && MONSTERS.some(function (m) { return m.id === id; }); };
+        const b = raw.boss;
+        if (b && typeof b === 'object' && isMonster(b.monsterId)) {
+            const maxHp = Math.max(1, cleanInt(b.maxHp));
+            out.boss = {
+                monsterId: b.monsterId, maxHp: maxHp, damage: Math.min(maxHp, cleanInt(b.damage)),
+                rewardCoins: Math.min(99999, cleanInt(b.rewardCoins)), rewardExp: Math.min(99999, cleanInt(b.rewardExp)),
+                startedAt: cleanTime(b.startedAt)
+            };
+        }
+        (Array.isArray(raw.bossHistory) ? raw.bossHistory : []).slice(0, 30).forEach(function (h) {
+            if (!h || typeof h !== 'object' || !isMonster(h.monsterId)) return;
+            out.bossHistory.push({
+                monsterId: h.monsterId, maxHp: Math.max(1, cleanInt(h.maxHp)),
+                result: h.result === 'retreat' ? 'retreat' : 'defeated',
+                people: cleanInt(h.people), endedAt: cleanTime(h.endedAt)
+            });
+        });
+        const f = raw.fortune;
+        if (f && typeof f === 'object' && typeof f.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(f.date)
+            && FORTUNES.some(function (x) { return x.id === f.id; })) {
+            out.fortune = { date: f.date, id: f.id };
+        }
+        return out;
+    }
+    function saveEvents() {
+        try { localStorage.setItem(EVENTS_KEY, JSON.stringify(events)); } catch (e) {}
+        markBackupDirty();
+    }
+    function todayFortune() {
+        const f = events.fortune;
+        if (!f || f.date !== todayStr()) return null;
+        return FORTUNES.find(function (x) { return x.id === f.id; }) || null;
+    }
+    function fortuneIs(id) { const f = todayFortune(); return !!f && f.id === id; }
+    // 只有「給獎勵」會加倍，扣分照原數字
+    function boostExp(n) { return (n > 0 && fortuneIs('exp2')) ? n * 2 : n; }
+    function boostCoins(n) { return (n > 0 && fortuneIs('coin2')) ? n * 2 : n; }
+    function salePrice(p) { return fortuneIs('sale') ? Math.round(p * 0.8) : p; }
+    function priceTagHtml(p) {
+        const sp = salePrice(p);
+        return sp !== p
+            ? `<div class="item-price"><s style="color:#999;">💰 ${p}</s> 💰 ${sp} <span class="sale-tag">特賣</span></div>`
+            : `<div class="item-price">💰 ${p}</div>`;
+    }
+    function monsterById(id) { return MONSTERS.find(function (m) { return m.id === id; }) || MONSTERS[0]; }
+    function bossName(id) { return '妖王・' + monsterById(id).name; }
+    function presentCount() { return students.filter(function (s) { return !isOnLeave(s); }).length; }
+
+    // 呼叫前一定已經 pushUndo，所以傷害和打倒後的獎勵會跟著那次加分一起復原
+    function bossHit(total) {
+        const b = events.boss;
+        if (!b || !(total > 0)) return;
+        const dmg = fortuneIs('bossweak') ? total * 2 : total;
+        b.damage = Math.min(b.maxHp, b.damage + dmg);
+        saveEvents();
+        renderTodayBar();
+        const box = document.getElementById('tb-boss');
+        if (box) {
+            const n = document.createElement('div');
+            n.className = 'tb-dmg';
+            n.textContent = '-' + dmg;
+            box.appendChild(n);
+            setTimeout(function () { n.remove(); }, 1400);
+        }
+        if (b.damage >= b.maxHp) bossDefeat();
+    }
+    function bossDefeat() {
+        const b = events.boss;
+        if (!b) return;
+        const present = students.filter(function (s) { return !isOnLeave(s); });
+        const rc = boostCoins(b.rewardCoins), re = boostExp(b.rewardExp);
+        // 先清掉 Boss，發獎的修為才不會又打到下一隻
+        events.boss = null;
+        present.forEach(function (s) {
+            if (rc) s.coins = Math.max(0, parseInt(s.coins || 0) + rc);
+            if (re) s.exp = Math.max(0, (s.exp || 0) + re);
+        });
+        events.bossHistory.unshift({ monsterId: b.monsterId, maxHp: b.maxHp, result: 'defeated', people: present.length, endedAt: Date.now() });
+        events.bossHistory = events.bossHistory.slice(0, 30);
+        saveEvents();
+        saveQuiet();
+        renderGrid();
+        setTimeout(function () {
+            const body = document.getElementById('event-body');
+            body.innerHTML = '';
+            const img = document.createElement('img');
+            img.className = 'boss-img defeated'; img.src = monsterById(b.monsterId).src; img.alt = '';
+            const h = document.createElement('h2');
+            h.textContent = '🎉 全班打倒了' + bossName(b.monsterId) + '！';
+            const p = document.createElement('p');
+            const gift = [rc ? '妖丹 +' + rc : '', re ? '修為 +' + re : ''].filter(Boolean).join('、');
+            p.textContent = present.length ? ('今天有來的 ' + present.length + ' 位弟子各得 ' + (gift || '（沒有設定獎勵）')) : '今天大家都請假，沒有人拿到獎勵';
+            body.appendChild(img); body.appendChild(h); body.appendChild(p);
+            document.getElementById('event-modal').style.display = 'flex';
+            playSfx(sfxLevelUp); showLevelUpEffect();
+        }, 700);
+    }
+
+    function renderTodayBar() {
+        const bar = document.getElementById('today-bar');
+        if (!bar) return;
+        const f = todayFortune();
+        const b = events.boss;
+        const fBox = document.getElementById('tb-fortune');
+        fBox.innerHTML = '';
+        fBox.className = '';
+        if (f) {
+            fBox.className = 'tb-fortune';
+            fBox.textContent = '🎴 今日奇遇　' + f.icon + ' ' + f.name + '：' + f.desc;
+        } else if (isTeacherMode && students.length) {
+            const btn = document.createElement('button');
+            btn.className = 'pixel-btn gold';
+            btn.textContent = '🎴 抽今日奇遇';
+            btn.onclick = drawFortune;
+            fBox.appendChild(btn);
+        }
+        const bBox = document.getElementById('tb-boss');
+        bBox.style.display = b ? 'flex' : 'none';
+        if (b) {
+            const left = b.maxHp - b.damage;
+            document.getElementById('tb-boss-img').src = monsterById(b.monsterId).icon;
+            document.getElementById('tb-boss-name').textContent = bossName(b.monsterId) + (fortuneIs('bossweak') ? '　🎯 弱點暴露（傷害 ×2）' : '');
+            document.getElementById('tb-boss-fill').style.width = (left / b.maxHp * 100) + '%';
+            document.getElementById('tb-boss-text').textContent = '剩 ' + left + ' / ' + b.maxHp;
+        }
+        bar.style.display = (f || b || (isTeacherMode && students.length)) ? 'flex' : 'none';
+    }
+
+    function drawFortune() {
+        if (!requireTeacher('抽奇遇')) return;
+        if (todayFortune()) { showNotify('今天已經抽過奇遇了'); return; }
+        const pool = FORTUNES.filter(function (x) { return !x.need || x.need(); });
+        const f = pool[Math.floor(Math.random() * pool.length)];
+        events.fortune = { date: todayStr(), id: f.id };
+        saveEvents();
+        const body = document.getElementById('event-body');
+        body.innerHTML = '';
+        const h = document.createElement('h2'); h.textContent = '天機翻轉中…';
+        const card = document.createElement('div'); card.className = 'fortune-card'; card.textContent = '🎴';
+        const p = document.createElement('p');
+        body.appendChild(h); body.appendChild(card); body.appendChild(p);
+        document.getElementById('event-modal').style.display = 'flex';
+        playSfx(sfxClick);
+        setTimeout(function () {
+            card.classList.add('revealed');
+            card.textContent = f.icon;
+            h.textContent = '今日奇遇：' + f.name;
+            p.textContent = f.desc + '（今天結束前有效）';
+            playSfx(sfxGetItem);
+            renderTodayBar();
+        }, 1200);
+    }
+    function closeEventModal() { playSfx(sfxClick); document.getElementById('event-modal').style.display = 'none'; }
+
+    function openBossModal() { playSfx(sfxClick); renderBossModal(); document.getElementById('boss-modal').style.display = 'flex'; }
+    function closeBossModal() { playSfx(sfxClick); document.getElementById('boss-modal').style.display = 'none'; }
+    function renderBossModal() {
+        const body = document.getElementById('boss-body');
+        body.innerHTML = '';
+        const add = function (tag, cls, text) {
+            const e = document.createElement(tag);
+            if (cls) e.className = cls;
+            if (text != null) e.textContent = text;
+            body.appendChild(e);
+            return e;
+        };
+        const b = events.boss;
+        if (b) {
+            const m = monsterById(b.monsterId);
+            const img = add('img', 'boss-img'); img.src = m.src; img.alt = '';
+            add('h3', '', bossName(b.monsterId));
+            const left = b.maxHp - b.damage;
+            const hp = add('div', 'ev-hp');
+            const fill = document.createElement('div'); fill.className = 'ev-hp-fill'; fill.style.width = (left / b.maxHp * 100) + '%';
+            const txt = document.createElement('span'); txt.textContent = '剩 ' + left + ' / ' + b.maxHp;
+            hp.appendChild(fill); hp.appendChild(txt);
+            add('p', '', '全班已經造成 ' + b.damage + ' 傷害（' + Math.floor(b.damage / b.maxHp * 100) + '%）');
+            const gift = [b.rewardCoins ? '妖丹 +' + b.rewardCoins : '', b.rewardExp ? '修為 +' + b.rewardExp : ''].filter(Boolean).join('、');
+            add('p', '', '打倒後：今天有來的人各得 ' + (gift || '（沒有設定獎勵）'));
+            add('p', '', '任何人拿到修為，就會對妖王造成一樣多的傷害（扣分不會回血）').style.color = '#aaa';
+            if (isTeacherMode) {
+                const btn = add('button', 'pixel-btn primary', '撤退妖王（不打了）');
+                btn.onclick = retreatBoss;
+            }
+        } else if (!isTeacherMode) {
+            add('p', '', '目前沒有妖王。等師尊召喚，全班一起討伐！');
+        } else {
+            add('p', '', '召喚一隻妖王，全班拿到的修為都會變成傷害，打倒後今天有來的人一起拿獎勵。');
+            const form = add('div', 'boss-form');
+            const label = function (text) { const l = document.createElement('span'); l.textContent = text; form.appendChild(l); };
+            label('妖王');
+            const sel = document.createElement('select'); sel.id = 'boss-monster';
+            MONSTERS.forEach(function (m) { const o = document.createElement('option'); o.value = m.id; o.textContent = '妖王・' + m.name; sel.appendChild(o); });
+            form.appendChild(sel);
+            label('血量');
+            const hpIn = document.createElement('input'); hpIn.type = 'number'; hpIn.id = 'boss-hp'; hpIn.min = 1; hpIn.max = 9999999;
+            form.appendChild(hpIn);
+            const presets = document.createElement('div'); presets.className = 'boss-presets';
+            const people = presentCount() || students.length || 1;
+            BOSS_PRESETS.forEach(function (ps, i) {
+                const v = people * BOSS_DAY_EXP * ps.days;
+                const pb = document.createElement('button');
+                pb.className = 'pixel-btn action-btn-small';
+                pb.textContent = ps.label + '（' + v + '）';
+                pb.onclick = function () { hpIn.value = v; };
+                presets.appendChild(pb);
+                if (i === 1) hpIn.value = v;
+            });
+            form.appendChild(presets);
+            label('獎勵妖丹');
+            const rc = document.createElement('input'); rc.type = 'number'; rc.id = 'boss-reward-coins'; rc.min = 0; rc.max = 99999; rc.value = 200;
+            form.appendChild(rc);
+            label('獎勵修為');
+            const re = document.createElement('input'); re.type = 'number'; re.id = 'boss-reward-exp'; re.min = 0; re.max = 99999; re.value = 100;
+            form.appendChild(re);
+            add('p', '', '血量估法：今天有來的人數 × 每人一天約 ' + BOSS_DAY_EXP + ' 修為 × 天數（一週算 5 天）').style.color = '#aaa';
+            const go = add('button', 'pixel-btn success', '🐲 召喚妖王');
+            go.onclick = summonBoss;
+        }
+        const hist = document.getElementById('boss-history');
+        hist.innerHTML = '';
+        if (events.bossHistory.length) {
+            const t = document.createElement('div'); t.textContent = '討伐紀錄'; t.style.color = 'var(--text-gold)';
+            hist.appendChild(t);
+            events.bossHistory.slice(0, 10).forEach(function (h) {
+                const d = new Date(h.endedAt);
+                const row = document.createElement('div');
+                row.textContent = (d.getMonth() + 1) + '/' + d.getDate() + '　'
+                    + (h.result === 'defeated' ? '✅ 打倒 ' + bossName(h.monsterId) + '（' + h.maxHp + ' 血，' + h.people + ' 人拿到獎勵）' : '🏳️ 撤退 ' + bossName(h.monsterId));
+                hist.appendChild(row);
+            });
+        }
+    }
+    function summonBoss() {
+        if (!requireTeacher('召喚妖王')) return;
+        if (events.boss) { showNotify('已經有妖王了'); return; }
+        const id = document.getElementById('boss-monster').value;
+        if (!MONSTERS.some(function (m) { return m.id === id; })) { showNotify('找不到這隻妖獸'); return; }
+        const num = function (elId) { const n = Math.round(Number(document.getElementById(elId).value)); return isFinite(n) ? n : NaN; };
+        const hp = num('boss-hp'), rc = num('boss-reward-coins'), re = num('boss-reward-exp');
+        if (!(hp >= 1 && hp <= 9999999)) { showNotify('血量要填 1 到 9999999'); return; }
+        if (!(rc >= 0 && rc <= 99999) || !(re >= 0 && re <= 99999)) { showNotify('獎勵要填 0 到 99999'); return; }
+        pushUndo('召喚' + bossName(id));
+        events.boss = { monsterId: id, maxHp: hp, damage: 0, rewardCoins: rc, rewardExp: re, startedAt: Date.now() };
+        saveEvents();
+        playSfx(sfxAttack);
+        renderBossModal();
+        renderTodayBar();
+        showNotify(bossName(id) + ' 出現了！全班一起努力打倒牠');
+    }
+    function retreatBoss() {
+        if (!requireTeacher('撤退妖王')) return;
+        const b = events.boss;
+        if (!b) return;
+        document.getElementById('boss-modal').style.display = 'none';
+        showCustomModal({
+            title: '撤退妖王',
+            msg: '確定不打' + bossName(b.monsterId) + '了？已經造成的傷害不會保留，也不會發獎勵（按復原可以救回）。',
+            showCancel: true,
+            onConfirm: function () {
+                if (events.boss !== b) return;
+                pushUndo('撤退' + bossName(b.monsterId));
+                events.bossHistory.unshift({ monsterId: b.monsterId, maxHp: b.maxHp, result: 'retreat', people: 0, endedAt: Date.now() });
+                events.bossHistory = events.bossHistory.slice(0, 30);
+                events.boss = null;
+                saveEvents();
+                renderTodayBar();
+                showNotify('妖王撤退了');
+            }
+        });
+    }
+
     // ── 復原上一步 ──
     function pushUndo(label) {
-        undoStack.push({ label: label, snap: JSON.stringify({ students: students, sects: sects }) });
+        undoStack.push({ label: label, snap: JSON.stringify({ students: students, sects: sects, events: events }) });
         if (undoStack.length > UNDO_LIMIT) undoStack.shift();
         updateUndoBtn();
     }
@@ -2312,6 +2660,8 @@
         var snap = JSON.parse(last.snap);
         students = (snap.students || []).map(normalizeStudent);
         sects = snap.sects || [];
+        // 奇遇一天只抽一次，復原不能把它退掉（不然可以重抽）
+        if (snap.events) { events = sanitizeEvents(Object.assign({}, snap.events, { fortune: events.fortune })); saveEvents(); }
         saveQuiet();
         renderGrid();
         updateUndoBtn();
@@ -2801,6 +3151,10 @@
             label = one.name;
         }
         if (!targets.length) { showNotify(target.indexOf('student:') === 0 ? '這個對象目前沒有弟子' : '這個對象今天沒有來的弟子（都請假了）'); return; }
+        var rawCoins = coins, rawExp = exp;
+        coins = boostCoins(coins);
+        exp = boostExp(exp);
+        var boostNote = (coins !== rawCoins || exp !== rawExp) ? '（' + todayFortune().name + ' ×2）' : '';
 
         var signed = function (n) { return (n > 0 ? '+' : '') + n; };
         var parts = [];
@@ -2824,6 +3178,7 @@
             }
             if (idx >= 0) showFloatText(floatParts.join(' '), idx);
         });
+        if (exp > 0) bossHit(exp * targets.length);
 
         if (leveledUp) { playSfx(sfxLevelUp); showLevelUpEffect(); }
         else if (coins > 0) playSfx(sfxGetItem);
@@ -2833,7 +3188,7 @@
         document.getElementById('grant-modal').style.display = 'none';
         renderGrid();
         if (document.getElementById('sect-modal').style.display === 'flex') renderSectModal();
-        showNotify(label + '（' + targets.length + ' 人）' + summary);
+        showNotify(label + '（' + targets.length + ' 人）' + summary + boostNote);
     }
 
     // ── 匯出 / 匯入存檔 ──
@@ -2857,7 +3212,8 @@
                 drawNoRepeat: settings.drawNoRepeat,
                 malesUpTo: settings.malesUpTo
             },
-            questions: questions
+            questions: questions,
+            events: events
         };
         var blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
         var url = URL.createObjectURL(blob);
@@ -2930,6 +3286,11 @@
                     if (result.questions) {
                         questions = result.questions;
                         saveQuestions();
+                    }
+                    if (result.events) {
+                        result.events.fortune = events.fortune;
+                        events = result.events;
+                        saveEvents();
                     }
                     lastPickedStudentId = null;
                     saveQuiet();
@@ -3025,7 +3386,9 @@
             sects: cleanSects,
             settings: (raw.settings && typeof raw.settings === 'object' && !Array.isArray(raw.settings)) ? raw.settings : null,
             // 舊備份沒有題庫：null 代表保留目前的題庫
-            questions: Array.isArray(raw.questions) ? sanitizeQuestions(raw.questions) : null
+            questions: Array.isArray(raw.questions) ? sanitizeQuestions(raw.questions) : null,
+            // 舊備份沒有 Boss／奇遇：null 代表保留目前的
+            events: (raw.events && typeof raw.events === 'object') ? sanitizeEvents(raw.events) : null
         };
     }
 
@@ -3501,9 +3864,10 @@
         const s = students[index];
         if (!s) return;
         playSfx(amount > 0 ? sfxGetItem : sfxClick);
-        pushUndo(s.name + ' 妖丹 ' + (amount > 0 ? '+' : '') + amount);
-        s.coins = Math.max(0, parseInt(s.coins || 0) + amount);
-        showFloatText((amount > 0 ? '+' : '') + amount + ' 妖丹', index);
+        const real = boostCoins(amount);
+        pushUndo(s.name + ' 妖丹 ' + (real > 0 ? '+' : '') + real);
+        s.coins = Math.max(0, parseInt(s.coins || 0) + real);
+        showFloatText((real > 0 ? '+' : '') + real + ' 妖丹' + (real !== amount ? '（×2）' : ''), index);
         saveQuiet();
         renderGrid();
     }
@@ -4856,6 +5220,7 @@
         const win = d.sides[winKey], lose = d.sides[loseKey];
         const underdog = win.cp < lose.cp;
         const mult = underdog ? 2 : 1;
+        const fm = fortuneIs('duel2') ? 2 : 1;
         const table = DUEL_REWARD[d.mode];
         const people = function (side) {
             if (d.mode === 'solo') { const s = findStudentById(side.id); return s ? [s] : []; }
@@ -4863,8 +5228,8 @@
         };
         return {
             underdog: underdog,
-            win: { people: people(win), coins: table.win.coins * mult, exp: table.win.exp * mult },
-            lose: { people: people(lose), coins: table.lose.coins, exp: table.lose.exp }
+            win: { people: people(win), coins: boostCoins(table.win.coins * mult * fm), exp: boostExp(table.win.exp * mult * fm) },
+            lose: { people: people(lose), coins: boostCoins(table.lose.coins * fm), exp: boostExp(table.lose.exp * fm) }
         };
     }
 
@@ -4889,6 +5254,7 @@
         };
         give(plan.win);
         give(plan.lose);
+        bossHit(plan.win.exp * plan.win.people.length + plan.lose.exp * plan.lose.people.length);
         saveQuiet();
         renderGrid();
         if (leveledUp) { playSfx(sfxLevelUp); showLevelUpEffect(); } else playSfx(sfxGetItem);
