@@ -402,6 +402,9 @@
         .boss-img.defeated { filter: grayscale(1) brightness(0.7); }
         .boss-form { display: grid; grid-template-columns: auto 1fr; gap: 8px 10px; align-items: center; color: var(--text-beige); }
         .boss-form input, .boss-form select { width: 100%; box-sizing: border-box; }
+        /* 新視窗的輸入框用淺底深字，打字才看得清楚 */
+        .ev-panel input:not([type=radio]):not([type=checkbox]), .ev-panel textarea, .ev-panel select { background: #f5ead6; color: #2b1d10; border: 2px solid var(--border-color); padding: 6px; font-family: inherit; font-size: 1rem; }
+        .ev-panel input::placeholder, .ev-panel textarea::placeholder { color: #8a7560; }
         .boss-presets { display: flex; gap: 6px; flex-wrap: wrap; grid-column: 1 / -1; }
         .boss-history { font-size: 0.85rem; color: #bbb; border-top: 1px solid #503010; padding-top: 8px; line-height: 1.7; }
         .fortune-card { width: 140px; height: 180px; margin: 10px auto; display: flex; align-items: center; justify-content: center; font-size: 4rem; background: linear-gradient(135deg, #5a3d22, #2b1d10); border: 3px solid var(--border-color); animation: shake 0.3s infinite; }
@@ -549,7 +552,7 @@
         </div>
     </div>
     <div class="grid-container" id="studentGrid"></div>
-    <div class="app-footer">宗門啟示錄 Steven 加強版 v9.1 · 2026-09-17　｜　原版：chunsheng612／GameWuxia（經作者同意改作與公開）　｜　寶箱圖：DustDFG（CC-BY 4.0）</div>
+    <div class="app-footer">宗門啟示錄 Steven 加強版 v9.2 · 2026-09-17　｜　原版：chunsheng612／GameWuxia（經作者同意改作與公開）　｜　寶箱圖：DustDFG（CC-BY 4.0）</div>
 </div>
 
 <!-- 戰鬥模態框 -->
@@ -3075,7 +3078,7 @@
         events.quests.forEach(function (q) {
             const row = el(ed, 'div', 'quest-edit-row');
             row.dataset.qid = q.id;
-            const n = el(row, 'input'); n.maxLength = 16; n.value = q.name; n.className = 'qe-name';
+            const n = el(row, 'input'); n.type = 'text'; n.maxLength = 16; n.value = q.name; n.className = 'qe-name';
             if (q.kind === 'homework') n.title = '這個任務用缺交座號判斷';
             const c = el(row, 'input'); c.type = 'number'; c.min = 0; c.max = 99999; c.value = q.coins; c.className = 'qe-coins';
             const x = el(row, 'input'); x.type = 'number'; x.min = 0; x.max = 99999; x.value = q.exp; x.className = 'qe-exp';
