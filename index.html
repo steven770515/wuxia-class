@@ -65,7 +65,7 @@
         .pixel-btn.gold { background: linear-gradient(to bottom, #ffd700, #ff8c00); border-color: #8b4500; color: #3e1f00; }
         .pixel-btn:disabled { filter: grayscale(1); cursor: not-allowed; opacity: 0.7; transform: none; box-shadow: none; }
 
-        #app-container { max-width: 1200px; margin: 0 auto; padding: 20px; display: flex; flex-direction: column; height: 100vh; box-sizing: border-box; }
+        #app-container { max-width: 1200px; margin: 0 auto; padding: 20px; display: flex; flex-direction: column; min-height: 100vh; box-sizing: border-box; }
         header { text-align: center; padding: 15px; background: var(--panel-bg); margin-bottom: 20px; display: flex; flex-direction: column; align-items: stretch; position: relative; gap: 10px; }
         /* v9.1：上方按鈕兩排＋管理選單 */
         .header-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
@@ -84,7 +84,7 @@
         .gender-radio { display: flex; gap: 10px; align-items: center; color: var(--text-brown); }
         .gender-radio label { cursor: pointer; display: flex; align-items: center; gap: 5px; }
         .gender-radio input[type="radio"] { accent-color: #b88a5a; width: 16px; height: 16px; }
-        .grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; overflow-y: auto; padding-right: 10px; padding-bottom: 50px; }
+        .grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; padding-right: 10px; padding-bottom: 50px; }
 
         /* 卡片與光效 */
         .student-card { background-color: rgba(40, 30, 20, 0.9); padding: 15px; display: flex; flex-direction: column; gap: 8px; position: relative; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
@@ -1681,11 +1681,12 @@
                 : (item.type === 'pet' ? '<div style="color:#80ffea; font-size:0.78rem;">裝備後化為守護靈，可再覺醒升星</div>'
                 : (item.type === 'sword' ? '<div style="color:#80ffea; font-size:0.78rem;">裝備後化為飛劍繞身</div>' : ''));
             const priceHtml = item.type === 'title' ? '<div class="item-price" style="color:#80ffea;">師尊可直接授予</div>' : priceTagHtml(item.price || 0);
-            const actionBtn = !isTeacherMode
-                ? `<div style="color:#888; font-size:0.78rem; padding:5px 0;">購買需師尊操作</div>`
-                : (item.type === 'title'
+            // 學生可以自己買；稱號仍然只有師尊能授予
+            const actionBtn = item.type === 'title'
+                ? (isTeacherMode
                     ? `<button class="pixel-btn info action-btn-small" onclick="grantTitleFromShop('${item.id}')">授予</button>`
-                    : `<button class="pixel-btn success action-btn-small" onclick="buyItem('${item.id}')">購買</button>`);
+                    : `<div style="color:#888; font-size:0.78rem; padding:5px 0;">稱號由師尊授予</div>`)
+                : `<button class="pixel-btn success action-btn-small" onclick="buyItem('${item.id}')">購買</button>`;
             card.innerHTML = `
                 ${imgHtml}
                 <h4>${item.chestTier ? `<span class="tier-tag tier-${item.chestTier}">${tierName(item.chestTier)}</span>` : ''}${escHtml(item.name)}</h4>
@@ -1736,9 +1737,7 @@
                 card.className = `shop-card chest tier-${t.tier}`;
                 const odds = '會開到：' + chestPool(k.kind, t.tier).map(it => escHtml(it.name)).join('、');
                 const empty = t.emptyRate ? `有 ${Math.round(t.emptyRate * 100)}% 是空箱（退一半妖丹）` : '一定開到東西';
-                const action = !isTeacherMode
-                    ? `<div style="color:#888; font-size:0.78rem; padding:5px 0;">購買需師尊操作</div>`
-                    : (tierLeft
+                const action = (tierLeft
                         ? `<button class="pixel-btn success action-btn-small" onclick="buyChest('${k.kind}', ${t.tier})">開箱</button>`
                         : `<div style="color:#80ffea; font-size:0.78rem; padding:5px 0;">這一階已集齊</div>`);
                 card.innerHTML = `
@@ -1758,7 +1757,6 @@
     }
 
     function buyChest(kind, tier) {
-        if (!requireTeacher('開寶箱')) return;
         const s = students[currentInvStudentIndex];
         const k = CHEST_KINDS.find(x => x.kind === kind);
         const t = CHEST_TIERS.find(x => x.tier === tier);
@@ -1828,7 +1826,6 @@
     }
 
     function buyItem(itemId) {
-        if (!requireTeacher('購買')) return;
         const s = students[currentInvStudentIndex];
         const itemData = getItemData(itemId);
         if (!itemData) { showNotify("商品不存在"); return; }
@@ -4703,10 +4700,9 @@
         return xlsxLoading;
     }
 
-    function handleExcelFile(input) {
-        const file = input.files && input.files[0];
-        input.value = '';
-        if (!file) return;
+    // 讀 Excel／CSV 的第一個工作表，回傳一列一列的陣列（名單和題庫共用）
+    // CSV 沒有記編碼：先當 UTF-8 讀，讀出怪字就改用 Big5（台灣 Windows 的 Excel 存 CSV 預設是 Big5）
+    function readSheetFile(file, onRows) {
         showNotify('讀取中...');
         loadXlsxLib().then(function (ok) {
             if (!ok) { showNotify('讀不到 Excel 工具，請確認網路連線'); return; }
@@ -4715,17 +4711,35 @@
             reader.onload = function () {
                 let rows;
                 try {
-                    const wb = XLSX.read(new Uint8Array(reader.result), { type: 'array' });
-                    const sheet = wb.Sheets[wb.SheetNames[0]];
-                    rows = XLSX.utils.sheet_to_json(sheet, { header: 1, blankrows: false });
+                    const bytes = new Uint8Array(reader.result);
+                    const isCsv = /\.(csv|txt)$/i.test(file.name || '');
+                    let wb;
+                    if (isCsv) {
+                        let text;
+                        try { text = new TextDecoder('utf-8', { fatal: true }).decode(bytes); }
+                        catch (e) { text = new TextDecoder('big5').decode(bytes); }
+                        wb = XLSX.read(text.replace(/^\uFEFF/, ''), { type: 'string', raw: true });
+                    } else {
+                        wb = XLSX.read(bytes, { type: 'array' });
+                    }
+                    rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, blankrows: false, defval: '' });
                 } catch (e) {
                     showNotify('這個檔案讀不出來，確認是 Excel 或 CSV');
                     return;
                 }
-                excelRawRows = rows;
-                reparseExcel();
+                onRows(rows);
             };
             reader.readAsArrayBuffer(file);
+        });
+    }
+
+    function handleExcelFile(input) {
+        const file = input.files && input.files[0];
+        input.value = '';
+        if (!file) return;
+        readSheetFile(file, function (rows) {
+            excelRawRows = rows;
+            reparseExcel();
         });
     }
 
@@ -4761,37 +4775,63 @@
         };
         const norm = function (v) { return String(v == null ? '' : v).trim().toLowerCase(); };
 
-        // 格式一：找得到標題列
-        const firstRow = (rows[0] || []).map(norm);
-        const found = {};
-        firstRow.forEach(function (cell, i) {
-            if (!cell) return;
-            Object.keys(HEAD).forEach(function (key) {
-                if (found[key] !== undefined) return;
-                const hit = HEAD[key].some(function (h) { return cell.indexOf(h.toLowerCase()) >= 0; });
-                if (hit) found[key] = i;
+        const isNum = function (v) { const t = String(v == null ? '' : v).trim(); return t !== '' && isFinite(Number(t)); };
+        const findHead = function (row) {
+            const found = {};
+            const cells = row.map(norm);
+            // 整列只有一格字的，多半是「五年三班 學生名單」這種大標，要跟欄位名完全一樣才算
+            const single = cells.filter(Boolean).length === 1;
+            cells.forEach(function (cell, i) {
+                if (!cell || cell.length > 8) return;   // 太長的是大標，不是欄位名
+                Object.keys(HEAD).forEach(function (key) {
+                    if (found[key] !== undefined) return;
+                    const hit = HEAD[key].some(function (h) { return single ? cell === h.toLowerCase() : cell.indexOf(h.toLowerCase()) >= 0; });
+                    if (hit) found[key] = i;
+                });
             });
-        });
+            return found;
+        };
+        // 姓名欄＝文字最多的那一欄（不是數字）
+        const guessNameCol = function (list) {
+            const colCount = list.reduce(function (m, r) { return Math.max(m, r.length); }, 0);
+            let best = -1, bestScore = 0;
+            for (let c = 0; c < colCount; c++) {
+                const score = list.filter(function (r) {
+                    const v = String(r[c] == null ? '' : r[c]).trim();
+                    return v !== '' && !isNum(v);
+                }).length;
+                if (score > bestScore) { best = c; bestScore = score; }
+            }
+            return best;
+        };
+
+        // 格式一：前 10 列裡找得到標題列（上面可能有「五年三班名單」這種大標或空白列）
+        let headIdx = -1, found = {};
+        for (let i = 0; i < Math.min(10, rows.length); i++) {
+            const f = findHead(rows[i]);
+            if (f.name !== undefined || f.no !== undefined) { headIdx = i; found = f; break; }
+        }
 
         let map, body, mode;
-        if (found.name !== undefined || found.no !== undefined) {
+        if (headIdx >= 0) {
             map = found;
-            body = rows.slice(1);
+            body = rows.slice(headIdx + 1);
+            if (map.name === undefined) {
+                const c = guessNameCol(body);
+                if (c >= 0) map.name = c;
+            }
             mode = '有標題列';
         } else {
-            const colCount = rows.reduce(function (m, r) { return Math.max(m, r.length); }, 0);
-            const firstColAllNum = rows.every(function (r) {
-                const v = String(r[0] == null ? '' : r[0]).trim();
-                return v !== '' && isFinite(Number(v));
-            });
-            if (colCount >= 2 && firstColAllNum) {
-                map = { no: 0, name: 1 };
+            body = rows;
+            const nameCol = guessNameCol(rows);
+            map = { name: nameCol >= 0 ? nameCol : 0 };
+            // 姓名左邊那欄全是數字，就當座號
+            if (nameCol > 0 && rows.every(function (r) { return isNum(r[nameCol - 1]) || String(r[nameCol] == null ? '' : r[nameCol]).trim() === ''; })) {
+                map.no = nameCol - 1;
                 mode = '座號 + 姓名';
             } else {
-                map = { name: 0 };
                 mode = '只有姓名';
             }
-            body = rows;
         }
 
         const malesUpToRaw = Math.round(Number(document.getElementById('excel-males-upto').value));
@@ -5179,23 +5219,8 @@
         const file = input.files && input.files[0];
         input.value = '';
         if (!file) return;
-        showNotify('讀取中...');
-        loadXlsxLib().then(function (ok) {
-            if (!ok) { showNotify('讀不到 Excel 工具，請確認網路連線'); return; }
-            const reader = new FileReader();
-            reader.onerror = function () { showNotify('讀取檔案失敗'); };
-            reader.onload = function () {
-                let rows;
-                try {
-                    const wb = XLSX.read(new Uint8Array(reader.result), { type: 'array' });
-                    rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, blankrows: false });
-                } catch (e) {
-                    showNotify('這個檔案讀不出來，確認是 Excel 或 CSV');
-                    return;
-                }
-                showQuestionImportPreview(parseQuestionRows(rows));
-            };
-            reader.readAsArrayBuffer(file);
+        readSheetFile(file, function (rows) {
+            showQuestionImportPreview(parseQuestionRows(rows));
         });
     }
 
@@ -5228,19 +5253,25 @@
             subject: ['科目', '學科', 'subject'],
             unit: ['單元', '章節', '課', 'unit']
         };
-        const head = rows[0].map(norm);
-        const col = {};
-        Object.keys(HEAD).forEach(function (k) {
-            col[k] = head.findIndex(function (h) { return HEAD[k].indexOf(h) >= 0; });
-        });
+        // 標題列不一定在第一列（上面可能有大標），前 10 列裡找有「題目」「答案」的那一列
+        let headIdx = 0, col = {};
+        for (let i = 0; i < Math.min(10, rows.length); i++) {
+            const head = rows[i].map(norm);
+            const c = {};
+            Object.keys(HEAD).forEach(function (k) {
+                c[k] = head.findIndex(function (h) { return HEAD[k].indexOf(h) >= 0; });
+            });
+            if (i === 0 || (c.text >= 0 && c.answer >= 0)) { headIdx = i; col = c; }
+            if (c.text >= 0 && c.answer >= 0) break;
+        }
         if (col.text < 0 || col.answer < 0 || col.opt0 < 0 || col.opt1 < 0) {
             return { error: '第一列要有「題目、選項A、選項B、答案」這幾個欄位名稱（按「Excel 格式說明」看範例）' };
         }
         const cell = function (r, k) { return col[k] >= 0 ? r[col[k]] : ''; };
         const list = [];
         const bad = [];
-        rows.slice(1).forEach(function (r, i) {
-            const line = i + 2;
+        rows.slice(headIdx + 1).forEach(function (r, i) {
+            const line = headIdx + i + 2;
             const options = ['opt0', 'opt1', 'opt2', 'opt3'].map(function (k) { return cleanText(cell(r, k), 40); });
             const text = cleanText(cell(r, 'text'), 150);
             if (!text) { bad.push('第 ' + line + ' 列沒有題目'); return; }
