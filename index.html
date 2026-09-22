@@ -4773,7 +4773,7 @@
             gender: ['性別', 'gender', 'sex'],
             sect: ['門派', '組別', '小組', '分組', 'group', 'team']
         };
-        const norm = function (v) { return String(v == null ? '' : v).trim().toLowerCase(); };
+        const norm = function (v) { return String(v == null ? '' : v).normalize('NFKC').trim().toLowerCase(); };
 
         const isNum = function (v) { const t = String(v == null ? '' : v).trim(); return t !== '' && isFinite(Number(t)); };
         const findHead = function (row) {
@@ -5242,7 +5242,8 @@
             return Array.isArray(r) && r.some(function (c) { return String(c == null ? '' : c).trim() !== ''; });
         });
         if (rows.length < 2) return { error: '檔案裡沒有題目（第一列要放欄位名稱，第二列開始放題目）' };
-        const norm = function (v) { return String(v == null ? '' : v).toLowerCase().replace(/[\s()（）:：_\-]/g, ''); };
+        // NFKC 把全形轉半形：「選項Ａ」和「選項A」視為一樣
+        const norm = function (v) { return String(v == null ? '' : v).normalize('NFKC').toLowerCase().replace(/[\s()（）:：_\-]/g, ''); };
         const HEAD = {
             text: ['題目', '問題', '題幹', 'question', 'questiontext'],
             opt0: ['選項a', 'a', '選項1', 'optiona', 'option1'],
