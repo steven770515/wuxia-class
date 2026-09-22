@@ -577,6 +577,7 @@
             <p id="draw-info" style="display:none;"></p>
             <div class="battle-controls" id="battle-controls-start">
                 <button class="pixel-btn primary" style="font-size: 1.2rem; padding: 10px 30px;" onclick="pickRandomStudent()">🎲 隨機點名迎戰</button>
+                <button class="pixel-btn gold" style="font-size: 1.2rem; padding: 10px 30px;" onclick="pickRandomSect()">🏯 門派歷練</button>
                 <button class="pixel-btn" onclick="closeBattleModal()">逃跑 (關閉)</button>
             </div>
             <div class="battle-controls" id="battle-controls-judge" style="display: none;">
@@ -1349,6 +1350,7 @@
     let currentMonster = null;
     let isTeacherMode = false;
     let isTreasureEncounter = false;
+    let battleSectId = null;   // 門派歷練時是哪個門派；個人歷練是 null
     let currentInvStudentIndex = -1;
     let shopTab = 'gear';
     let titleTargetIndex = -1;
@@ -2190,6 +2192,8 @@
         document.getElementById('battle-stage').style.backgroundImage = `url('${bgUrl}')`;
         const modal = document.getElementById('battle-modal');
         if (Math.random() < 0.2) { isTreasureEncounter = true; setupTreasureEncounter(); } else { isTreasureEncounter = false; setupMonsterEncounter(); }
+        battleSectId = null;
+        currentBattleStudentIndex = -1;
         document.getElementById('fighter-student').style.opacity = '0';
         document.getElementById('battle-student-gear').innerHTML = '';
         document.getElementById('battle-controls-start').style.display = 'flex';
@@ -2224,6 +2228,7 @@
         // 今天請假的人不進抽籤池
         const present = students.map((s, i) => i).filter(i => !isOnLeave(students[i]));
         if (!present.length) { showNotify(students.length ? '今天沒有可以點的人（全部請假）' : '還沒有弟子'); return; }
+        battleSectId = null;
         playSfx(sfxClick);
         document.getElementById('battle-controls-start').style.display = 'none';
         document.getElementById('battle-student-gear').innerHTML = '';
@@ -2287,8 +2292,100 @@
         playSfx(sfxLevelUp);
     }
 
+    // ── 門派歷練：抽一個門派出戰，答對時今天有來的人都拿獎勵 ──
+    function pickRandomSect() {
+        if (!requireTeacher('門派歷練')) return;
+        const pool = sects.filter(k => presentMembers(k.id).length);
+        if (!pool.length) { showNotify(sects.length ? '今天每個門派都沒有來的人' : '還沒有門派，先到「🏯 門派」立派'); return; }
+        playSfx(sfxClick);
+        currentBattleStudentIndex = -1;
+        document.getElementById('battle-controls-start').style.display = 'none';
+        document.getElementById('battle-student-gear').innerHTML = '';
+        document.getElementById('battle-msg').innerText = "天道輪盤轉動中...";
+        const final = pool[Math.floor(Math.random() * pool.length)];
+        const show = (k) => {
+            const m = presentMembers(k.id);
+            const face = m[Math.floor(Math.random() * m.length)];
+            document.getElementById('battle-student-name').innerText = `${k.emblem} ${k.name}（${m.length} 人）`;
+            document.getElementById('battle-student-img').src = getStudentInfo(face).battleAvatar;
+            document.getElementById('fighter-student').style.opacity = '1';
+        };
+        let speed = 50; let totalTime = 0; const maxTime = pool.length > 1 ? 2500 : 0;
+        (function animateRoll() {
+            const isLast = totalTime >= maxTime;
+            show(isLast ? final : pool[Math.floor(Math.random() * pool.length)]);
+            totalTime += speed;
+            if (!isLast) { speed += 10; setTimeout(animateRoll, speed); return; }
+            battleSectId = final.id;
+            const flash = document.getElementById('battle-flash'); flash.style.animation = 'flash 0.5s'; setTimeout(() => flash.style.animation = '', 500);
+            document.getElementById('battle-msg').innerText = isTreasureEncounter
+                ? `${final.name} 合力開啟寶箱！答對全派都有凡品寶物`
+                : `${final.name} 全派出戰！答對全派都有獎勵`;
+            document.getElementById('battle-controls-judge').style.display = 'block';
+            playSfx(sfxLevelUp);
+        })();
+    }
+
+    // 每人抽一件還沒有的凡品（神兵或氣場）；凡品都集齊就改拿妖丹
+    function giveCommonItem(s) {
+        const pool = chestUnowned(s, 'sword', 1).concat(chestUnowned(s, 'aura', 1));
+        if (!pool.length) { s.coins = (s.coins || 0) + ALL_SWORDS_BONUS; return `凡品已集齊，改拿 ${ALL_SWORDS_BONUS} 妖丹`; }
+        const item = pool[Math.floor(Math.random() * pool.length)];
+        if (!s.inventory) s.inventory = [];
+        s.inventory.push(item.id);
+        if (!s.equipped) s.equipped = {};
+        if (!s.equipped[item.type]) s.equipped[item.type] = item.id;
+        return item.name;
+    }
+
+    function resolveSectBattle(isWin) {
+        const sect = getSect(battleSectId);
+        const monsterImg = document.getElementById('battle-monster-img');
+        const studentImg = document.getElementById('battle-student-img');
+        document.getElementById('battle-controls-judge').style.display = 'none';
+        if (!isWin) {
+            playSfx(sfxAttack); studentImg.classList.add('shake-effect');
+            playHitEffect(studentImg, '#ff6b6b');
+            document.getElementById('battle-msg').innerText = isTreasureEncounter ? "開啟失敗！寶箱消失了..." : "回答錯誤！全派受到傷害！";
+            setTimeout(closeBattleModal, 1500);
+            return;
+        }
+        const members = sect ? presentMembers(sect.id) : [];
+        if (!members.length) { showNotify('這個門派今天沒有來的人'); closeBattleModal(); return; }
+        pushUndo(`${sect.name} 門派歷練`);
+        playSfx(sfxWin);
+        monsterImg.classList.add('shake-effect'); playHitEffect(monsterImg, '#ffd45a');
+        const expGain = boostExp(isTreasureEncounter ? 100 : 50);
+        const coinGain = boostCoins(isTreasureEncounter ? 200 : 50);
+        const lines = [];
+        let lvUp = 0;
+        members.forEach(s => {
+            const oldLvl = calculateLevel(s.exp || 0);
+            s.exp = Math.max(0, (s.exp || 0) + expGain);
+            s.coins = parseInt(s.coins || 0) + coinGain;
+            if (calculateLevel(s.exp) > oldLvl) lvUp++;
+            if (isTreasureEncounter) lines.push(`${s.name}：${giveCommonItem(s)}`);
+        });
+        bossHit(expGain * members.length);
+        saveData(); renderGrid();
+        const head = `${sect.name} ${members.length} 人每人獲得 ${expGain} Exp / ${coinGain} 妖丹！` + (lvUp ? `（${lvUp} 人升級）` : '');
+        document.getElementById('battle-msg').innerText = head;
+        if (lvUp) { playSfx(sfxLevelUp); showLevelUpEffect(); }
+        setTimeout(() => {
+            monsterImg.style.opacity = '0';
+            setTimeout(() => {
+                closeBattleModal();
+                if (isTreasureEncounter) {
+                    playSfx(sfxGetItem);
+                    showCustomModal({ title: `${sect.emblem} ${sect.name} 開出凡品寶物`, msg: head + '\n\n' + lines.join('\n') });
+                }
+            }, 1500);
+        }, 500);
+    }
+
     function resolveBattle(isWin) {
         if (!requireTeacher('判定戰鬥')) return;
+        if (battleSectId) { resolveSectBattle(isWin); return; }
         if(currentBattleStudentIndex === -1) return;
         const monsterImg = document.getElementById('battle-monster-img');
         const studentImg = document.getElementById('battle-student-img');
