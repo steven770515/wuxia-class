@@ -5289,9 +5289,12 @@
         const pv = document.getElementById('qb-import-preview');
         pv.innerHTML = '';
         box.style.display = 'flex';
+        // 結果在題庫視窗下方，螢幕小會被擠出畫面，讀完自動捲過去
+        setTimeout(function () { box.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }, 0);
         if (parsed.error) {
             qbImportList = null;
             pv.textContent = parsed.error;
+            showNotify('題目沒有匯入，原因寫在下方');
             document.getElementById('qb-import-confirm').disabled = true;
             return;
         }
