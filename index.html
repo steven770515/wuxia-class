@@ -552,7 +552,7 @@
         </div>
     </div>
     <div class="grid-container" id="studentGrid"></div>
-    <div class="app-footer">宗門啟示錄 Steven 加強版 v9.6 · 2026-09-23　｜　原版：chunsheng612／GameWuxia（經作者同意改作與公開）　｜　寶箱圖：DustDFG（CC-BY 4.0）</div>
+    <div class="app-footer">宗門啟示錄 Steven 加強版 v9.7 · 2026-09-23　｜　原版：chunsheng612／GameWuxia（經作者同意改作與公開）　｜　寶箱圖：DustDFG（CC-BY 4.0）</div>
 </div>
 
 <!-- 戰鬥模態框 -->
@@ -2326,8 +2326,25 @@
         })();
     }
 
+    // 神秘寶箱 1% 掉一隻還沒有的靈品靈獸（鯤鵬／朱雀／青龍）；沒掉到或都有了回傳 null
+    const TREASURE_PET_RATE = 0.01;
+    function treasurePetDrop(s, rng) {
+        rng = rng || Math.random;
+        if (rng() >= TREASURE_PET_RATE) return null;
+        const pool = chestUnowned(s, 'pet', 2);
+        if (!pool.length) return null;
+        const item = pool[Math.min(pool.length - 1, Math.floor(rng() * pool.length))];
+        if (!s.inventory) s.inventory = [];
+        s.inventory.push(item.id);
+        if (!s.equipped) s.equipped = {};
+        if (!s.equipped.pet) s.equipped.pet = item.id;
+        return item;
+    }
+
     // 每人抽一件還沒有的凡品（神兵或氣場）；凡品都集齊就改拿妖丹
     function giveCommonItem(s) {
+        const pet = treasurePetDrop(s);
+        if (pet) return `🐉 ${pet.name}（1% 靈獸！）`;
         const pool = chestUnowned(s, 'sword', 1).concat(chestUnowned(s, 'aura', 1));
         if (!pool.length) { s.coins = (s.coins || 0) + ALL_SWORDS_BONUS; return `凡品已集齊，改拿 ${ALL_SWORDS_BONUS} 妖丹`; }
         const item = pool[Math.floor(Math.random() * pool.length)];
@@ -2377,7 +2394,7 @@
                 closeBattleModal();
                 if (isTreasureEncounter) {
                     playSfx(sfxGetItem);
-                    showCustomModal({ title: `${sect.emblem} ${sect.name} 開出凡品寶物`, msg: head + '\n\n' + lines.join('\n') });
+                    showCustomModal({ title: `${sect.emblem} ${sect.name} 開出${lines.some(l => l.indexOf('🐉') >= 0) ? '' : '凡品'}寶物`, msg: head + '\n\n' + lines.join('\n') });
                 }
             }, 1500);
         }, 500);
@@ -2401,7 +2418,12 @@
             const coinGain = boostCoins(isTreasureEncounter ? 200 : 50);
             // 先加修為（這一步會記復原點），掉寶和妖丹放在後面，按復原才會一起退回
             updateExp(currentBattleStudentIndex, expBase);
-            if (isTreasureEncounter) { document.getElementById('battle-msg').innerText = `開啟成功！獲得 ${expGain} Exp / ${coinGain} 妖丹！`; checkWeaponDrop(currentBattleStudentIndex, true); }
+            if (isTreasureEncounter) {
+                document.getElementById('battle-msg').innerText = `開啟成功！獲得 ${expGain} Exp / ${coinGain} 妖丹！`;
+                const pet = treasurePetDrop(s);
+                if (pet) { showItemGet({ icon: pet.icon, title: `寶箱裡竟然是靈獸：${pet.name}！`, desc: `1% 的機緣　戰鬥力 +${pet.cp}` }); playSfx(sfxGetItem); }
+                else checkWeaponDrop(currentBattleStudentIndex, true);
+            }
             else { document.getElementById('battle-msg').innerText = `回答正確！獲得 ${expGain} Exp / ${coinGain} 妖丹！`; checkWeaponDrop(currentBattleStudentIndex, false); }
             s.coins = parseInt(s.coins || 0) + coinGain;
             saveData(); renderGrid();
@@ -5521,7 +5543,10 @@
     }
 
     function setDuelMode(mode) {
-        duelMode = mode === 'sect' ? 'sect' : 'solo';
+        // 老師沒登入（下課練功）：只能個人對戰、自己指定對手
+        duelMode = (mode === 'sect' && isTeacherMode) ? 'sect' : 'solo';
+        document.getElementById('duel-tab-sect').style.display = isTeacherMode ? '' : 'none';
+        document.getElementById('duel-random-btn').style.display = isTeacherMode ? '' : 'none';
         document.getElementById('duel-tab-solo').classList.toggle('active', duelMode === 'solo');
         document.getElementById('duel-tab-sect').classList.toggle('active', duelMode === 'sect');
         document.getElementById('duel-random-btn').innerText = duelMode === 'solo' ? '🎲 隨機挑兩位' : '🎲 隨機挑兩派';
@@ -5581,6 +5606,7 @@
     }
 
     function duelRandomPick() {
+        if (!requireTeacher('隨機挑人')) return;
         const sels = [document.getElementById('duel-left'), document.getElementById('duel-right')];
         const ids = Array.prototype.map.call(sels[0].options, function (o) { return o.value; });
         if (ids.length < 2) { showNotify(duelMode === 'solo' ? '至少要有兩位沒請假的弟子' : '至少要有兩個門派'); return; }
@@ -5593,6 +5619,7 @@
 
     // ── 開戰 ──
     function startDuel() {
+        if (duelMode === 'sect' && !requireTeacher('門派對戰')) return;
         const l = document.getElementById('duel-left').value;
         const r = document.getElementById('duel-right').value;
         if (!l || !r) { showNotify(duelMode === 'solo' ? '左右兩邊都要選弟子' : '左右兩邊都要選門派'); return; }
