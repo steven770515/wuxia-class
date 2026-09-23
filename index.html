@@ -552,7 +552,7 @@
         </div>
     </div>
     <div class="grid-container" id="studentGrid"></div>
-    <div class="app-footer">宗門啟示錄 Steven 加強版 v9.3 · 2026-09-17　｜　原版：chunsheng612／GameWuxia（經作者同意改作與公開）　｜　寶箱圖：DustDFG（CC-BY 4.0）</div>
+    <div class="app-footer">宗門啟示錄 Steven 加強版 v9.6 · 2026-09-23　｜　原版：chunsheng612／GameWuxia（經作者同意改作與公開）　｜　寶箱圖：DustDFG（CC-BY 4.0）</div>
 </div>
 
 <!-- 戰鬥模態框 -->
@@ -3982,6 +3982,7 @@
                 petStars: petStarsClean,
                 sectId: (sid && seenSect[sid]) ? sid : null,
                 leaveDate: (typeof s.leaveDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s.leaveDate)) ? s.leaveDate : null,
+                freeDuel: (s.freeDuel && typeof s.freeDuel.d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s.freeDuel.d)) ? { d: s.freeDuel.d, n: Math.min(99, cleanInt(s.freeDuel.n)) } : null,
                 seasonBase: (typeof s.seasonBase === 'number' && isFinite(s.seasonBase)) ? cleanInt(s.seasonBase) : 0
             }));
         });
@@ -5454,6 +5455,18 @@
         sect: { win: { coins: 30, exp: 20 }, lose: { coins: 0, exp: 5 } }
     };
 
+    // 老師沒登入時打的對戰（下課練功）：每人每天前幾場有獎勵，之後照打不發
+    const DUEL_FREE_DAILY = 3;
+    function freeDuelLeft(s) {
+        const f = s && s.freeDuel;
+        if (!f || f.d !== todayStr()) return DUEL_FREE_DAILY;
+        return Math.max(0, DUEL_FREE_DAILY - f.n);
+    }
+    function useFreeDuel(s) {
+        const n = (s.freeDuel && s.freeDuel.d === todayStr()) ? s.freeDuel.n : 0;
+        s.freeDuel = { d: todayStr(), n: n + 1 };
+    }
+
     let duelMode = 'solo';
     let duel = null;
 
@@ -5496,7 +5509,6 @@
 
     // ── 開場視窗 ──
     function openDuelSetup() {
-        if (!requireTeacher('對戰')) return;
         if (!questions.length) { showNotify('題庫還沒有題目，先到「📜 題庫」加題目'); return; }
         playSfx(sfxClick);
         setDuelMode(duelMode);
@@ -5555,6 +5567,16 @@
             const weakName = document.getElementById(strong === 'L' ? 'duel-right' : 'duel-left').selectedOptions[0].textContent;
             msg += '｜' + strongName + ' 戰力較高，傷害 +' + Math.round(d.bonus * 100) + '%；' + weakName + ' 打贏算以弱勝強，獎勵 ×2';
         }
+        if (!isTeacherMode) {
+            msg += '｜老師沒登入：每人每天前 ' + DUEL_FREE_DAILY + ' 場有獎勵';
+            if (duelMode === 'solo') {
+                const left = [l, r].filter(Boolean).map(function (id) {
+                    const s = findStudentById(id);
+                    return s ? s.name + ' 剩 ' + freeDuelLeft(s) + ' 場' : '';
+                }).filter(Boolean);
+                if (left.length) msg += '（' + left.join('、') + '）';
+            }
+        }
         hint.textContent = msg;
     }
 
@@ -5571,7 +5593,6 @@
 
     // ── 開戰 ──
     function startDuel() {
-        if (!requireTeacher('對戰')) return;
         const l = document.getElementById('duel-left').value;
         const r = document.getElementById('duel-right').value;
         if (!l || !r) { showNotify(duelMode === 'solo' ? '左右兩邊都要選弟子' : '左右兩邊都要選門派'); return; }
@@ -5592,6 +5613,7 @@
         if (!L || !R) { showNotify(duelMode === 'solo' ? '找不到選的弟子' : '選的門派今天沒有可以上場的人'); return; }
         duel = {
             mode: duelMode,
+            teacher: isTeacherMode, // 開戰時老師有登入：獎勵不限場次
             sides: { L: L, R: R },
             timeLimit: Math.max(5, Math.min(60, Number(document.getElementById('duel-time').value) || 20)) * 1000,
             pool: pool.map(function (q) { return q.id; }),
@@ -5871,14 +5893,24 @@
         const mult = underdog ? 2 : 1;
         const fm = fortuneIs('duel2') ? 2 : 1;
         const table = DUEL_REWARD[d.mode];
-        const people = function (side) {
+        const all = function (side) {
             if (d.mode === 'solo') { const s = findStudentById(side.id); return s ? [s] : []; }
             return presentMembers(side.id);
+        };
+        const capped = [];
+        const people = function (side) {
+            if (d.teacher) return all(side);
+            return all(side).filter(function (s) {
+                if (freeDuelLeft(s) > 0) return true;
+                capped.push(s);
+                return false;
+            });
         };
         return {
             underdog: underdog,
             win: { people: people(win), coins: boostCoins(table.win.coins * mult * fm), exp: boostExp(table.win.exp * mult * fm) },
-            lose: { people: people(lose), coins: boostCoins(table.lose.coins * fm), exp: boostExp(table.lose.exp * fm) }
+            lose: { people: people(lose), coins: boostCoins(table.lose.coins * fm), exp: boostExp(table.lose.exp * fm) },
+            capped: capped
         };
     }
 
@@ -5903,6 +5935,7 @@
         };
         give(plan.win);
         give(plan.lose);
+        if (!duel.teacher) plan.win.people.concat(plan.lose.people).forEach(useFreeDuel);
         bossHit(plan.win.exp * plan.win.people.length + plan.lose.exp * plan.lose.people.length);
         saveQuiet();
         renderGrid();
@@ -5925,7 +5958,19 @@
         }
         const r = document.createElement('div');
         r.className = 'duel-reward';
-        r.textContent = win.name + ' ' + each + fmt(plan.win) + '\n' + lose.name + ' ' + each + fmt(plan.lose) + '（參加獎）';
+        let rewardText;
+        if (duel.mode === 'solo' && !duel.teacher) {
+            // 個人練功：誰今天額度用完就寫誰
+            const line = function (side, g, tail) {
+                return side.name + ' ' + (g.people.length ? fmt(g) + tail : '今天的練功獎勵用完了');
+            };
+            rewardText = line(win, plan.win, '') + '\n' + line(lose, plan.lose, '（參加獎）');
+        } else {
+            rewardText = win.name + ' ' + each + fmt(plan.win) + '\n' + lose.name + ' ' + each + fmt(plan.lose) + '（參加獎）';
+            if (plan.capped.length) rewardText += '\n今天練功獎勵已用完：' + plan.capped.map(function (s) { return s.name; }).join('、');
+        }
+        if (!duel.teacher) rewardText += '\n（老師沒登入：每人每天前 ' + DUEL_FREE_DAILY + ' 場有獎勵）';
+        r.textContent = rewardText;
         r.style.whiteSpace = 'pre-line';
         end.appendChild(r);
         center.appendChild(end);
