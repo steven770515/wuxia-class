@@ -346,6 +346,9 @@
         .awaken-box img { width: 44px; height: 44px; image-rendering: pixelated; }
         .awaken-info { flex-grow: 1; font-size: 0.85rem; color: var(--text-beige); line-height: 1.5; }
         .awaken-stars { color: var(--text-gold); letter-spacing: 2px; }
+        .item-count { position: absolute; top: 1px; right: 3px; color: #fff; font-size: 0.62rem; text-shadow: 0 0 3px #000, 0 0 3px #000; }
+        .item-lv { position: absolute; top: 1px; left: 3px; color: #7dffb0; font-size: 0.62rem; text-shadow: 0 0 3px #000, 0 0 3px #000; }
+        .item-slot { position: absolute; bottom: 0; left: 2px; color: #48d46d; font-size: 0.58rem; text-shadow: 0 0 3px #000; }
         .item-stars { position: absolute; bottom: 0; right: 2px; color: var(--text-gold); font-size: 0.6rem; text-shadow: 0 0 3px #000; }
 
         .stat-row { display: flex; align-items: center; font-size: 0.9rem; gap: 5px; margin-bottom: 3px; }
@@ -355,6 +358,8 @@
         .bar-exp { background: linear-gradient(to right, #4facfe, #00f2fe); box-shadow: 0 0 10px #00f2fe; }
         .stat-value { font-size: 0.8rem; color: #fff; margin-left: 5px; min-width: 80px; text-align: right; font-family: monospace;}
         .coin-display { color: #ffd700; font-weight: bold; display: flex; align-items: center; gap: 5px; }
+        .rep-display { color: #8fe3ff; font-weight: bold; display: flex; align-items: center; gap: 6px; }
+        .rep-rank { font-size: 0.78em; color: #cfeeff; border: 1px solid #3a6a80; border-radius: 3px; padding: 0 4px; }
         .card-actions, .common-actions { display: grid; gap: 5px; margin-top: 5px; }
         .card-actions { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); }
         .common-actions { grid-template-columns: 1fr; }
@@ -552,7 +557,7 @@
         </div>
     </div>
     <div class="grid-container" id="studentGrid"></div>
-    <div class="app-footer">宗門啟示錄 Steven 加強版 v9.7.1 · 2026-09-23　｜　原版：chunsheng612／GameWuxia（經作者同意改作與公開）　｜　寶箱圖：DustDFG（CC-BY 4.0）</div>
+    <div class="app-footer">宗門啟示錄 Steven 加強版 v9.8 · 2026-09-24　｜　原版：chunsheng612／GameWuxia（經作者同意改作與公開）　｜　寶箱圖：DustDFG（CC-BY 4.0）</div>
 </div>
 
 <!-- 戰鬥模態框 -->
@@ -597,6 +602,7 @@
         <div class="lb-tabs">
             <button class="pixel-btn action-btn-small lb-tab active" id="lb-scope-season" onclick="setLbScope('season')">本季</button>
             <button class="pixel-btn action-btn-small lb-tab" id="lb-scope-all" onclick="setLbScope('all')">總戰力</button>
+            <button class="pixel-btn action-btn-small lb-tab" id="lb-scope-rep" onclick="setLbScope('rep')">🌟 聲望</button>
         </div>
         <div class="season-info" id="lb-season-info"></div>
         <div class="lb-tabs">
@@ -644,8 +650,9 @@
 <div id="inventory-modal">
     <div class="pixel-border" style="background:var(--panel-bg); padding:20px; width:440px; max-width:92vw; max-height:86vh; overflow-y:auto; display:flex; flex-direction:column; gap:12px;">
         <h3 id="inv-modal-title" style="margin:0; color:var(--text-gold); text-align:center;">弟子的行囊</h3>
-        <p style="text-align:center; color:#aaa; font-size:0.8rem; margin:0;">(裝備、氣場點擊穿戴；特權卡點擊使用)</p>
+        <p style="text-align:center; color:#aaa; font-size:0.8rem; margin:0;">(裝備、氣場點擊穿戴，劍可以掛主劍＋副劍兩把；特權卡點擊使用)</p>
         <div id="inv-container" class="inventory-grid"></div>
+        <div id="inv-merge"></div>
         <div id="inv-awaken"></div>
         <div class="inv-section-label">造型（升級解鎖，解鎖後可以自由換穿）</div>
         <div id="inv-outfits" class="outfit-row"></div>
@@ -801,7 +808,7 @@
             </select>
         </label>
         <p id="duel-hint" class="grant-hint"></p>
-        <p class="set-hint">雙方各 100 血，答對就打對方；兩邊都答對，比較快的打。戰力比較高的一方傷害最多 +30%，戰力比較低的一方打贏是「以弱勝強」，獎勵加倍。</p>
+        <p class="set-hint">雙方各 100 血，答對就打對方；兩邊都答對，比較快的打。戰力比較高的一方傷害最多 +30%，戰力比較低的一方打贏是「以弱勝強」，獎勵加倍、聲望 +1。</p>
         <div class="grant-actions">
             <button class="pixel-btn" onclick="closeDuelSetup()">取消</button>
             <button class="pixel-btn success" onclick="startDuel()">⚔️ 開戰</button>
@@ -996,7 +1003,19 @@
             <button class="pixel-btn action-btn-small" onclick="setGrantAmount('exp', 300)">+300</button>
             <button class="pixel-btn action-btn-small" style="color:#ff6b6b; border-color:#581212;" onclick="setGrantAmount('exp', -30)">-30</button>
         </div>
-        <p class="grant-hint">妖丹和修為可以一起給；不想給的那項填 0</p>
+        <label class="grant-field">
+            <span>聲望</span>
+            <input type="number" id="grant-rep" value="0" step="1">
+        </label>
+        <div class="grant-quick">
+            <span class="grant-quick-label">聲望</span>
+            <button class="pixel-btn action-btn-small" onclick="setGrantAmount('rep', 0)">0</button>
+            <button class="pixel-btn action-btn-small" onclick="setGrantAmount('rep', 1)">+1</button>
+            <button class="pixel-btn action-btn-small" onclick="setGrantAmount('rep', 2)">+2</button>
+            <button class="pixel-btn action-btn-small" onclick="setGrantAmount('rep', 5)">+5</button>
+            <button class="pixel-btn action-btn-small" style="color:#ff6b6b; border-color:#581212;" onclick="setGrantAmount('rep', -1)">-1</button>
+        </div>
+        <p class="grant-hint">妖丹、修為、聲望可以一起給；不想給的那項填 0。聲望不能花、不加戰力，記的是做人（幫助同學、負責、守規矩）</p>
 
         <div class="grant-actions">
             <button class="pixel-btn" onclick="closeGrantModal()">取消</button>
@@ -1218,6 +1237,25 @@
         return n;
     }
 
+    // v9.8：武林聲望（記「做人」：不能花、不加戰力，只換江湖名號；賽季結算不歸零）
+    const REP_RANKS = [
+        { min: 0,   name: '無名小卒' },
+        { min: 10,  name: '小有名氣' },
+        { min: 30,  name: '名震一方' },
+        { min: 60,  name: '威震武林' },
+        { min: 100, name: '武林盟主' }
+    ];
+    const REP_QUEST = 1;      // 門派任務達成：有來的人各 +1
+    const REP_UNDERDOG = 1;   // 對戰以弱勝強：贏的人 +1
+    const REP_BOSS = 2;       // 打倒世界 Boss：有來的人各 +2
+    function repOf(s) { const n = Number(s && s.rep); return (isFinite(n) && n > 0) ? Math.floor(n) : 0; }
+    function repRank(n) {
+        let r = REP_RANKS[0];
+        REP_RANKS.forEach(x => { if (n >= x.min) r = x; });
+        return r.name;
+    }
+    function addRep(s, n) { s.rep = Math.max(0, Math.min(99999, repOf(s) + n)); }
+
     // 稱號系統
     const TITLES = {
         novice:   { id:'novice',   name:'見習弟子',   bonus:{ cp:20 }, desc:'初入宗門，努力修行。' },
@@ -1249,6 +1287,9 @@
         // 靈獸只有兩種價位，沒有凡品箱；第 1 格價格不使用
         { kind: 'pet',   name: '靈獸箱', icon: '🐉', tiers: [2, 3], prices: [0, 3400, 5230] }
     ];
+    // v9.8：特權卡寶箱，開到一張萬寶閣現在有賣的特權卡；越便宜的卡越容易開到，不會空箱
+    // 800 是照預設 7 張卡算的：開到的卡平均值大約 870
+    const CARD_CHEST = { price: 800 };
     // v7.1 前的預設箱價，讀到就換成新預設（老師改過的保留）
     const OLD_CHEST_PRICES = { sword: [200, 350, 500], aura: [400, 700, 1100], pet: [1800, 3000, 4500] };
     const CHEST_TIERS = [
@@ -1341,7 +1382,7 @@
     try { events = sanitizeEvents(JSON.parse(localStorage.getItem(EVENTS_KEY))); } catch (e) {}
     let undoStack = [];
     let lastPickedStudentId = null;
-    let lbScope = 'season';   // v9：排行榜 season 本季 / all 總戰力
+    let lbScope = 'season';   // v9：排行榜 season 本季 / all 總戰力；v9.8 加 rep 聲望
     let lbMode = 'student';   // 排行榜：student 弟子榜 / sect 門派榜
     let lbAgg = 'sum';        // 門派榜：sum 總和 / avg 平均
     let sectPickedColor = SECT_COLORS[0];
@@ -1390,7 +1431,7 @@
     };
 
     function normalizeStudent(s) {
-        const base = { id: Date.now(), name: '弟子', gender: 'male', exp: 0, coins: 0, title: "", inventory: [], equipped: {}, sectId: null, outfit: null, petStars: {} };
+        const base = { id: Date.now(), name: '弟子', gender: 'male', exp: 0, coins: 0, title: "", inventory: [], equipped: {}, sectId: null, outfit: null, petStars: {}, swordLv: {}, rep: 0 };
         if (typeof s.points !== 'undefined' && typeof s.coins === 'undefined') base.coins = s.points; // 兼容舊版妖丹欄位
         return Object.assign(base, s || {});
     }
@@ -1404,7 +1445,7 @@
         let cp = (lvl * 100) + Math.floor(student.exp * 0.1);
         if (student.equipped) {
             if (student.equipped.pet) { const item = getItemData(student.equipped.pet); if(item) cp += (item.cp || 300) + awakenCpBonus(petStars(student, student.equipped.pet)); }
-            if (student.equipped.sword) { const item = getItemData(student.equipped.sword); if(item) cp += (item.cp || 500); }
+            equippedSwords(student).forEach(id => { cp += swordCp(student, id); });
         }
         if (student.title && TITLES[student.title]) cp += TITLES[student.title].bonus?.cp || 0;
         return cp;
@@ -1467,6 +1508,55 @@
         return (Number.isInteger(n) && n >= 1 && n <= AWAKEN_MAX) ? n : 1;
     }
 
+    // ── v9.8：雙劍＋神兵合併 ──
+    // 同一種劍可以有好幾把；湊滿 3 把合成 1 把，那種劍升一級（+1～+3），每級加原本戰力的 50%
+    const SWORD_LV_MAX = 3;
+    const SWORD_LV_CP = 0.5;
+    const MERGE_NEED = 3;
+    function isSwordId(id) { return !!(id && ITEMS[id] && ITEMS[id].type === 'sword'); }
+    function swordLv(s, id) {
+        const n = s && s.swordLv ? Number(s.swordLv[id]) : 0;
+        return (Number.isInteger(n) && n >= 0 && n <= SWORD_LV_MAX) ? n : 0;
+    }
+    function swordCp(s, id) {
+        const it = getItemData(id);
+        if (!it) return 0;
+        return Math.round((it.cp || 500) * (1 + SWORD_LV_CP * swordLv(s, id)));
+    }
+    function swordLabel(s, id) {
+        const it = getItemData(id);
+        const lv = swordLv(s, id);
+        return (it ? it.name : '') + (lv ? ' +' + lv : '');
+    }
+    function swordCount(s, id) { return ((s && s.inventory) || []).filter(x => x === id).length; }
+    // 主劍、副劍（兩格不會是同一種劍）
+    function equippedSwords(s) {
+        const eq = (s && s.equipped) || {};
+        const out = [];
+        [eq.sword, eq.sword2].forEach(id => { if (isSwordId(id) && out.indexOf(id) < 0) out.push(id); });
+        return out;
+    }
+    // 拿到新東西時，那一格空著就直接穿上，買完馬上看得到；劍有主副兩格
+    function autoEquip(s, item) {
+        if (!s.equipped) s.equipped = {};
+        if (item.type === 'sword') {
+            if (!s.equipped.sword) s.equipped.sword = item.id;
+            else if (!s.equipped.sword2 && s.equipped.sword !== item.id) s.equipped.sword2 = item.id;
+        } else if (['pet', 'aura'].indexOf(item.type) >= 0 && !s.equipped[item.type]) s.equipped[item.type] = item.id;
+    }
+    function canMergeSword(s, id) { return isSwordId(id) && swordCount(s, id) >= MERGE_NEED && swordLv(s, id) < SWORD_LV_MAX; }
+    // 三把變一把：拿掉兩把，那種劍升一級（不記復原點，呼叫的人要先 pushUndo）
+    function mergeSwordData(s, id) {
+        if (!canMergeSword(s, id)) return false;
+        let drop = MERGE_NEED - 1;
+        const inv = s.inventory.slice();
+        for (let i = inv.length - 1; i >= 0 && drop > 0; i--) if (inv[i] === id) { inv.splice(i, 1); drop--; }
+        s.inventory = inv;
+        if (!s.swordLv || typeof s.swordLv !== 'object') s.swordLv = {};
+        s.swordLv[id] = swordLv(s, id) + 1;
+        return true;
+    }
+
     // 放進 innerHTML 的文字一律先跳脫，避免名字裡的符號被當成程式碼
     function escHtml(v) {
         return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
@@ -1483,14 +1573,17 @@
             if (stars >= 3) html += `<div class="guardian-halo" style="--glow:${glow}"></div>`;
             html += `<img class="gear-guardian star-${stars}" src="${pet.src || pet.icon}" style="--glow:${glow}" alt="" onerror="this.style.display='none'">`;
         }
-        const sword = eq.sword ? getItemData(eq.sword) : null;
-        if (sword && sword.src) {
+        // v9.8：副劍在主劍的對面繞（錯開半圈）
+        equippedSwords(s).forEach((id, n) => {
+            const sword = getItemData(id);
+            if (!sword || !sword.src) return;
+            const offset = n ? 3 : 0;
             // 後兩把是殘影，做出劍光拖尾
             [[0.24, 0.16], [0.12, 0.35], [0, 1]].forEach(([lag, op]) => {
-                html += `<div class="sword-orbit${lag ? ' ghost' : ''}" style="--lag:${lag}s; --glow:${sword.glow || '#ffd700'}; opacity:${op}">`
+                html += `<div class="sword-orbit${lag ? ' ghost' : ''}" style="--lag:${lag + offset}s; --glow:${sword.glow || '#ffd700'}; opacity:${op}">`
                     + `<div class="ox"><div class="oy"><img class="sword-img" src="${sword.src}" alt=""></div></div></div>`;
             });
-        }
+        });
         return html;
     }
 
@@ -1549,7 +1642,9 @@
 
         const season = lbScope === 'season';
         document.getElementById('lb-scope-season').classList.toggle('active', season);
-        document.getElementById('lb-scope-all').classList.toggle('active', !season);
+        const repScope = lbScope === 'rep';
+        document.getElementById('lb-scope-all').classList.toggle('active', lbScope === 'all');
+        document.getElementById('lb-scope-rep').classList.toggle('active', repScope);
         const sInfo = document.getElementById('lb-season-info');
         sInfo.textContent = season && events.season ? seasonLabel() : '';
         sInfo.style.display = season ? 'block' : 'none';
@@ -1563,11 +1658,11 @@
 
         if (lbMode === 'sect') {
             document.getElementById('lb-head-left').innerText = '排名 / 門派';
-            document.getElementById('lb-head-right').innerText = season ? ((lbAgg === 'sum') ? '本季修為總和' : '本季修為平均') : ((lbAgg === 'sum') ? '總戰力' : '平均戰力');
+            document.getElementById('lb-head-right').innerText = repScope ? ((lbAgg === 'sum') ? '聲望總和' : '聲望平均') : season ? ((lbAgg === 'sum') ? '本季修為總和' : '本季修為平均') : ((lbAgg === 'sum') ? '總戰力' : '平均戰力');
             renderSectLeaderboard(container);
         } else {
             document.getElementById('lb-head-left').innerText = '排名 / 弟子';
-            document.getElementById('lb-head-right').innerText = season ? '本季修為' : '戰鬥力 (CP)';
+            document.getElementById('lb-head-right').innerText = repScope ? '武林聲望' : season ? '本季修為' : '戰鬥力 (CP)';
             renderStudentLeaderboard(container);
         }
         modal.style.display = 'flex';
@@ -1578,7 +1673,7 @@
     function setLbAgg(agg) { lbAgg = agg; playSfx(sfxClick); openLeaderboard(true); }
 
     function renderStudentLeaderboard(container) {
-        const valueOf = s => lbScope === 'season' ? seasonScore(s) : calculateCP(s);
+        const valueOf = s => lbScope === 'season' ? seasonScore(s) : (lbScope === 'rep' ? repOf(s) : calculateCP(s));
         const sortedStudents = [...students].sort((a, b) => valueOf(b) - valueOf(a));
         if (sortedStudents.length === 0) {
             container.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa;">暫無弟子數據</div>';
@@ -1592,7 +1687,7 @@
             row.innerHTML = `
                 <div class="rank-num">${i+1}</div>
                 <img class="lb-avatar" src="${info.avatar}">
-                <div class="lb-name">${escHtml(s.name)} ${s.title ? `<span class="title-badge">${escHtml(titleName(s.title))}</span>` : ''} ${sectBadgeHtml(s)} <span style="font-size:0.8em; color:#aaa;">Lv.${info.level}</span></div>
+                <div class="lb-name">${escHtml(s.name)} ${s.title ? `<span class="title-badge">${escHtml(titleName(s.title))}</span>` : ''} ${sectBadgeHtml(s)} <span style="font-size:0.8em; color:#aaa;">Lv.${info.level}</span>${lbScope === 'rep' ? ` <span class="rep-rank">${repRank(repOf(s))}</span>` : ''}</div>
                 <div class="lb-cp">${cp}</div>`;
             container.appendChild(row);
         });
@@ -1605,8 +1700,8 @@
         }
         const rows = sects.map(sect => {
             const members = sectMembers(sect.id);
-            let cp = 0, coins = 0, ss = 0;
-            members.forEach(s => { cp += calculateCP(s); coins += (s.coins || 0); ss += seasonScore(s); });
+            let cp = 0, coins = 0, ss = 0, rp = 0;
+            members.forEach(s => { cp += calculateCP(s); coins += (s.coins || 0); ss += seasonScore(s); rp += repOf(s); });
             const r = {
                 sect: sect,
                 count: members.length,
@@ -1614,9 +1709,12 @@
                 coins: coins,
                 avgCp: members.length ? Math.round(cp / members.length) : 0,
                 ss: ss,
-                avgSs: members.length ? Math.round(ss / members.length) : 0
+                avgSs: members.length ? Math.round(ss / members.length) : 0,
+                rp: rp,
+                avgRp: members.length ? Math.round(rp / members.length * 10) / 10 : 0
             };
-            r.value = lbScope === 'season' ? (lbAgg === 'sum' ? r.ss : r.avgSs) : (lbAgg === 'sum' ? r.cp : r.avgCp);
+            r.value = lbScope === 'rep' ? (lbAgg === 'sum' ? r.rp : r.avgRp)
+                : lbScope === 'season' ? (lbAgg === 'sum' ? r.ss : r.avgSs) : (lbAgg === 'sum' ? r.cp : r.avgCp);
             return r;
         }).sort((a, b) => b.value - a.value);
 
@@ -1628,7 +1726,7 @@
                 <div class="rank-num">${i+1}</div>
                 <div style="width:40px; margin-right:10px; text-align:center; font-size:1.8rem;">${r.sect.emblem}</div>
                 <div class="lb-name" style="color:${escHtml(r.sect.color)}">${escHtml(r.sect.name)}
-                    <span style="display:block; font-size:0.7em; color:#aaa;">${r.count} 人　總戰力 ${r.cp}　平均 ${r.avgCp}　本季 ${r.ss}　妖丹 ${r.coins}</span>
+                    <span style="display:block; font-size:0.7em; color:#aaa;">${r.count} 人　總戰力 ${r.cp}　平均 ${r.avgCp}　本季 ${r.ss}　聲望 ${r.rp}　妖丹 ${r.coins}</span>
                 </div>
                 <div class="lb-cp">${value}</div>`;
             container.appendChild(row);
@@ -1671,6 +1769,7 @@
         else if (shopTab === 'reward') itemsToShow = REAL_REWARDS;
         else if (shopTab === 'chest') { renderChestShop(container); return; }
         else itemsToShow = Object.values(TITLES).map(t => ({...t, type:'title', price: 0}));
+        const s = students[currentInvStudentIndex];
 
         itemsToShow.forEach(item => {
             const card = document.createElement('div');
@@ -1681,7 +1780,7 @@
                 : `<img src="${item.icon || item.src || BASE_URL+'images/ui/icon_shop_pixel.png'}">`;
             const extraHint = item.type === 'aura' ? '<div style="color:#80ffea; font-size:0.78rem;">純外觀，不加戰力</div>'
                 : (item.type === 'pet' ? '<div style="color:#80ffea; font-size:0.78rem;">裝備後化為守護靈，可再覺醒升星</div>'
-                : (item.type === 'sword' ? '<div style="color:#80ffea; font-size:0.78rem;">裝備後化為飛劍繞身</div>' : ''));
+                : (item.type === 'sword' ? `<div style="color:#80ffea; font-size:0.78rem;">裝備後化為飛劍繞身，可以掛兩把；3 把一樣的能合併升級${s && swordCount(s, item.id) ? `<br>${escHtml(s.name)} 已有 ${swordCount(s, item.id)} 把` : ''}</div>` : ''));
             const priceHtml = item.type === 'title' ? '<div class="item-price" style="color:#80ffea;">師尊可直接授予</div>' : priceTagHtml(item.price || 0);
             // 學生可以自己買；稱號仍然只有師尊能授予
             const actionBtn = item.type === 'title'
@@ -1711,17 +1810,85 @@
         const inv = (s && s.inventory) || [];
         return chestPool(kind, tier).filter(it => inv.indexOf(it.id) < 0);
     }
+    // 先開還沒有的；v9.8 起劍集齊後改開重複的（拿去合併），氣場和靈獸還是只開沒有的
+    function chestCandidates(s, kind, tier) {
+        const pool = chestUnowned(s, kind, tier);
+        return (pool.length || kind !== 'sword') ? pool : chestPool(kind, tier);
+    }
     function tierName(tier) { const t = CHEST_TIERS.find(x => x.tier === tier); return t ? t.name : ''; }
+    // v9.8：靈獸箱比較貴，不會開到空箱；其他箱照等級
+    function chestEmptyRate(kind, tier) {
+        if (kind === 'pet') return 0;
+        const t = CHEST_TIERS.find(x => x.tier === tier);
+        return t ? t.emptyRate : 0;
+    }
     // 只抽學生還沒有的；rng 可以換掉，方便測試
     function rollChest(s, kind, tier, rng) {
         rng = rng || Math.random;
         const k = CHEST_KINDS.find(x => x.kind === kind);
         const t = CHEST_TIERS.find(x => x.tier === tier);
         if (!k || !t || k.tiers.indexOf(tier) < 0) return null;
-        const pool = chestUnowned(s, kind, tier);
+        const pool = chestCandidates(s, kind, tier);
         if (!pool.length) return null;
-        if (rng() < t.emptyRate) return { empty: true };
+        if (rng() < chestEmptyRate(kind, tier)) return { empty: true };
         return { item: pool[Math.min(pool.length - 1, Math.floor(rng() * pool.length))] };
+    }
+
+    // 每張卡被開到的機率跟價格成反比
+    function cardChestOdds() {
+        const cards = REAL_REWARDS.filter(c => c && c.price > 0);
+        const sum = cards.reduce((n, c) => n + 1 / c.price, 0);
+        return cards.map(c => ({ card: c, p: (1 / c.price) / sum }));
+    }
+    function rollCardChest(rng) {
+        rng = rng || Math.random;
+        const odds = cardChestOdds();
+        if (!odds.length) return null;
+        let r = rng();
+        for (let i = 0; i < odds.length; i++) { r -= odds[i].p; if (r < 0) return odds[i].card; }
+        return odds[odds.length - 1].card;
+    }
+
+    function renderCardChest(container) {
+        const label = document.createElement('div');
+        label.className = 'shop-group-label';
+        label.textContent = '🎴 特權卡寶箱';
+        container.appendChild(label);
+        const odds = cardChestOdds();
+        const card = document.createElement('div');
+        card.className = 'shop-card chest tier-2';
+        const list = odds.map(o => escHtml(o.card.name) + ' ' + (o.p * 100 < 1 ? '<1' : Math.round(o.p * 100)) + '%').join('、');
+        card.innerHTML = `
+            <img class="chest-img" src="${CHEST_IMG['2_closed']}" alt="">
+            <h4>特權卡寶箱</h4>
+            <div class="chest-odds">${odds.length ? '會開到：' + list : '萬寶閣目前沒有特權卡'}<br>越便宜的卡越容易開到，一定開到東西</div>
+            ${priceTagHtml(CARD_CHEST.price)}
+            ${odds.length ? `<button class="pixel-btn success action-btn-small" onclick="buyCardChest()">開箱</button>` : ''}`;
+        container.appendChild(card);
+    }
+
+    function buyCardChest() {
+        const s = students[currentInvStudentIndex];
+        if (!s) { showNotify("請先選擇購買人"); return; }
+        if (!cardChestOdds().length) { showNotify("萬寶閣目前沒有特權卡"); return; }
+        const price = salePrice(CARD_CHEST.price);
+        if ((s.coins || 0) < price) { showNotify(`${s.name} 的妖丹不足（有 ${s.coins || 0}，要 ${price}）`); return; }
+        showCustomModal({
+            title: '確認開箱',
+            msg: `幫「${s.name}」花 ${price} 妖丹開【特權卡寶箱】？\n（剩下 ${(s.coins || 0) - price} 妖丹，開錯可以按復原）`,
+            showCancel: true,
+            onConfirm: () => {
+                const c = rollCardChest();
+                if (!c) { showNotify("萬寶閣目前沒有特權卡"); return; }
+                pushUndo(`${s.name} 開 特權卡寶箱`);
+                s.coins = (s.coins || 0) - price;
+                if (!s.inventory) s.inventory = [];
+                s.inventory.push(`${c.id}_${Date.now()}`);
+                showItemGet({ chest: { tier: 2, empty: false }, icon: c.icon, title: `開到 ${c.name}！`, desc: `${c.desc || ''}\n已放入行囊，請向老師出示使用` });
+                playSfx(sfxGetItem);
+                saveQuiet(); openShopModal(); renderGrid();
+            }
+        });
     }
 
     function renderChestShop(container) {
@@ -1730,27 +1897,29 @@
             const label = document.createElement('div');
             label.className = 'shop-group-label';
             const left = s ? k.tiers.reduce((n, tier) => n + chestUnowned(s, k.kind, tier).length, 0) : 0;
-            label.textContent = `${k.icon} ${k.name}　${s ? (left ? `${s.name} 還有 ${left} 種沒收集到` : `${s.name} 已經全部集齊`) : ''}`;
+            label.textContent = `${k.icon} ${k.name}　${s ? (left ? `${s.name} 還有 ${left} 種沒收集到` : (k.kind === 'sword' ? `${s.name} 已經全部集齊，之後開到重複的可以合併升級` : `${s.name} 已經全部集齊`)) : ''}`;
             container.appendChild(label);
             CHEST_TIERS.filter(t => k.tiers.indexOf(t.tier) >= 0).forEach(t => {
                 const price = k.prices[t.tier - 1];
-                const tierLeft = s ? chestUnowned(s, k.kind, t.tier).length : 1;
+                const tierLeft = s ? chestCandidates(s, k.kind, t.tier).length : 1;
                 const card = document.createElement('div');
                 card.className = `shop-card chest tier-${t.tier}`;
                 const odds = '會開到：' + chestPool(k.kind, t.tier).map(it => escHtml(it.name)).join('、');
-                const empty = t.emptyRate ? `有 ${Math.round(t.emptyRate * 100)}% 是空箱（退一半妖丹）` : '一定開到東西';
+                const er = chestEmptyRate(k.kind, t.tier);
+                const empty = er ? `有 ${Math.round(er * 100)}% 是空箱（退一半妖丹）` : '一定開到東西';
                 const action = (tierLeft
                         ? `<button class="pixel-btn success action-btn-small" onclick="buyChest('${k.kind}', ${t.tier})">開箱</button>`
                         : `<div style="color:#80ffea; font-size:0.78rem; padding:5px 0;">這一階已集齊</div>`);
                 card.innerHTML = `
                     <img class="chest-img" src="${CHEST_IMG[t.tier + '_closed']}" alt="">
                     <h4>${t.name}${k.name}</h4>
-                    <div class="chest-odds">${odds}<br>${empty}<br>只會開到還沒有的</div>
+                    <div class="chest-odds">${odds}<br>${empty}<br>${k.kind === 'sword' ? '先開還沒有的，集齊後開重複的' : '只會開到還沒有的'}</div>
                     ${priceTagHtml(price)}
                     ${action}`;
                 container.appendChild(card);
             });
         });
+        renderCardChest(container);
         // CC-BY 授權要求標示作者
         const credit = document.createElement('div');
         credit.className = 'shop-group-label chest-credit';
@@ -1765,7 +1934,7 @@
         if (!s) { showNotify("請先選擇購買人"); return; }
         if (!k || !t || k.tiers.indexOf(tier) < 0) { showNotify("寶箱不存在"); return; }
         const price = salePrice(k.prices[tier - 1]);
-        if (!chestUnowned(s, kind, tier).length) { showNotify(`${s.name} 的${t.name}${k.name.replace('箱', '')}已經集齊了`); return; }
+        if (!chestCandidates(s, kind, tier).length) { showNotify(`${s.name} 的${t.name}${k.name.replace('箱', '')}已經集齊了`); return; }
         if ((s.coins || 0) < price) { showNotify(`${s.name} 的妖丹不足（有 ${s.coins || 0}，要 ${price}）`); return; }
         showCustomModal({
             title: '確認開箱',
@@ -1785,9 +1954,8 @@
                     const item = res.item;
                     if (!s.inventory) s.inventory = [];
                     s.inventory.push(item.id);
-                    if (!s.equipped) s.equipped = {};
-                    if (!s.equipped[item.type]) s.equipped[item.type] = item.id;
-                    const desc = item.type === 'aura' ? '純外觀，已放進行囊' : `戰力 +${item.cp}`;
+                    autoEquip(s, item);
+                    const desc = item.type === 'aura' ? '純外觀，已放進行囊' : (item.type === 'sword' ? swordGetDesc(s, item.id) : `戰力 +${item.cp}`);
                     showItemGet({ chest: { tier: tier, empty: false }, icon: item.icon, rgb: item.type === 'aura' ? item.rgb : null, title: `開到 ${item.name}！`, desc: desc });
                     playSfx(sfxGetItem);
                 }
@@ -1836,7 +2004,7 @@
         const price = salePrice(itemData.price || 0);
         const isConsumable = itemData.type === 'consumable';
         if (!s.inventory) s.inventory = [];
-        if (!isConsumable && s.inventory.includes(itemId)) { showNotify(`${s.name} 已經有${itemData.name}了`); return; }
+        if (!isConsumable && itemData.type !== 'sword' && s.inventory.includes(itemId)) { showNotify(`${s.name} 已經有${itemData.name}了`); return; }
         if ((s.coins || 0) < price) { showNotify(`${s.name} 的妖丹不足（有 ${s.coins || 0}，要 ${price}）`); return; }
         // 上課手忙腳亂容易選錯人，買之前把名字和價錢講清楚
         showCustomModal({
@@ -1852,10 +2020,9 @@
                     showNotify("購買成功！已放入行囊，請向老師出示使用。");
                 } else {
                     s.inventory.push(itemId);
-                    if (!s.equipped) s.equipped = {};
-                    // 該欄位還空著就直接穿上，買完馬上看得到效果
-                    if (['sword', 'pet', 'aura'].includes(itemData.type) && !s.equipped[itemData.type]) s.equipped[itemData.type] = itemId;
-                    showNotify(itemData.type === 'aura' ? `${s.name} 換上了${itemData.name}！` : `購買成功！${s.name} 戰力大增！`);
+                    autoEquip(s, itemData);
+                    showNotify(itemData.type === 'aura' ? `${s.name} 換上了${itemData.name}！`
+                        : (itemData.type === 'sword' ? `購買成功！${swordGetDesc(s, itemId)}` : `購買成功！${s.name} 戰力大增！`));
                 }
                 saveQuiet(); openShopModal(); renderGrid();
             }
@@ -1882,21 +2049,32 @@
         const container = document.getElementById('inv-container'); container.innerHTML = '';
         if (!s.inventory || s.inventory.length === 0) { container.innerHTML = '<p style="color:#aaa; text-align:center; width:100%;">行囊空空如也...</p>'; }
         else {
+            const eq = s.equipped || {};
+            const swordsOn = equippedSwords(s);
+            const shown = {};
             s.inventory.forEach(itemId => {
                 const itemData = getItemData(itemId);
                 if (itemData) {
-                    const eq = s.equipped || {};
-                    const isEquipped = (eq.pet === itemId || eq.sword === itemId || eq.aura === itemId);
+                    const isSword = itemData.type === 'sword';
+                    // v9.8：同一種劍疊成一格，標出幾把、幾級
+                    if (isSword) { if (shown[itemId]) return; shown[itemId] = true; }
+                    const slot = isSword ? swordsOn.indexOf(itemId) : -1;
+                    const isEquipped = isSword ? slot >= 0 : (eq.pet === itemId || eq.aura === itemId);
                     const isConsumable = itemData.type === 'consumable';
                     const stars = itemData.type === 'pet' ? petStars(s, itemId) : 0;
-                    const cpText = itemData.cp ? itemData.cp + awakenCpBonus(stars) : 0;
+                    const cpText = isSword ? swordCp(s, itemId) : (itemData.cp ? itemData.cp + awakenCpBonus(stars) : 0);
+                    const count = isSword ? swordCount(s, itemId) : 0;
+                    const lv = isSword ? swordLv(s, itemId) : 0;
                     const div = document.createElement('div');
                     div.className = `inventory-item ${isEquipped ? 'equipped' : ''}`;
                     div.innerHTML = `
                         ${itemData.type === 'aura' ? `<div class="aura-swatch" style="--aura-rgb:${itemData.rgb}"></div>` : `<img src="${itemData.icon || itemData.src}">`}
                         ${stars > 1 ? `<span class="item-stars">${'★'.repeat(stars)}</span>` : ''}
+                        ${count > 1 ? `<span class="item-count">×${count}</span>` : ''}
+                        ${lv ? `<span class="item-lv">+${lv}</span>` : ''}
+                        ${slot >= 0 ? `<span class="item-slot">${slot ? '副' : '主'}</span>` : ''}
                         <div class="item-tooltip">
-                            <b>${escHtml(itemData.name)}</b><br>
+                            <b>${escHtml(isSword ? swordLabel(s, itemId) : itemData.name)}</b><br>
                             ${cpText ? `<span class="cp-bonus">戰力 +${cpText}</span><br>` : ''}
                             <span style="font-size:0.8em; color:#ddd;">${escHtml(itemData.desc || (isConsumable ? '特權卡' : '點擊裝備'))}${itemData.retired ? '<br>（萬寶閣已下架）' : ''}</span>
                         </div>`;
@@ -1906,6 +2084,7 @@
                 }
             });
         }
+        renderMergeBox(index);
         renderAwakenBox(index);
         renderOutfitPicker(index);
         modal.style.display = 'flex';
@@ -1914,8 +2093,79 @@
     function toggleEquip(studentIndex, itemId, type) {
         const s = students[studentIndex];
         if (!s.equipped) s.equipped = {};
-        if (['pet', 'sword', 'aura'].includes(type)) s.equipped[type] = (s.equipped[type] === itemId) ? null : itemId;
+        if (type === 'sword') equipSword(s, itemId);
+        else if (['pet', 'aura'].includes(type)) s.equipped[type] = (s.equipped[type] === itemId) ? null : itemId;
         saveQuiet(); renderGrid(); openInventory(studentIndex);
+    }
+
+    // v9.8：劍有主劍、副劍兩格。點掛著的劍＝卸下；點沒掛的＝放進空格，兩格都滿就換掉副劍
+    function equipSword(s, id) {
+        const on = equippedSwords(s);
+        const at = on.indexOf(id);
+        if (at >= 0) on.splice(at, 1);
+        else if (on.length < 2) on.push(id);
+        else on[1] = id;
+        s.equipped.sword = on[0] || null;
+        s.equipped.sword2 = on[1] || null;
+    }
+
+    // v9.8：神兵合併（三把一樣的劍合成一把，升一級）
+    function renderMergeBox(index) {
+        const s = students[index];
+        const box = document.getElementById('inv-merge');
+        box.innerHTML = '';
+        const ids = Object.keys(ITEMS).filter(id => isSwordId(id) && swordCount(s, id) > 1);
+        if (!ids.length) return;
+        const label = document.createElement('div');
+        label.className = 'inv-section-label';
+        label.textContent = `神兵合併（${MERGE_NEED} 把一樣的劍合成 1 把，升一級，每級戰力多 ${Math.round(SWORD_LV_CP * 100)}%，最高 +${SWORD_LV_MAX}）`;
+        box.appendChild(label);
+        ids.forEach(id => {
+            const it = ITEMS[id];
+            const n = swordCount(s, id), lv = swordLv(s, id);
+            const row = document.createElement('div');
+            row.className = 'awaken-box';
+            const img = document.createElement('img');
+            img.src = it.icon || it.src; img.alt = '';
+            const info = document.createElement('div');
+            info.className = 'awaken-info';
+            info.textContent = swordLabel(s, id) + '　×' + n;
+            const sub = document.createElement('span');
+            sub.style.color = '#aaa';
+            const nextCp = Math.round((it.cp || 500) * (1 + SWORD_LV_CP * (lv + 1)));
+            sub.textContent = lv >= SWORD_LV_MAX ? '已經是最高 +' + SWORD_LV_MAX
+                : (n >= MERGE_NEED ? `合併成 +${lv + 1}：戰力 ${swordCp(s, id)} → ${nextCp}` : `再 ${MERGE_NEED - n} 把可以合併`);
+            info.appendChild(document.createElement('br'));
+            info.appendChild(sub);
+            row.appendChild(img); row.appendChild(info);
+            if (canMergeSword(s, id)) {
+                const btn = document.createElement('button');
+                btn.className = 'pixel-btn gold action-btn-small';
+                btn.textContent = '合併';
+                btn.onclick = () => mergeSword(index, id);
+                row.appendChild(btn);
+            }
+            box.appendChild(row);
+        });
+    }
+
+    // 合併不花妖丹，跟購買一樣學生可以自己按；按錯可以復原
+    function mergeSword(index, id) {
+        const s = students[index];
+        if (!s || !canMergeSword(s, id)) return;
+        const next = swordLv(s, id) + 1;
+        showCustomModal({
+            title: '神兵合併',
+            msg: `把「${s.name}」的 ${MERGE_NEED} 把${ITEMS[id].name}合成 1 把 +${next}？\n（按錯可以復原）`,
+            showCancel: true,
+            onConfirm: () => {
+                pushUndo(`${s.name} 合併${ITEMS[id].name} +${next}`);
+                mergeSwordData(s, id);
+                playSfx(sfxLevelUp); showLevelUpEffect();
+                saveQuiet(); renderGrid(); openInventory(index);
+                showNotify(`${ITEMS[id].name}升到 +${next}！戰力 ${swordCp(s, id)}`);
+            }
+        });
     }
 
     // 造型：解鎖的造型任選，null 代表跟著等級自動換（原版行為）
@@ -2172,9 +2422,11 @@
                 </div>
                 <div class="stat-row"><span class="stat-label">修為</span><div class="bar-container"><div class="bar-fill bar-exp" style="width: ${info.pct}%"></div></div><span class="stat-value">${info.expText}</span></div>
                 <div class="stat-row"><span class="stat-label">妖丹</span><div class="coin-display">💰 ${s.coins || 0}</div></div>
+                <div class="stat-row"><span class="stat-label">聲望</span><div class="rep-display">🌟 ${repOf(s)} <span class="rep-rank">${repRank(repOf(s))}</span></div></div>
                 <div class="common-actions"><button class="pixel-btn info action-btn-small" onclick="openInventory(${index})">🎒 行囊</button></div>
                 <div class="card-actions teacher-only">
                     ${quickButtonsHtml(index)}
+                    <button class="pixel-btn action-btn-small info" onclick="updateRep(${index}, 1)">🌟 聲望 +1</button>
                     <button class="pixel-btn action-btn-small info" onclick="openTitleModal(${index})">授予稱號</button>
                     <button class="pixel-btn action-btn-small" onclick="toggleLeave(${index})">${onLeave ? '銷假' : '請假'}</button>
                 </div>`;
@@ -2336,23 +2588,22 @@
         const item = pool[Math.min(pool.length - 1, Math.floor(rng() * pool.length))];
         if (!s.inventory) s.inventory = [];
         s.inventory.push(item.id);
-        if (!s.equipped) s.equipped = {};
-        if (!s.equipped.pet) s.equipped.pet = item.id;
+        autoEquip(s, item);
         return item;
     }
 
-    // 每人抽一件還沒有的凡品（神兵或氣場）；凡品都集齊就改拿妖丹
+    // 每人抽一件還沒有的凡品（神兵或氣場）；v9.8 起凡品都集齊改拿重複的凡品劍（拿去合併）
     function giveCommonItem(s) {
         const pet = treasurePetDrop(s);
         if (pet) return `🐉 ${pet.name}（1% 靈獸！）`;
-        const pool = chestUnowned(s, 'sword', 1).concat(chestUnowned(s, 'aura', 1));
-        if (!pool.length) { s.coins = (s.coins || 0) + ALL_SWORDS_BONUS; return `凡品已集齊，改拿 ${ALL_SWORDS_BONUS} 妖丹`; }
+        let pool = chestUnowned(s, 'sword', 1).concat(chestUnowned(s, 'aura', 1));
+        if (!pool.length) pool = chestPool('sword', 1);
         const item = pool[Math.floor(Math.random() * pool.length)];
         if (!s.inventory) s.inventory = [];
+        const dup = s.inventory.indexOf(item.id) >= 0;
         s.inventory.push(item.id);
-        if (!s.equipped) s.equipped = {};
-        if (!s.equipped[item.type]) s.equipped[item.type] = item.id;
-        return item.name;
+        autoEquip(s, item);
+        return item.name + (dup ? `（第 ${swordCount(s, item.id)} 把）` : '');
     }
 
     function resolveSectBattle(isWin) {
@@ -2455,7 +2706,7 @@
     // 答對時飛劍從弟子身邊射向妖獸，回傳有沒有飛（沒裝劍就不飛）
     const SWORD_FLY_MS = 520;
     function flySwordStrike(s, targetImg) {
-        const sword = s && s.equipped && s.equipped.sword ? getItemData(s.equipped.sword) : null;
+        const sword = s ? getItemData(equippedSwords(s)[0] || '') : null;
         const fromImg = document.getElementById('battle-student-img');
         const stage = document.getElementById('battle-stage');
         if (!sword || !sword.src || !fromImg || !targetImg || !stage.animate) return false;
@@ -2481,26 +2732,29 @@
         return true;
     }
 
-    // 掉落：僅武器，不掉寵物；優先掉還沒有的劍，全部集齊的話寶箱改給妖丹
-    const ALL_SWORDS_BONUS = 100;
+    // 掉落：僅武器，不掉寵物；優先掉還沒有的劍，v9.8 起全部集齊改掉重複的（拿去合併）
     function checkWeaponDrop(studentIndex, guaranteed = false) {
         if (!(guaranteed || Math.random() < 0.05)) return;
         const s = students[studentIndex];
         if (!s.inventory) s.inventory = [];
-        const keys = Object.keys(ITEMS).filter(k => ITEMS[k].type === 'sword' && !s.inventory.includes(k));
-        if (!keys.length) {
-            if (!guaranteed) return;
-            s.coins = (s.coins || 0) + ALL_SWORDS_BONUS;
-            showItemGet({ icon: BASE_URL + 'images/ui/icon_shop_pixel.png', title: `神兵已集齊！`, desc: `寶箱化為妖丹：再 +${ALL_SWORDS_BONUS}` });
-        } else {
-            const item = ITEMS[keys[Math.floor(Math.random() * keys.length)]];
-            s.inventory.push(item.id);
-            if (!s.equipped) s.equipped = {};
-            if (!s.equipped.sword) s.equipped.sword = item.id;
-            showItemGet({ icon: item.icon, title: `獲得神兵：${item.name}！`, desc: `戰鬥力 +${item.cp}` });
-        }
+        const all = Object.keys(ITEMS).filter(k => ITEMS[k].type === 'sword');
+        const unowned = all.filter(k => !s.inventory.includes(k));
+        const keys = unowned.length ? unowned : all;
+        const item = ITEMS[keys[Math.floor(Math.random() * keys.length)]];
+        s.inventory.push(item.id);
+        autoEquip(s, item);
+        showItemGet({ icon: item.icon, title: `獲得神兵：${item.name}！`, desc: swordGetDesc(s, item.id) });
         saveQuiet();
         playSfx(sfxGetItem);
+    }
+
+    // 拿到劍時的說明：第一把寫戰力，重複的寫離合併還差幾把
+    function swordGetDesc(s, id) {
+        const it = getItemData(id);
+        const n = swordCount(s, id);
+        if (n <= 1) return `戰力 +${it ? it.cp : 0}`;
+        if (swordLv(s, id) >= SWORD_LV_MAX) return `已有 ${n} 把（這把劍已經 +${SWORD_LV_MAX}，最高了）`;
+        return n >= MERGE_NEED ? `已有 ${n} 把，可以到行囊合併升級！` : `已有 ${n} 把，再 ${MERGE_NEED - n} 把可以合併升級`;
     }
 
     // 攻擊 / 受擊特效
@@ -2726,6 +2980,7 @@
         present.forEach(function (s) {
             if (rc) s.coins = Math.max(0, parseInt(s.coins || 0) + rc);
             if (re) s.exp = Math.max(0, (s.exp || 0) + re);
+            addRep(s, REP_BOSS);
         });
         events.bossHistory.unshift({ monsterId: b.monsterId, maxHp: b.maxHp, result: 'defeated', people: present.length, endedAt: Date.now() });
         events.bossHistory = events.bossHistory.slice(0, 30);
@@ -2740,7 +2995,7 @@
             const h = document.createElement('h2');
             h.textContent = '🎉 全班打倒了' + bossName(b.monsterId) + '！';
             const p = document.createElement('p');
-            const gift = [rc ? '妖丹 +' + rc : '', re ? '修為 +' + re : ''].filter(Boolean).join('、');
+            const gift = [rc ? '妖丹 +' + rc : '', re ? '修為 +' + re : '', '聲望 +' + REP_BOSS].filter(Boolean).join('、');
             p.textContent = present.length ? ('今天有來的 ' + present.length + ' 位弟子各得 ' + (gift || '（沒有設定獎勵）')) : '今天大家都請假，沒有人拿到獎勵';
             body.appendChild(img); body.appendChild(h); body.appendChild(p);
             document.getElementById('event-modal').style.display = 'flex';
@@ -3070,6 +3325,7 @@
         members.forEach(function (s) {
             if (r.coins) s.coins = Math.max(0, parseInt(s.coins || 0) + r.coins);
             if (r.exp) s.exp = Math.max(0, (s.exp || 0) + r.exp);
+            addRep(s, REP_QUEST);
         });
         markQuestDone(q.id, String(sect.id));
         return r.exp * members.length;
@@ -3091,7 +3347,7 @@
         if (!presentMembers(sect.id).length) { showNotify(sect.name + ' 今天沒有來的弟子'); return; }
         pushUndo(sect.name + ' 達成「' + q.name + '」');
         const dmg = giveQuest(q, sect);
-        afterQuestGrant(dmg, sect.name + ' 達成「' + q.name + '」！');
+        afterQuestGrant(dmg, sect.name + ' 達成「' + q.name + '」！有來的人聲望 +' + REP_QUEST);
     }
     function parseSeats(text) {
         const miss = [], bad = [];
@@ -3148,7 +3404,7 @@
         pushUndo('「' + q.name + '」：' + list.map(function (k) { return k.name; }).join('、'));
         let dmg = 0;
         list.forEach(function (k) { dmg += giveQuest(q, k); });
-        afterQuestGrant(dmg, list.map(function (k) { return k.name; }).join('、') + ' 達成「' + q.name + '」！');
+        afterQuestGrant(dmg, list.map(function (k) { return k.name; }).join('、') + ' 達成「' + q.name + '」！有來的人聲望 +' + REP_QUEST);
     }
     function openQuestModal() { playSfx(sfxClick); renderQuestModal(); document.getElementById('quest-modal').style.display = 'flex'; }
     function closeQuestModal() { playSfx(sfxClick); document.getElementById('quest-modal').style.display = 'none'; }
@@ -3737,7 +3993,7 @@
         document.getElementById('grant-modal').style.display = 'none';
     }
     function setGrantAmount(kind, n) {
-        document.getElementById(kind === 'exp' ? 'grant-exp' : 'grant-coins').value = n;
+        document.getElementById(kind === 'exp' ? 'grant-exp' : (kind === 'rep' ? 'grant-rep' : 'grant-coins')).value = n;
     }
     function readGrantAmount(id) {
         var raw = document.getElementById(id).value;
@@ -3752,9 +4008,10 @@
         var target = document.getElementById('grant-target').value;
         var coins = readGrantAmount('grant-coins');
         var exp = readGrantAmount('grant-exp');
+        var repAmt = readGrantAmount('grant-rep');
 
-        if (isNaN(coins) || isNaN(exp)) { showNotify('數量要填 -99999 到 99999 之間的數字'); return; }
-        if (coins === 0 && exp === 0) { showNotify('請先填要獎賞的妖丹或修為'); return; }
+        if (isNaN(coins) || isNaN(exp) || isNaN(repAmt)) { showNotify('數量要填 -99999 到 99999 之間的數字'); return; }
+        if (coins === 0 && exp === 0 && repAmt === 0) { showNotify('請先填要獎賞的妖丹、修為或聲望'); return; }
 
         var targets = [], label = '';
         var present = function (s) { return !isOnLeave(s); };
@@ -3782,17 +4039,20 @@
         var parts = [];
         if (coins) parts.push('妖丹 ' + signed(coins));
         if (exp) parts.push('修為 ' + signed(exp));
+        if (repAmt) parts.push('聲望 ' + signed(repAmt));
         var summary = parts.join('、');
         pushUndo(label + ' ' + summary);
 
         var floatParts = [];
         if (coins) floatParts.push(signed(coins) + ' 妖丹');
         if (exp) floatParts.push(signed(exp) + ' Exp');
+        if (repAmt) floatParts.push(signed(repAmt) + ' 聲望');
 
         var leveledUp = false;
         targets.forEach(function (s) {
             var idx = students.indexOf(s);
             if (coins) s.coins = Math.max(0, parseInt(s.coins || 0) + coins);
+            if (repAmt) addRep(s, repAmt);
             if (exp) {
                 var oldLvl = calculateLevel(s.exp);
                 s.exp = Math.max(0, s.exp + exp);
@@ -3803,7 +4063,7 @@
         if (exp > 0) bossHit(exp * targets.length);
 
         if (leveledUp) { playSfx(sfxLevelUp); showLevelUpEffect(); }
-        else if (coins > 0) playSfx(sfxGetItem);
+        else if (coins > 0 || repAmt > 0) playSfx(sfxGetItem);
         else playSfx(sfxClick);
 
         saveQuiet();
@@ -3972,6 +4232,10 @@
             var equipped = {};
             if (typeof eq.pet === 'string' && getItemData(cleanName(eq.pet, 60))) equipped.pet = cleanName(eq.pet, 60);
             if (typeof eq.sword === 'string' && getItemData(cleanName(eq.sword, 60))) equipped.sword = cleanName(eq.sword, 60);
+            // v9.8：副劍（要是劍、不能跟主劍同一種；只有副劍的話補到主劍）
+            if (typeof eq.sword2 === 'string' && isSwordId(eq.sword2) && eq.sword2 !== equipped.sword) {
+                if (equipped.sword) equipped.sword2 = eq.sword2; else equipped.sword = eq.sword2;
+            }
             if (typeof eq.aura === 'string' && AURAS[eq.aura]) equipped.aura = eq.aura;
 
             var petStarsClean = {};
@@ -3979,6 +4243,14 @@
                 Object.keys(s.petStars).slice(0, 20).forEach(function (k) {
                     var n = Number(s.petStars[k]);
                     if (getItemData(k) && Number.isInteger(n) && n >= 1 && n <= AWAKEN_MAX) petStarsClean[k] = n;
+                });
+            }
+
+            var swordLvClean = {};
+            if (s.swordLv && typeof s.swordLv === 'object' && !Array.isArray(s.swordLv)) {
+                Object.keys(s.swordLv).slice(0, 20).forEach(function (k) {
+                    var n = Number(s.swordLv[k]);
+                    if (isSwordId(k) && Number.isInteger(n) && n >= 1 && n <= SWORD_LV_MAX) swordLvClean[k] = n;
                 });
             }
 
@@ -4002,6 +4274,8 @@
                 equipped: equipped,
                 outfit: (Number.isInteger(s.outfit) && s.outfit >= 0 && s.outfit < OUTFITS.length) ? s.outfit : null,
                 petStars: petStarsClean,
+                swordLv: swordLvClean,
+                rep: Math.min(99999, cleanInt(s.rep)),
                 sectId: (sid && seenSect[sid]) ? sid : null,
                 leaveDate: (typeof s.leaveDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s.leaveDate)) ? s.leaveDate : null,
                 freeDuel: (s.freeDuel && typeof s.freeDuel.d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s.freeDuel.d)) ? { d: s.freeDuel.d, n: Math.min(99, cleanInt(s.freeDuel.n)) } : null,
@@ -4068,7 +4342,8 @@
     const DEFAULT_SHOP = {
         items: {},
         awaken: Object.assign({}, AWAKEN_COST),
-        chests: {}
+        chests: {},
+        cardChest: CARD_CHEST.price
     };
     Object.values(ITEMS).forEach(function (it) { DEFAULT_SHOP.items[it.id] = it.price; });
     Object.values(AURAS).forEach(function (it) { DEFAULT_SHOP.items[it.id] = it.price; });
@@ -4104,6 +4379,8 @@
             });
             if (arr.some(function (v, i) { return v !== DEFAULT_SHOP.chests[kind][i]; })) { out.chests[kind] = arr; any = true; }
         });
+        const cc = cleanPrice(raw.cardChest);
+        if (cc !== null && cc !== DEFAULT_SHOP.cardChest) { out.cardChest = cc; any = true; }
         return any ? out : null;
     }
 
@@ -4119,6 +4396,7 @@
         CHEST_KINDS.forEach(function (k) {
             k.prices = (sp.chests[k.kind] || DEFAULT_SHOP.chests[k.kind]).slice();
         });
+        CARD_CHEST.price = sp.cardChest || DEFAULT_SHOP.cardChest;
     }
 
     function dayHint(price) {
@@ -4169,6 +4447,7 @@
         CHEST_KINDS.forEach(function (k) {
             k.tiers.forEach(function (tier) { row(g5, tierName(tier) + k.name, '', k.prices[tier - 1], { chest: k.kind, tier: tier - 1 }); });
         });
+        row(g5, '特權卡寶箱', '', CARD_CHEST.price, { cardchest: '1' });
     }
 
     function saveShopPrices() {
@@ -4180,6 +4459,7 @@
             if (v === null) { bad++; return; }
             if (inp.dataset.item) raw.items[inp.dataset.item] = v;
             else if (inp.dataset.awaken) raw.awaken[inp.dataset.awaken] = v;
+            else if (inp.dataset.cardchest) raw.cardChest = v;
             else if (inp.dataset.chest) {
                 if (!raw.chests[inp.dataset.chest]) raw.chests[inp.dataset.chest] = DEFAULT_SHOP.chests[inp.dataset.chest].slice();
                 raw.chests[inp.dataset.chest][Number(inp.dataset.tier)] = v;
@@ -4197,7 +4477,7 @@
         if (!requireTeacher('修改價格')) return;
         showCustomModal({
             title: '還原建議價格',
-            msg: '神兵、靈獸、氣場、寶箱、覺醒的價格會換回建議價格（特權卡不受影響）。',
+            msg: '神兵、靈獸、氣場、寶箱（含特權卡寶箱）、覺醒的價格會換回建議價格（特權卡本身不受影響）。',
             showCancel: true,
             onConfirm: function () {
                 settings.shopPrices = null;
@@ -4504,6 +4784,22 @@
         showFloatText((real > 0 ? '+' : '') + real + ' 妖丹' + (real !== amount ? '（×2）' : ''), index);
         saveQuiet();
         renderGrid();
+    }
+
+    // v9.8：老師手動加聲望（幫助同學、打掃認真、主動認錯……）
+    function updateRep(index, amount) {
+        if (!requireTeacher('加聲望')) return;
+        const s = students[index];
+        if (!s) return;
+        playSfx(sfxGetItem);
+        const before = repRank(repOf(s));
+        pushUndo(s.name + ' 聲望 ' + (amount > 0 ? '+' : '') + amount);
+        addRep(s, amount);
+        showFloatText((amount > 0 ? '+' : '') + amount + ' 聲望', index);
+        saveQuiet();
+        renderGrid();
+        const after = repRank(repOf(s));
+        if (after !== before && amount > 0) showNotify(s.name + ' 名號升為「' + after + '」！');
     }
 
     // 產生卡片上的加扣分按鈕（數量與數值由設定決定）
@@ -5473,8 +5769,9 @@
     const DUEL_AUTO_NEXT_MS = 3000;
     const DUEL_KEYS = { L: ['1', '2', '3', '4'], R: ['7', '8', '9', '0'] };
     const DUEL_REWARD = {
-        solo: { win: { coins: 50, exp: 30 }, lose: { coins: 0, exp: 10 } },
-        sect: { win: { coins: 30, exp: 20 }, lose: { coins: 0, exp: 5 } }
+        // v9.8：輸了也有妖丹（個人 50、門派 30），贏的跟著調高，贏還是比輸多一倍
+        solo: { win: { coins: 100, exp: 30 }, lose: { coins: 50, exp: 10 } },
+        sect: { win: { coins: 60, exp: 20 }, lose: { coins: 30, exp: 5 } }
     };
 
     // 老師沒登入時打的對戰（下課練功）：每人每天前幾場有獎勵，之後照打不發
@@ -5852,7 +6149,7 @@
         const toImg = document.getElementById('duel-img-' + defKey);
         const stage = document.getElementById('duel-stage');
         const rep = duel.sides[attKey].rep;
-        const sword = rep && rep.equipped && rep.equipped.sword ? getItemData(rep.equipped.sword) : null;
+        const sword = rep ? getItemData(equippedSwords(rep)[0] || '') : null;
         playSfx(sfxWin);
         const hit = function () {
             toImg.classList.remove('shake-effect'); void toImg.offsetWidth; toImg.classList.add('shake-effect');
@@ -5935,7 +6232,7 @@
         };
         return {
             underdog: underdog,
-            win: { people: people(win), coins: boostCoins(table.win.coins * mult * fm), exp: boostExp(table.win.exp * mult * fm) },
+            win: { people: people(win), coins: boostCoins(table.win.coins * mult * fm), exp: boostExp(table.win.exp * mult * fm), rep: underdog ? REP_UNDERDOG : 0 },
             lose: { people: people(lose), coins: boostCoins(table.lose.coins * fm), exp: boostExp(table.lose.exp * fm) },
             capped: capped
         };
@@ -5953,6 +6250,7 @@
         const give = function (group) {
             group.people.forEach(function (s) {
                 if (group.coins) s.coins = Math.max(0, parseInt(s.coins || 0) + group.coins);
+                if (group.rep) addRep(s, group.rep);
                 if (group.exp) {
                     const old = calculateLevel(s.exp);
                     s.exp = Math.max(0, (s.exp || 0) + group.exp);
@@ -5969,7 +6267,7 @@
         if (leveledUp) { playSfx(sfxLevelUp); showLevelUpEffect(); } else playSfx(sfxGetItem);
 
         const each = duel.mode === 'sect' ? '每人 ' : '';
-        const fmt = function (g) { return [g.coins ? '妖丹 +' + g.coins : '', g.exp ? '修為 +' + g.exp : ''].filter(Boolean).join('、'); };
+        const fmt = function (g) { return [g.coins ? '妖丹 +' + g.coins : '', g.exp ? '修為 +' + g.exp : '', g.rep ? '聲望 +' + g.rep : ''].filter(Boolean).join('、'); };
         const center = document.getElementById('duel-question');
         center.innerHTML = '';
         const end = document.createElement('div');
@@ -5980,7 +6278,7 @@
         if (plan.underdog) {
             const u = document.createElement('div');
             u.className = 'duel-underdog';
-            u.textContent = '以弱勝強！獎勵 ×2';
+            u.textContent = '以弱勝強！獎勵 ×2、聲望 +' + REP_UNDERDOG;
             end.appendChild(u);
         }
         const r = document.createElement('div');
