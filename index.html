@@ -557,7 +557,7 @@
         </div>
     </div>
     <div class="grid-container" id="studentGrid"></div>
-    <div class="app-footer">宗門啟示錄 Steven 加強版 v9.8 · 2026-09-24　｜　原版：chunsheng612／GameWuxia（經作者同意改作與公開）　｜　寶箱圖：DustDFG（CC-BY 4.0）</div>
+    <div class="app-footer">宗門啟示錄 Steven 加強版 v9.9 · 2026-09-30　｜　原版：chunsheng612／GameWuxia（經作者同意改作與公開）　｜　寶箱圖：DustDFG（CC-BY 4.0）</div>
 </div>
 
 <!-- 戰鬥模態框 -->
@@ -1153,6 +1153,39 @@
     const bgmBattle = new Audio(BASE_URL + 'audio/bgm_battle.mp3'); bgmBattle.loop = true; bgmBattle.volume = 0.3;
     let isMusicEnabled = false;
     function playSfx(audio) { try { audio.currentTime = 0; audio.play().catch(() => {}); } catch(e) {} }
+    // v9.9：加分、扣分各用一種固定的聲音，學生一聽就知道是哪一種（不靠音檔，瀏覽器現場合成）
+    // 加分：清脆往上的「叮—叮—叮↑」；扣分：低沉往下的「嗡嗡↓」
+    let scoreAudioCtx = null;
+    function scoreTone(ctx, at, freq, endFreq, dur, type, vol) {
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = type;
+        o.frequency.setValueAtTime(freq, at);
+        if (endFreq !== freq) o.frequency.exponentialRampToValueAtTime(endFreq, at + dur);
+        g.gain.setValueAtTime(0.0001, at);
+        g.gain.exponentialRampToValueAtTime(vol, at + 0.015);
+        g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+        o.connect(g); g.connect(ctx.destination);
+        o.start(at); o.stop(at + dur + 0.02);
+    }
+    function playScoreSfx(up) {
+        try {
+            const AC = window.AudioContext || window.webkitAudioContext;
+            if (!AC) return;
+            if (!scoreAudioCtx) scoreAudioCtx = new AC();
+            const ctx = scoreAudioCtx;
+            if (ctx.state === 'suspended') ctx.resume();
+            const t0 = ctx.currentTime + 0.01;
+            if (up) {
+                [1047, 1319, 1568].forEach(function (f, i) {
+                    scoreTone(ctx, t0 + i * 0.08, f, f, 0.28, 'triangle', 0.35);
+                    scoreTone(ctx, t0 + i * 0.08, f * 2, f * 2, 0.18, 'sine', 0.08);
+                });
+            } else {
+                scoreTone(ctx, t0, 196, 147, 0.2, 'square', 0.12);
+                scoreTone(ctx, t0 + 0.22, 165, 98, 0.38, 'square', 0.12);
+            }
+        } catch (e) {}
+    }
     function toggleMusic() { isMusicEnabled = !isMusicEnabled; const btn = document.getElementById('musicBtn'); if (isMusicEnabled) { btn.innerText = "🎵"; playBGM('main'); } else { btn.innerText = "🔇"; stopBGM(); } }
     function playBGM(type) { if (!isMusicEnabled) return; bgmMain.pause(); bgmBattle.pause(); try { if (type === 'main') bgmMain.play().catch(()=>{}); else if (type === 'battle') { bgmBattle.currentTime = 0; bgmBattle.play().catch(()=>{}); } } catch(e) {} }
     function stopBGM() { bgmMain.pause(); bgmBattle.pause(); }
@@ -1370,9 +1403,9 @@
         { id: 'duel2',    icon: '🥊', name: '以武會友',     desc: '今天對戰勝負雙方的獎勵 ×2' },
         { id: 'sect2',    icon: '🤝', name: '同門齊心',     desc: '今天門派任務獎勵 ×2', need: function () { return sects.length > 0 && events.quests.length > 0; } }
     ];
-    // v9：門派任務預設清單（kind 'homework' 用缺交座號自動判斷）
+    // v9：門派任務預設清單（kind 'homework' 用缺交座號判斷；v9.9 起有交的人各自領獎）
     const DEFAULT_QUESTS = [
-        { id: 'q_homework', name: '作業全交齊', kind: 'homework', coins: 50, exp: 30 },
+        { id: 'q_homework', name: '準時交作業', kind: 'homework', coins: 50, exp: 30 },
         { id: 'q_quiet',    name: '午休安靜',   kind: 'custom',   coins: 30, exp: 20 },
         { id: 'q_clean',    name: '打掃區域乾淨', kind: 'custom', coins: 30, exp: 20 }
     ];
@@ -1592,9 +1625,10 @@
         return id && AURAS[id] ? AURAS[id] : null;
     }
 
-    function updateExp(index, amount) {
+    // quiet：打怪勝利自己有音效，不再疊加分聲
+    function updateExp(index, amount, quiet) {
         if (!requireTeacher('加扣修為')) return;
-        playSfx(sfxClick);
+        if (!quiet) playScoreSfx(amount > 0);
         const s = students[index];
         if (!s) return;
         const real = boostExp(amount);
@@ -2668,7 +2702,7 @@
             const expGain = boostExp(expBase);
             const coinGain = boostCoins(isTreasureEncounter ? 200 : 50);
             // 先加修為（這一步會記復原點），掉寶和妖丹放在後面，按復原才會一起退回
-            updateExp(currentBattleStudentIndex, expBase);
+            updateExp(currentBattleStudentIndex, expBase, true);
             if (isTreasureEncounter) {
                 document.getElementById('battle-msg').innerText = `開啟成功！獲得 ${expGain} Exp / ${coinGain} 妖丹！`;
                 const pet = treasurePetDrop(s);
@@ -2914,7 +2948,10 @@
                 const name = evName(q.name, 16);
                 if (!id || seen[id] || !name) return;
                 seen[id] = true;
-                out.quests.push({ id: id, name: name, kind: q.kind === 'homework' ? 'homework' : 'custom', coins: small(q.coins), exp: small(q.exp) });
+                const kind = q.kind === 'homework' ? 'homework' : 'custom';
+                // v9.9：舊預設名稱換成新名稱（老師自己改過的名字保留）
+                const nm = (kind === 'homework' && name === '作業全交齊') ? '準時交作業' : name;
+                out.quests.push({ id: id, name: nm, kind: kind, coins: small(q.coins), exp: small(q.exp) });
             });
         }
         const qd = raw.questDone;
@@ -2922,7 +2959,7 @@
             const map = {};
             Object.keys(qd.map).slice(0, QUEST_MAX * 2).forEach(function (k) {
                 if (!evId(k) || !Array.isArray(qd.map[k])) return;
-                map[k] = qd.map[k].map(function (x) { return evId(String(x)); }).filter(Boolean).slice(0, 12);
+                map[k] = qd.map[k].map(function (x) { return evId(String(x)); }).filter(Boolean).slice(0, 200);
             });
             out.questDone = { date: qd.date, map: map };
         }
@@ -3357,6 +3394,15 @@
         });
         return { miss: miss, bad: bad };
     }
+    // v9.9：作業任務改成「有交的人各自領獎」，缺交的人不影響同門。已領獎的人記成 's' + 學生 id
+    // （當天升級前記的是門派 id，整派算已發過）
+    function hwGot(done, s) {
+        return done.indexOf('s' + s.id) >= 0 || (s.sectId != null && done.indexOf(String(s.sectId)) >= 0);
+    }
+    function hwGotCount(qid, sect) {
+        const done = questDoneList(qid);
+        return presentMembers(sect.id).filter(function (s) { return hwGot(done, s); }).length;
+    }
     function checkHomework(qid) {
         if (!requireTeacher('門派任務')) return;
         const q = findQuest(qid);
@@ -3372,11 +3418,17 @@
         sects.forEach(function (k) {
             const members = presentMembers(k.id);
             const missing = members.filter(function (s) { return parsed.miss.indexOf(seatOf(s)) >= 0; });
+            const got = members.filter(function (s) { return missing.indexOf(s) < 0 && !hwGot(done, s); });
+            const had = members.filter(function (s) { return missing.indexOf(s) < 0 && hwGot(done, s); }).length;
             const head = k.emblem + ' ' + k.name + '　';
-            if (done.indexOf(String(k.id)) >= 0) line(head + '✔ 今天已經發過', '#aaa');
-            else if (!members.length) line(head + '今天沒有來的人', '#aaa');
-            else if (missing.length) line(head + '❌ 缺 ' + missing.map(function (s) { return seatOf(s) + ' 號 ' + s.name; }).join('、'));
-            else { line(head + '✅ 全交齊', '#7dd87d'); winners.push(k.id); }
+            const missText = missing.length ? '（缺交：' + missing.map(function (s) { return seatOf(s) + ' 號 ' + s.name; }).join('、') + '）' : '';
+            if (!members.length) line(head + '今天沒有來的人', '#aaa');
+            else if (got.length) {
+                line(head + (missing.length ? '✅ ' + got.length + ' 人領獎' : '✅ 全交齊，' + got.length + ' 人領獎') + (had ? '，' + had + ' 人已領過' : '') + missText, '#7dd87d');
+                got.forEach(function (s) { winners.push(s.id); });
+            }
+            else if (had) line(head + '✔ 有交的人今天都領過了' + missText, '#aaa');
+            else line(head + '❌ 全部缺交' + missText);
         });
         const missStudents = parsed.miss.map(function (n) { return students[n - 1]; });
         const onLeave = missStudents.filter(isOnLeave);
@@ -3387,24 +3439,31 @@
         if (winners.length) {
             const btn = document.createElement('button');
             btn.className = 'pixel-btn success';
-            btn.textContent = '發獎給 ' + winners.length + ' 個全交齊的門派';
+            btn.textContent = '發獎給 ' + winners.length + ' 位有交的弟子';
             btn.onclick = function () { grantHomework(qid, winners); };
             preview.appendChild(btn);
         } else {
-            line('沒有可以發獎的門派');
+            line('沒有可以發獎的人');
         }
     }
-    function grantHomework(qid, sids) {
+    function grantHomework(qid, ids) {
         if (!requireTeacher('門派任務')) return;
         const q = findQuest(qid);
         if (!q) return;
         const done = questDoneList(qid);
-        const list = sids.map(getSect).filter(function (k) { return k && done.indexOf(String(k.id)) < 0 && presentMembers(k.id).length; });
-        if (!list.length) { showNotify('這些門派今天都已經發過了'); return; }
-        pushUndo('「' + q.name + '」：' + list.map(function (k) { return k.name; }).join('、'));
-        let dmg = 0;
-        list.forEach(function (k) { dmg += giveQuest(q, k); });
-        afterQuestGrant(dmg, list.map(function (k) { return k.name; }).join('、') + ' 達成「' + q.name + '」！有來的人聲望 +' + REP_QUEST);
+        // 按下去之前名單可能變了（請假、換門派），再檢查一次
+        const list = ids.map(function (id) { return students.find(function (s) { return String(s.id) === String(id); }); })
+            .filter(function (s) { return s && !isOnLeave(s) && getSect(s.sectId) && !hwGot(done, s); });
+        if (!list.length) { showNotify('這些人今天都已經領過了'); return; }
+        pushUndo('「' + q.name + '」：' + list.length + ' 人領獎');
+        const r = questReward(q);
+        list.forEach(function (s) {
+            if (r.coins) s.coins = Math.max(0, parseInt(s.coins || 0) + r.coins);
+            if (r.exp) s.exp = Math.max(0, (s.exp || 0) + r.exp);
+            addRep(s, REP_QUEST);
+            markQuestDone(q.id, 's' + s.id);
+        });
+        afterQuestGrant(r.exp * list.length, '「' + q.name + '」：' + list.length + ' 位有交的弟子領獎！聲望各 +' + REP_QUEST);
     }
     function openQuestModal() { playSfx(sfxClick); renderQuestModal(); document.getElementById('quest-modal').style.display = 'flex'; }
     function closeQuestModal() { playSfx(sfxClick); document.getElementById('quest-modal').style.display = 'none'; }
@@ -3425,10 +3484,10 @@
             const box = el(body, 'div', 'quest-box');
             el(box, 'h3', '', q.name);
             const r = questReward(q);
-            el(box, 'p', '', '達成的門派，今天有來的人每人 ' + ([r.coins ? '妖丹 +' + r.coins : '', r.exp ? '修為 +' + r.exp : ''].filter(Boolean).join('、') || '（沒有獎勵）'));
+            el(box, 'p', '', (q.kind === 'homework' ? '有交作業的人（不用等同門全交齊）每人 ' : '達成的門派，今天有來的人每人 ') + ([r.coins ? '妖丹 +' + r.coins : '', r.exp ? '修為 +' + r.exp : ''].filter(Boolean).join('、') || '（沒有獎勵）'));
             const done = questDoneList(q.id);
             if (q.kind === 'homework' && isTeacherMode && sects.length) {
-                el(box, 'p', '', '把作業系統的缺交座號打進來（頓號、空白、換行都可以），沒有人缺交就留空，按「檢查」先看結果').style.color = '#aaa';
+                el(box, 'p', '', '把作業系統的缺交座號打進來（頓號、空白、換行都可以），沒有人缺交就留空，按「檢查」先看結果。缺交的人補交後，再檢查一次就能補發給他').style.color = '#aaa';
                 const ta = el(box, 'textarea');
                 ta.id = 'hw-input-' + q.id;
                 ta.placeholder = '例如：3、15 22';
@@ -3441,7 +3500,12 @@
                 const row = el(box, 'div', 'quest-row');
                 const name = el(row, 'span', '', k.emblem + ' ' + k.name);
                 name.style.color = k.color;
-                if (done.indexOf(String(k.id)) >= 0) el(row, 'span', '', '✅ 今天已達成');
+                if (q.kind === 'homework') {
+                    const n = hwGotCount(q.id, k), all = presentMembers(k.id).length;
+                    if (n) el(row, 'span', '', '✅ 今天已發 ' + n + '／' + all + ' 人');
+                    else el(row, 'span', '', '尚未發獎').style.color = '#aaa';
+                }
+                else if (done.indexOf(String(k.id)) >= 0) el(row, 'span', '', '✅ 今天已達成');
                 else if (q.kind === 'custom' && isTeacherMode) {
                     const b = el(row, 'button', 'pixel-btn success action-btn-small', '達成');
                     b.onclick = function () { completeQuest(q.id, k.id); };
@@ -4777,7 +4841,7 @@
         if (!requireTeacher('加扣妖丹')) return;
         const s = students[index];
         if (!s) return;
-        playSfx(amount > 0 ? sfxGetItem : sfxClick);
+        playScoreSfx(amount > 0);
         const real = boostCoins(amount);
         pushUndo(s.name + ' 妖丹 ' + (real > 0 ? '+' : '') + real);
         s.coins = Math.max(0, parseInt(s.coins || 0) + real);
