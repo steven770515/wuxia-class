@@ -1,2 +1,6 @@
 .playwright-mcp/
 node_modules/
+
+# 教師手冊（出版社版權）與自出題庫，只留本機，不推上公開倉庫
+武俠對戰資料來源/
+.DS_Store
