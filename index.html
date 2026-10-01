@@ -203,26 +203,27 @@
         .duel-vs { color: #ff6b6b; font-size: 1.6rem; font-weight: bold; text-shadow: 2px 2px 0 #000; }
 
         #duel-stage { width: min(1180px, 96vw); height: min(720px, 94vh); box-sizing: border-box; background-color: #1f1812; background-size: cover; background-position: center; position: relative; border: 4px solid #302010; display: flex; flex-direction: column; gap: 10px; padding: 14px; overflow: hidden; }
-        .duel-head { flex: 1; display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 12px; min-height: 0; }
-        .duel-side { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 6px; min-width: 0; }
+        /* v10：角色區固定在上半部、不准溢出到答案區；角色大小由 duelFitFigures() 依可用高度縮放（--fig-scale） */
+        .duel-head { flex: 1; display: grid; grid-template-columns: 1fr 1.5fr 1fr; grid-template-rows: minmax(0, 1fr); gap: 12px; min-height: 0; overflow: hidden; }
+        .duel-side { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 6px; min-width: 0; min-height: 0; }
         .duel-name { background: rgba(0,0,0,0.75); color: var(--text-gold); padding: 3px 10px; border: 1px solid var(--border-color); font-size: 1.3rem; font-weight: bold; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .duel-sub { color: #ddd; font-size: 0.85rem; text-shadow: 1px 1px 0 #000; }
         .duel-hp { width: 90%; height: 18px; background: rgba(0,0,0,0.7); border: 2px solid #000; position: relative; }
         .duel-hp-fill { height: 100%; background: linear-gradient(to bottom, #6fe38a, #269f43); transition: width 0.45s ease-out; }
         .duel-hp-fill.low { background: linear-gradient(to bottom, #ff8a7a, #b83224); }
         .duel-hp-text { position: absolute; inset: 0; text-align: center; font-size: 0.75rem; line-height: 14px; color: #fff; text-shadow: 1px 1px 0 #000; }
-        .duel-fig { position: relative; display: flex; justify-content: center; align-items: flex-end; height: 190px; }
-        .duel-fig .duel-img { position: relative; z-index: 2; height: 180px; image-rendering: pixelated; filter: drop-shadow(0 0 10px rgba(255,255,255,0.25)); }
+        .duel-fig { position: relative; display: flex; justify-content: center; align-items: flex-end; height: 190px; zoom: var(--fig-scale, 1); flex-shrink: 0; }
+        .duel-fig .duel-img { position: relative; z-index: 2; height: 180px; image-rendering: pixelated; filter: drop-shadow(0 0 10px rgba(255,255,255,0.25)); pointer-events: none; }
         .duel-fig .duel-gear { position: absolute; inset: 0; pointer-events: none; }
         #duel-side-R .duel-fig { transform: scaleX(-1); }
-        .duel-center { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; min-width: 0; }
+        .duel-center { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; min-width: 0; min-height: 0; overflow: hidden; }
         .duel-round { color: var(--text-brown); font-size: 0.95rem; text-shadow: 1px 1px 0 #000; }
         .duel-timer { font-size: 2.2rem; font-weight: bold; color: var(--text-gold); text-shadow: 2px 2px 0 #000; }
         .duel-timer.urgent { color: #ff6b6b; }
-        .duel-question { background: rgba(30,22,14,0.95); border: 3px solid var(--border-color); color: #fff; font-size: clamp(1.2rem, 2.4vw, 2rem); line-height: 1.45; padding: 16px 20px; text-align: center; width: 100%; box-sizing: border-box; word-break: break-word; }
+        .duel-question { background: rgba(30,22,14,0.95); border: 3px solid var(--border-color); color: #fff; font-size: clamp(1.05rem, min(2.4vw, 3.6vh), 2rem); line-height: 1.45; padding: 12px 18px; text-align: center; width: 100%; box-sizing: border-box; word-break: break-word; min-height: 0; flex: 0 1 auto; overflow-y: auto; }
         .duel-result:empty { visibility: hidden; }
         .duel-result { background: rgba(0,0,0,0.6); padding: 4px 14px; white-space: pre-line; min-height: 2.2em; color: var(--text-gold); font-size: 1.25rem; text-align: center; text-shadow: 1px 1px 0 #000; }
-        .duel-answers { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        .duel-answers { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; position: relative; z-index: 6; }
         .duel-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; position: relative; padding: 8px; border: 2px dashed rgba(140,111,79,0.6); background: rgba(0,0,0,0.35); }
         .duel-opts.side-L { border-color: rgba(0,210,255,0.6); }
         .duel-opts.side-R { border-color: rgba(255,107,107,0.6); }
@@ -239,12 +240,32 @@
         .duel-opts.locked .duel-lock { display: block; }
         .duel-controls { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
         .duel-dmg { position: absolute; left: 50%; top: 30%; transform: translateX(-50%); color: #ff5a4a; font-size: 2.6rem; font-weight: bold; text-shadow: 2px 2px 0 #000; animation: levelUpFloat 1.4s forwards; pointer-events: none; z-index: 20; white-space: nowrap; }
+        /* v10：必殺技氣條（連續答對 3 題蓄滿） */
+        .duel-combo { display: flex; align-items: center; gap: 4px; min-height: 16px; }
+        .duel-combo i { width: 26px; height: 10px; border: 2px solid #000; background: rgba(0,0,0,0.6); transform: skewX(-20deg); }
+        .duel-combo i.on { background: linear-gradient(to bottom, #ffe680, #ff9d00); box-shadow: 0 0 6px #ffb300; }
+        .duel-combo span { font-size: 0.8rem; color: #ffd700; text-shadow: 1px 1px 0 #000; font-weight: bold; display: none; white-space: nowrap; }
+        .duel-combo.full i { animation: comboPulse 0.6s ease-in-out infinite alternate; }
+        .duel-combo.full span { display: inline; animation: comboPulse 0.6s ease-in-out infinite alternate; }
+        @keyframes comboPulse { from { filter: brightness(1); } to { filter: brightness(1.6) drop-shadow(0 0 6px #fff3a0); } }
+        .duel-dmg.special { color: #ffd700; font-size: 3.6rem; text-shadow: 0 0 10px #ff6a00, 3px 3px 0 #000; }
+        .duel-special { position: absolute; left: 50%; top: 38%; z-index: 30; pointer-events: none; white-space: nowrap;
+            font-size: clamp(2.2rem, 6vw, 4.6rem); font-weight: bold; color: #fff3a0; letter-spacing: 0.15em;
+            text-shadow: 0 0 12px var(--sp-glow, #ff9d00), 0 0 30px var(--sp-glow, #ff9d00), 4px 4px 0 #000;
+            animation: specialBanner 1.5s ease-out forwards; }
+        .duel-special small { display: block; font-size: 0.4em; letter-spacing: 0.05em; color: #fff; text-align: center; }
+        @keyframes specialBanner {
+            0% { transform: translate(-50%, -50%) scale(2.4); opacity: 0; }
+            18% { transform: translate(-50%, -50%) scale(0.95); opacity: 1; }
+            28% { transform: translate(-50%, -50%) scale(1.05); }
+            80% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            100% { transform: translate(-50%, -60%) scale(1); opacity: 0; } }
         .duel-end { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; }
         .duel-end h2 { margin: 0; color: var(--text-gold); font-size: 2.4rem; text-shadow: 3px 3px 0 #000; }
         .duel-underdog { color: #ff6b6b; font-size: 1.8rem; font-weight: bold; text-shadow: 2px 2px 0 #000; animation: bounce 1s infinite; }
         .duel-reward { color: var(--text-beige); font-size: 1.1rem; line-height: 1.6; }
         @media (max-width: 760px) {
-            .duel-head { grid-template-columns: 1fr 1fr; }
+            .duel-head { grid-template-columns: 1fr 1fr; grid-template-rows: auto minmax(0, 1fr); }
             .duel-center { grid-column: 1 / -1; order: -1; }
             .duel-fig { height: 110px; }
             .duel-fig .duel-img { height: 100px; }
@@ -305,6 +326,35 @@
         @keyframes orbitY { from { transform: translateY(-52px) scale(0.7); } to { transform: translateY(30px) scale(1.12); } }
         @keyframes orbitTilt { from { transform: rotate(-16deg); } to { transform: rotate(16deg); } }
 
+        /* ── v10：神兵合併後換外觀（+1 開鋒、+2 通靈、+3 神兵）── */
+        .sword-orbit.lv-1 .sword-img { filter: drop-shadow(0 0 6px var(--glow)) drop-shadow(0 0 16px var(--glow)) brightness(1.15); }
+        .sword-orbit.lv-2 .sword-img { height: 97px; left: -32px; top: -48px;
+            filter: drop-shadow(0 0 1px #fff6c0) drop-shadow(0 0 2px #ffd700) drop-shadow(0 0 10px var(--glow)) drop-shadow(0 0 22px var(--glow)) brightness(1.2); }
+        .sword-orbit.lv-3 .sword-img { height: 110px; left: -36px; top: -55px;
+            filter: drop-shadow(0 0 2px #fff) drop-shadow(0 0 12px var(--glow)) drop-shadow(0 0 28px var(--glow)) brightness(1.25);
+            animation: orbitTilt 3s ease-in-out infinite alternate, swordRainbow 4s linear infinite; animation-delay: calc(0s - var(--lag, 0s)), 0s; }
+        .sword-orbit.ghost.lv-2 .sword-img, .sword-orbit.ghost.lv-3 .sword-img { filter: blur(1.5px) drop-shadow(0 0 10px var(--glow)); }
+        @keyframes swordRainbow { from { filter: drop-shadow(0 0 2px #fff) drop-shadow(0 0 12px var(--glow)) drop-shadow(0 0 28px var(--glow)) brightness(1.25) hue-rotate(0deg); }
+            to { filter: drop-shadow(0 0 2px #fff) drop-shadow(0 0 12px var(--glow)) drop-shadow(0 0 28px var(--glow)) brightness(1.25) hue-rotate(360deg); } }
+        /* +2 起劍身旁邊有閃爍的小光點 */
+        .sword-spark { position: absolute; left: -30px; top: -40px; width: 60px; height: 80px; pointer-events: none;
+            background: radial-gradient(circle at 20% 30%, #fff 0 2px, transparent 3px), radial-gradient(circle at 75% 20%, var(--glow) 0 2px, transparent 3px),
+                        radial-gradient(circle at 60% 75%, #fff 0 1.5px, transparent 2.5px), radial-gradient(circle at 30% 85%, var(--glow) 0 2px, transparent 3px);
+            animation: sparkTwinkle 0.9s ease-in-out infinite alternate; }
+        @keyframes sparkTwinkle { from { opacity: 0.25; transform: scale(0.9) rotate(0deg); } to { opacity: 1; transform: scale(1.15) rotate(25deg); } }
+        /* +3：身邊多一圈劍氣環 */
+        .sword-qi-ring { position: absolute; left: 50%; bottom: 18%; width: 190px; height: 56px; margin-left: -95px; border-radius: 50%; pointer-events: none; z-index: 0;
+            border: 3px dashed var(--glow); box-shadow: 0 0 12px var(--glow), inset 0 0 10px var(--glow); opacity: 0.7;
+            animation: qiRingSpin 3s linear infinite; }
+        @keyframes qiRingSpin { from { transform: rotate(0deg) scale(1); } 50% { transform: rotate(180deg) scale(1.08); } to { transform: rotate(360deg) scale(1); } }
+        .flying-sword.lv-1 { filter: drop-shadow(0 0 8px var(--glow)) drop-shadow(0 0 22px var(--glow)) brightness(1.15); }
+        .flying-sword.lv-2 { height: 130px; filter: drop-shadow(0 0 2px #ffd700) drop-shadow(0 0 12px var(--glow)) drop-shadow(0 0 28px var(--glow)) brightness(1.2); }
+        .flying-sword.lv-3 { height: 150px; animation: swordRainbow 1.2s linear infinite; }
+        .flying-sword.special { height: 180px; }
+        .inventory-item img.sw-lv-1, .awaken-box img.sw-lv-1 { filter: drop-shadow(0 0 4px #9fe3ff); }
+        .inventory-item img.sw-lv-2, .awaken-box img.sw-lv-2 { filter: drop-shadow(0 0 2px #ffd700) drop-shadow(0 0 6px #ffd700); }
+        .inventory-item img.sw-lv-3, .awaken-box img.sw-lv-3 { animation: swordRainbow 3s linear infinite; }
+
         /* ── v4：氣場（純外觀，換光暈顏色）── */
         .avatar-area.has-aura { background: radial-gradient(ellipse at 50% 100%, rgba(var(--aura-rgb), 0.42) 0%, rgba(var(--aura-rgb), 0.12) 45%, rgba(0,0,0,0) 72%); }
         .avatar-area.has-aura::after { content: ''; position: absolute; left: 50%; bottom: 4px; width: 150px; height: 26px; margin-left: -75px; border-radius: 50%; z-index: 0; pointer-events: none;
@@ -316,6 +366,64 @@
             0%, 100% { filter: drop-shadow(0 0 6px rgba(var(--aura-rgb), 0.5)) brightness(1); }
             50% { filter: drop-shadow(0 0 18px rgba(var(--aura-rgb), 0.95)) brightness(1.12); }
         }
+        /* ── v10：同時戴 2～3 個氣場：光暈混色、腳下光圈多色輪流轉；5 種集齊戴滿 3 格多一圈五彩光 ── */
+        @property --aura-ang { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+        .avatar-area.multi-aura { background:
+            radial-gradient(ellipse at 28% 100%, rgba(var(--aura-rgb), 0.38) 0%, rgba(var(--aura-rgb), 0.1) 40%, rgba(0,0,0,0) 65%),
+            radial-gradient(ellipse at 72% 100%, rgba(var(--aura-rgb2), 0.38) 0%, rgba(var(--aura-rgb2), 0.1) 40%, rgba(0,0,0,0) 65%),
+            radial-gradient(ellipse at 50% 60%, rgba(var(--aura-rgb3), 0.22) 0%, rgba(0,0,0,0) 60%); }
+        .avatar-area.multi-aura::after, .duel-aura-ring.multi { border: none; box-shadow: none;
+            background: conic-gradient(from var(--aura-ang), rgb(var(--aura-rgb)), rgb(var(--aura-rgb2)), rgb(var(--aura-rgb3)), rgb(var(--aura-rgb)));
+            -webkit-mask: radial-gradient(ellipse, transparent 56%, #000 60%, #000 76%, transparent 82%);
+                    mask: radial-gradient(ellipse, transparent 56%, #000 60%, #000 76%, transparent 82%);
+            filter: drop-shadow(0 0 6px rgb(var(--aura-rgb))) blur(0.4px);
+            animation: auraRing 2.6s ease-in-out infinite, auraSpin 3s linear infinite; }
+        @keyframes auraSpin { to { --aura-ang: 360deg; } }
+        .avatar-area.multi-aura .avatar-img { animation: multiAuraBreathe 4.5s infinite ease-in-out; }
+        @keyframes multiAuraBreathe {
+            0%, 100% { filter: drop-shadow(0 0 14px rgba(var(--aura-rgb), 0.9)) brightness(1.1); }
+            33% { filter: drop-shadow(0 0 14px rgba(var(--aura-rgb2), 0.9)) brightness(1.1); }
+            66% { filter: drop-shadow(0 0 14px rgba(var(--aura-rgb3), 0.9)) brightness(1.1); } }
+        .avatar-area.aura-rainbow::before { content: ''; position: absolute; left: 50%; bottom: 14px; width: 168px; height: 168px; margin-left: -84px; border-radius: 50%; pointer-events: none; z-index: 0;
+            background: conic-gradient(from var(--aura-ang), #ff5a4a, #ffd700, #3fd1a0, #96e1ff, #b46eff, #ff5a4a);
+            -webkit-mask: radial-gradient(circle, transparent 60%, #000 63%, #000 67%, transparent 70%);
+                    mask: radial-gradient(circle, transparent 60%, #000 63%, #000 67%, transparent 70%);
+            filter: blur(1px) drop-shadow(0 0 8px #fff); opacity: 0.75; animation: auraSpin 6s linear infinite; }
+        .duel-aura-ring { position: absolute; left: 50%; bottom: 0; width: 170px; height: 30px; margin-left: -85px; border-radius: 50%; z-index: 0; pointer-events: none;
+            border: 2px solid rgba(var(--aura-rgb), 0.75); box-shadow: 0 0 16px rgba(var(--aura-rgb), 0.9), inset 0 0 10px rgba(var(--aura-rgb), 0.6);
+            animation: auraRing 2.6s ease-in-out infinite; }
+        .aura-slot-hint { color: #80ffea; font-size: 0.8rem; }
+        /* ── v10：成就徽章、師徒、江湖傳聞 ── */
+        .badge-row { display: flex; align-items: center; gap: 3px; flex-wrap: wrap; min-height: 22px; margin: 2px 0 0; font-size: 0.78rem; color: #cbb89a; }
+        .badge-row .bdg { font-size: 1.05rem; line-height: 1; filter: drop-shadow(0 0 3px rgba(255,215,0,0.6)); cursor: default; }
+        .badge-row .bdg-more { color: var(--text-gold); font-size: 0.75rem; }
+        .badge-row .mentor-tag { margin-left: auto; color: #9fe3ff; white-space: nowrap; }
+        .badge-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 6px; }
+        .badge-cell { display: flex; gap: 6px; align-items: center; padding: 5px 6px; background: rgba(0,0,0,0.3); border: 1px solid rgba(140,111,79,0.6); font-size: 0.78rem; color: var(--text-beige); line-height: 1.3; }
+        .badge-cell .bi { font-size: 1.5rem; }
+        .badge-cell small { color: #aaa; display: block; font-size: 0.7rem; }
+        .badge-cell.locked { opacity: 0.5; }
+        .badge-cell.locked .bi { filter: grayscale(1) brightness(0.6); }
+        .badge-cell.got { border-color: var(--text-gold); box-shadow: 0 0 6px rgba(255,215,0,0.35); }
+        #badge-toasts { position: fixed; top: 14px; right: 14px; z-index: 5000; display: flex; flex-direction: column; gap: 8px; pointer-events: none; max-width: min(360px, 92vw); }
+        .badge-toast { background: linear-gradient(to bottom, rgba(60,40,15,0.97), rgba(30,20,8,0.97)); border: 2px solid var(--text-gold); color: #fff3d0; padding: 10px 14px; font-size: 1rem; box-shadow: 0 0 16px rgba(255,215,0,0.5);
+            animation: toastIn 0.4s ease-out, toastOut 0.5s ease-in 4.2s forwards; }
+        .badge-toast b { color: var(--text-gold); }
+        @keyframes toastIn { from { transform: translateX(110%); opacity: 0; } to { transform: none; opacity: 1; } }
+        @keyframes toastOut { to { transform: translateX(110%); opacity: 0; } }
+        #rumor-bar { display: none; align-items: center; gap: 10px; margin: 0 auto 12px; width: 100%; padding: 6px 12px; background: rgba(30,22,14,0.9); border: 2px solid var(--border-color); box-sizing: border-box; cursor: pointer; min-width: 0; }
+        #rumor-bar .rumor-label { color: var(--text-gold); font-weight: bold; white-space: nowrap; flex-shrink: 0; }
+        #rumor-bar .rumor-track { flex: 1; overflow: hidden; min-width: 0; position: relative; height: 1.6em; }
+        #rumor-scroll { position: absolute; left: 0; top: 0; white-space: nowrap; color: #fff3d0; font-size: 1.05rem; line-height: 1.6em; will-change: transform; animation: rumorScroll var(--dur, 20s) linear infinite; }
+        #rumor-scroll.idle { animation: none; color: #aaa; font-size: 0.9rem; }
+        @keyframes rumorScroll { from { transform: translateX(var(--from, 100%)); } to { transform: translateX(-100%); } }
+        #rumor-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: center; }
+        .rumor-pick { display: grid; grid-template-columns: repeat(auto-fill, minmax(86px, 1fr)); gap: 4px; max-height: 160px; overflow-y: auto; background: rgba(0,0,0,0.25); padding: 6px; }
+        .rumor-pick label { color: var(--text-beige); font-size: 0.85rem; display: flex; gap: 4px; align-items: center; white-space: nowrap; overflow: hidden; }
+        .rumor-list { display: flex; flex-direction: column; gap: 4px; max-height: 220px; overflow-y: auto; }
+        .rumor-item { display: flex; gap: 8px; align-items: center; background: rgba(0,0,0,0.3); padding: 5px 8px; font-size: 0.88rem; color: var(--text-beige); }
+        .rumor-item .rt { flex: 1; min-width: 0; word-break: break-word; }
+        .rumor-item .rd { color: #999; font-size: 0.75rem; white-space: nowrap; }
         .aura-swatch { width: 64px; height: 64px; border-radius: 50%; background: radial-gradient(circle, rgba(var(--aura-rgb),0.95) 0%, rgba(var(--aura-rgb),0.35) 55%, rgba(0,0,0,0) 72%); box-shadow: 0 0 16px rgba(var(--aura-rgb),0.7); }
         .inventory-item .aura-swatch { width: 44px; height: 44px; }
 
@@ -513,6 +621,7 @@
         <div class="controls teacher-row teacher-only teacher-controls-header" style="display: none;">
             <button class="pixel-btn" onclick="openBattleModal()">⚔️ 隨機歷練</button>
             <button class="pixel-btn success" onclick="openGrantModal()">🎁 獎賞</button>
+            <button class="pixel-btn gold" onclick="openRumorModal()">📣 江湖傳聞</button>
             <button class="pixel-btn" id="undoBtn" onclick="undoLast()" disabled style="opacity:0.45;">↩️ 復原</button>
             <div class="menu-wrap">
                 <button class="pixel-btn info" id="manageBtn" onclick="toggleManageMenu(event)">🧰 管理 ▾</button>
@@ -546,6 +655,10 @@
     </div>
 </div>
 
+    <div id="rumor-bar" onclick="openRumorModal()" title="江湖傳聞（好人好事）">
+        <span class="rumor-label">📣 江湖傳聞</span>
+        <div class="rumor-track"><div id="rumor-scroll"></div></div>
+    </div>
     <div id="today-bar">
         <div id="tb-fortune"></div>
         <div id="tb-boss" onclick="openBossModal()" title="查看世界 Boss">
@@ -557,7 +670,7 @@
         </div>
     </div>
     <div class="grid-container" id="studentGrid"></div>
-    <div class="app-footer">宗門啟示錄 Steven 加強版 v9.9 · 2026-09-30　｜　原版：chunsheng612／GameWuxia（經作者同意改作與公開）　｜　寶箱圖：DustDFG（CC-BY 4.0）</div>
+    <div class="app-footer">宗門啟示錄 Steven 加強版 v10 · 2026-10-01　｜　原版：chunsheng612／GameWuxia（經作者同意改作與公開）　｜　寶箱圖：DustDFG（CC-BY 4.0）</div>
 </div>
 
 <!-- 戰鬥模態框 -->
@@ -650,10 +763,13 @@
 <div id="inventory-modal">
     <div class="pixel-border" style="background:var(--panel-bg); padding:20px; width:440px; max-width:92vw; max-height:86vh; overflow-y:auto; display:flex; flex-direction:column; gap:12px;">
         <h3 id="inv-modal-title" style="margin:0; color:var(--text-gold); text-align:center;">弟子的行囊</h3>
-        <p style="text-align:center; color:#aaa; font-size:0.8rem; margin:0;">(裝備、氣場點擊穿戴，劍可以掛主劍＋副劍兩把；特權卡點擊使用)</p>
+        <p style="text-align:center; color:#aaa; font-size:0.8rem; margin:0;">(裝備、氣場點擊穿戴，劍可以掛主劍＋副劍兩把，氣場等級越高能同時戴越多個；特權卡點擊使用)</p>
+        <div id="inv-aura-hint" class="aura-slot-hint" style="text-align:center;"></div>
         <div id="inv-container" class="inventory-grid"></div>
         <div id="inv-merge"></div>
         <div id="inv-awaken"></div>
+        <div class="inv-section-label">🏅 武林成就（達成條件自動拿到，每枚聲望 +1）</div>
+        <div id="inv-badges" class="badge-grid"></div>
         <div class="inv-section-label">造型（升級解鎖，解鎖後可以自由換穿）</div>
         <div id="inv-outfits" class="outfit-row"></div>
         <div class="outfit-auto"><span id="inv-outfit-state"></span><button class="pixel-btn action-btn-small" onclick="setOutfit(currentInvStudentIndex, null)">跟著等級自動換</button></div>
@@ -695,6 +811,11 @@
                 <label><input type="radio" name="editGender" value="female">女俠 (女)</label>
             </div>
         </div>
+        <div>
+            <label style="color:var(--text-brown);">師父 (選填):</label>
+            <select id="edit-mentor" style="width:100%; margin-top:5px;"></select>
+            <div style="color:#aaa; font-size:0.75rem; margin-top:4px;">徒弟每升一級，師父妖丹 +50、聲望 +1；一位師父最多帶 3 個徒弟</div>
+        </div>
         <div style="display:flex; justify-content:space-between; margin-top:10px;">
             <button class="pixel-btn" style="background:#581212;" onclick="confirmDeleteStudent()">🗑️ 逐出</button>
             <div>
@@ -704,6 +825,26 @@
         </div>
     </div>
 </div>
+
+<!-- v10：江湖傳聞（好人好事跑馬燈） -->
+<div id="rumor-modal">
+    <div class="pixel-border" style="background:var(--panel-bg); padding:18px; width:460px; max-width:92vw; max-height:88vh; overflow-y:auto; display:flex; flex-direction:column; gap:10px;">
+        <h3 style="margin:0; color:var(--text-gold); text-align:center;">📣 江湖傳聞</h3>
+        <div id="rumor-form" style="display:none;">
+            <div style="color:var(--text-brown); font-size:0.85rem; margin-bottom:4px;">誰做了好事？（可以選好幾位，每人聲望 +1）</div>
+            <div class="rumor-pick" id="rumor-pick"></div>
+            <input type="text" id="rumor-text" maxlength="40" placeholder="例如：主動幫忙搬便當、安慰哭泣的同學" style="width:100%; margin-top:8px; box-sizing:border-box;" onkeydown="if (event.key === 'Enter') addRumor()">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
+                <span id="rumor-count" style="color:#aaa; font-size:0.8rem;">0 / 40 字</span>
+                <button class="pixel-btn success action-btn-small" onclick="addRumor()">📣 傳出去</button>
+            </div>
+        </div>
+        <div class="inv-section-label">最近的傳聞（大螢幕上方會播最近 7 天）</div>
+        <div class="rumor-list" id="rumor-list"></div>
+        <div style="text-align:center;"><button class="pixel-btn" onclick="closeRumorModal()">關閉</button></div>
+    </div>
+</div>
+<div id="badge-toasts"></div>
 
 <!-- 獲得道具提示 -->
 <div id="item-get-overlay">
@@ -808,7 +949,7 @@
             </select>
         </label>
         <p id="duel-hint" class="grant-hint"></p>
-        <p class="set-hint">雙方各 100 血，答對就打對方；兩邊都答對，比較快的打。戰力比較高的一方傷害最多 +30%，戰力比較低的一方打贏是「以弱勝強」，獎勵加倍、聲望 +1。</p>
+        <p class="set-hint">個人對戰各 150 血、門派對戰各 240 血（每派至少輪 6 人次），答對就打對方；兩邊都答對，比較快的打。連續答對 3 題蓄滿「必殺」，下一次打中對方傷害 ×2，放完重新累積。戰力比較高的一方傷害最多 +30%，戰力比較低的一方打贏是「以弱勝強」，獎勵加倍、聲望 +1。</p>
         <div class="grant-actions">
             <button class="pixel-btn" onclick="closeDuelSetup()">取消</button>
             <button class="pixel-btn success" onclick="startDuel()">⚔️ 開戰</button>
@@ -855,6 +996,7 @@
                 <div class="duel-name" id="duel-name-L"></div>
                 <div class="duel-sub" id="duel-sub-L"></div>
                 <div class="duel-hp"><div class="duel-hp-fill" id="duel-hp-L"></div><div class="duel-hp-text" id="duel-hp-text-L"></div></div>
+                <div class="duel-combo" id="duel-combo-L" title="連續答對 3 題蓄滿必殺"><i></i><i></i><i></i><span>必殺蓄滿！</span></div>
                 <div class="duel-fig"><div class="duel-gear" id="duel-gear-L"></div><img class="duel-img" id="duel-img-L" alt=""></div>
             </div>
             <div class="duel-center" id="duel-center">
@@ -867,6 +1009,7 @@
                 <div class="duel-name" id="duel-name-R"></div>
                 <div class="duel-sub" id="duel-sub-R"></div>
                 <div class="duel-hp"><div class="duel-hp-fill" id="duel-hp-R"></div><div class="duel-hp-text" id="duel-hp-text-R"></div></div>
+                <div class="duel-combo" id="duel-combo-R" title="連續答對 3 題蓄滿必殺"><i></i><i></i><i></i><span>必殺蓄滿！</span></div>
                 <div class="duel-fig"><div class="duel-gear" id="duel-gear-R"></div><img class="duel-img" id="duel-img-R" alt=""></div>
             </div>
         </div>
@@ -1393,6 +1536,7 @@
 
     // v8：世界 Boss、每日奇遇（跟弟子資料分開存，但復原和備份都會一起帶）
     const EVENTS_KEY = 'wuxia_class_events';
+    const RUMOR_MAX = 50, RUMOR_LEN = 40, RUMOR_DAYS = 7, RUMOR_REP = 1;
     const BOSS_DAY_EXP = 200;   // 估血量用：一位弟子一天大約拿到的修為
     const BOSS_PRESETS = [{ label: '約 3 天', days: 3 }, { label: '約 1 週', days: 5 }, { label: '約 2 週', days: 10 }];
     const FORTUNES = [
@@ -1457,6 +1601,8 @@
         ensureSeason();
         updateBackupBtn();
         students = (students || []).map(normalizeStudent);
+        // v10：開頁面時結算一次（第一次升版會補發已經達成的徽章）；有變才存，避免每次開都亮「沒備份」
+        { const before = JSON.stringify(students); settleProgress(); if (JSON.stringify(students) !== before) saveQuiet(); }
         preloadAssets();
         renderGrid();
         updateTeacherUI();
@@ -1559,8 +1705,11 @@
     function swordLabel(s, id) {
         const it = getItemData(id);
         const lv = swordLv(s, id);
-        return (it ? it.name : '') + (lv ? ' +' + lv : '');
+        return (it ? it.name : '') + (lv ? ' +' + lv + '・' + SWORD_LV_NAMES[lv] : '');
     }
+    // v10：合併等級的外觀 class（卡片飛劍、打怪／對戰飛出去的劍、行囊圖示共用）
+    function swordLvClass(s, id) { const lv = swordLv(s, id); return lv ? ' lv-' + lv : ''; }
+    const SWORD_LV_NAMES = ['', '開鋒', '通靈', '神兵'];
     function swordCount(s, id) { return ((s && s.inventory) || []).filter(x => x === id).length; }
     // 主劍、副劍（兩格不會是同一種劍）
     function equippedSwords(s) {
@@ -1575,7 +1724,10 @@
         if (item.type === 'sword') {
             if (!s.equipped.sword) s.equipped.sword = item.id;
             else if (!s.equipped.sword2 && s.equipped.sword !== item.id) s.equipped.sword2 = item.id;
-        } else if (['pet', 'aura'].indexOf(item.type) >= 0 && !s.equipped[item.type]) s.equipped[item.type] = item.id;
+        } else if (item.type === 'aura') {
+            const on = equippedAuras(s);
+            if (on.indexOf(item.id) < 0 && on.length < auraSlots(s)) setAuras(s, on.concat([item.id]));
+        } else if (item.type === 'pet' && !s.equipped.pet) s.equipped.pet = item.id;
     }
     function canMergeSword(s, id) { return isSwordId(id) && swordCount(s, id) >= MERGE_NEED && swordLv(s, id) < SWORD_LV_MAX; }
     // 三把變一把：拿掉兩把，那種劍升一級（不記復原點，呼叫的人要先 pushUndo）
@@ -1588,6 +1740,132 @@
         if (!s.swordLv || typeof s.swordLv !== 'object') s.swordLv = {};
         s.swordLv[id] = swordLv(s, id) + 1;
         return true;
+    }
+
+    // v10：成就統計（對戰勝場、必殺次數…），徽章判斷用
+    function statOf(s, key) { const n = Number(s && s.stats && s.stats[key]); return (isFinite(n) && n > 0) ? Math.floor(n) : 0; }
+    function bumpStat(s, key, n) {
+        if (!s) return;
+        if (!s.stats || typeof s.stats !== 'object' || Array.isArray(s.stats)) s.stats = {};
+        s.stats[key] = Math.min(999999, statOf(s, key) + (n || 1));
+    }
+
+    // ── v10：武林成就徽章（條件達成自動頒發，每枚聲望 +1）──
+    const BADGE_REP = 1;
+    const CALM_DAYS = 7;
+    const BADGES = [
+        { id: 'first_win', icon: '🥇', name: '初試身手', desc: '對戰第一次獲勝',            test: s => statOf(s, 'duelWins') >= 1 },
+        { id: 'hundred',   icon: '🏯', name: '百戰不殆', desc: '對戰累積贏 10 場',          test: s => statOf(s, 'duelWins') >= 10 },
+        { id: 'underdog',  icon: '🐉', name: '以弱勝強', desc: '戰力比較低還打贏對戰',      test: s => statOf(s, 'underdog') >= 1 },
+        { id: 'special',   icon: '💥', name: '必殺高手', desc: '對戰使出必殺 5 次',         test: s => statOf(s, 'specials') >= 5 },
+        { id: 'forge',     icon: '⚒️', name: '神兵初成', desc: '第一次神兵合併',            test: s => statOf(s, 'merges') >= 1 },
+        { id: 'divine',    icon: '🗡️', name: '神兵大成', desc: '有一把劍合到 +3',           test: s => Object.keys(ITEMS).some(id => isSwordId(id) && swordLv(s, id) >= SWORD_LV_MAX) },
+        { id: 'pet3',      icon: '🐲', name: '靈獸覺醒', desc: '守護靈覺醒到 3 星',         test: s => Object.keys((s && s.petStars) || {}).some(id => petStars(s, id) >= AWAKEN_MAX) },
+        { id: 'rainbow',   icon: '🌈', name: '五彩護體', desc: '5 種氣場全部收集',          test: s => ownsAllAuras(s) },
+        { id: 'calm',      icon: '🍵', name: '安分守己', desc: '連續 ' + CALM_DAYS + ' 天沒被扣分', test: s => daysSince(calmFrom(s)) >= CALM_DAYS },
+        { id: 'rumor',     icon: '📣', name: '江湖留名', desc: '上江湖傳聞 3 次',           test: s => statOf(s, 'rumors') >= 3 },
+        { id: 'mentor',    icon: '🧑‍🏫', name: '名師出高徒', desc: '徒弟累積升 5 級',        test: s => statOf(s, 'apprenticeLv') >= 5 }
+    ];
+    const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+    function daysSince(d) {
+        if (!d || !DATE_RE.test(d)) return 0;
+        const a = new Date(d + 'T00:00:00'), b = new Date(todayStr() + 'T00:00:00');
+        return Math.max(0, Math.round((b - a) / 86400000));
+    }
+    // 安分守己從「最後一次被扣分」或「加入宗門（v10 開始記）」那天算起，取比較晚的
+    function calmFrom(s) {
+        const st = (s && s.stats) || {};
+        const a = DATE_RE.test(st.lastMinus || '') ? st.lastMinus : '', b = DATE_RE.test(st.since || '') ? st.since : '';
+        return a > b ? a : b;
+    }
+    function noteMinus(s) { if (!s.stats || typeof s.stats !== 'object') s.stats = {}; s.stats.lastMinus = todayStr(); }
+    function badgesOf(s) { return Array.isArray(s && s.badges) ? s.badges : []; }
+    function hasBadge(s, id) { return badgesOf(s).some(b => b.id === id); }
+
+    // ── v10：師徒制 ──
+    const MENTOR_MAX = 3, MENTOR_COINS = 50, MENTOR_REP = 1;
+    function apprenticesOf(m) { return students.filter(x => x.mentorId && String(x.mentorId) === String(m.id)); }
+    function mentorOf(s) { return (s && s.mentorId) ? findStudentById(s.mentorId) : null; }
+
+    // 每次存檔前結算：師父領徒弟升級的獎勵、檢查有沒有新徽章。回傳要跳出來的訊息
+    function settleProgress() {
+        const msgs = [];
+        const today = todayStr();
+        students.forEach(s => {
+            if (!s.stats || typeof s.stats !== 'object' || Array.isArray(s.stats)) s.stats = {};
+            if (!DATE_RE.test(s.stats.since || '')) s.stats.since = today;
+            // 師父失效（被逐出、拜自己、互拜）就清掉
+            let m = mentorOf(s);
+            if (s.mentorId && (!m || m === s || String(m.mentorId) === String(s.id))) { s.mentorId = null; s.mentorLv = null; m = null; }
+            if (!m) return;
+            const lv = calculateLevel(s.exp || 0);
+            if (!Number.isInteger(s.mentorLv)) { s.mentorLv = lv; return; }
+            if (lv > s.mentorLv) {
+                const n = lv - s.mentorLv;
+                m.coins = Math.max(0, parseInt(m.coins || 0) + MENTOR_COINS * n);
+                addRep(m, MENTOR_REP * n);
+                bumpStat(m, 'apprenticeLv', n);
+                s.mentorLv = lv;
+                msgs.push(`🧑‍🏫 徒弟 <b>${escHtml(s.name)}</b> 升到 Lv.${lv}，師父 <b>${escHtml(m.name)}</b> 妖丹 +${MENTOR_COINS * n}、聲望 +${MENTOR_REP * n}`);
+            }
+            // 只記升上去的最高等級，扣分降級再升回來不會重複領
+        });
+        students.forEach(s => {
+            BADGES.forEach(b => {
+                if (hasBadge(s, b.id)) return;
+                let ok = false;
+                try { ok = !!b.test(s); } catch (e) { ok = false; }
+                if (!ok) return;
+                if (!Array.isArray(s.badges)) s.badges = [];
+                s.badges.push({ id: b.id, d: today });
+                addRep(s, BADGE_REP);
+                msgs.push(`🏅 <b>${escHtml(s.name)}</b> 獲得成就「${b.icon} ${b.name}」！聲望 +${BADGE_REP}`);
+            });
+        });
+        if (msgs.length) showBadgeToasts(msgs);
+        return msgs;
+    }
+    function showBadgeToasts(msgs) {
+        const box = document.getElementById('badge-toasts');
+        if (!box) return;
+        // 一次太多（例如剛升級版本時一起補發）就合併成一則
+        const list = msgs.length > 4 ? msgs.slice(0, 3).concat([`……還有 ${msgs.length - 3} 則，打開各自的行囊可以看成就`]) : msgs;
+        list.forEach((m, i) => {
+            setTimeout(() => {
+                const t = document.createElement('div');
+                t.className = 'badge-toast';
+                t.innerHTML = m; // m 裡的名字都先 escHtml 過
+                box.appendChild(t);
+                setTimeout(() => t.remove(), 4800);
+            }, i * 350);
+        });
+        try { playSfx(sfxGetItem); } catch (e) {}
+    }
+    function badgeRowHtml(s) {
+        const got = badgesOf(s).map(b => BADGES.find(x => x.id === b.id)).filter(Boolean);
+        const m = mentorOf(s), app = apprenticesOf(s).length;
+        const tag = m ? `師：${escHtml(m.name)}` : (app ? `徒弟 ${app} 人` : '');
+        if (!got.length && !tag) return '<div class="badge-row"></div>';
+        const show = got.slice(-5).map(b => `<span class="bdg" title="${escHtml(b.name + '：' + b.desc)}">${b.icon}</span>`).join('');
+        return `<div class="badge-row">${show}${got.length > 5 ? `<span class="bdg-more">+${got.length - 5}</span>` : ''}${tag ? `<span class="mentor-tag">${tag}</span>` : ''}</div>`;
+    }
+    function renderBadgeGrid(s) {
+        const box = document.getElementById('inv-badges');
+        box.innerHTML = '';
+        BADGES.forEach(b => {
+            const rec = badgesOf(s).find(x => x.id === b.id);
+            const cell = document.createElement('div');
+            cell.className = 'badge-cell ' + (rec ? 'got' : 'locked');
+            const i = document.createElement('span'); i.className = 'bi'; i.textContent = b.icon;
+            const t = document.createElement('div');
+            t.textContent = b.name;
+            const sm = document.createElement('small');
+            sm.textContent = rec ? rec.d.slice(5).replace('-', '/') + ' 拿到' : b.desc;
+            t.appendChild(sm);
+            cell.appendChild(i); cell.appendChild(t);
+            cell.title = b.desc;
+            box.appendChild(cell);
+        });
     }
 
     // 放進 innerHTML 的文字一律先跳脫，避免名字裡的符號被當成程式碼
@@ -1607,22 +1885,64 @@
             html += `<img class="gear-guardian star-${stars}" src="${pet.src || pet.icon}" style="--glow:${glow}" alt="" onerror="this.style.display='none'">`;
         }
         // v9.8：副劍在主劍的對面繞（錯開半圈）
+        let qiRing = '';
         equippedSwords(s).forEach((id, n) => {
             const sword = getItemData(id);
             if (!sword || !sword.src) return;
             const offset = n ? 3 : 0;
-            // 後兩把是殘影，做出劍光拖尾
-            [[0.24, 0.16], [0.12, 0.35], [0, 1]].forEach(([lag, op]) => {
-                html += `<div class="sword-orbit${lag ? ' ghost' : ''}" style="--lag:${lag + offset}s; --glow:${sword.glow || '#ffd700'}; opacity:${op}">`
-                    + `<div class="ox"><div class="oy"><img class="sword-img" src="${sword.src}" alt=""></div></div></div>`;
+            const lv = swordLv(s, id);
+            const lvc = swordLvClass(s, id);
+            const glow = sword.glow || '#ffd700';
+            // 殘影做出劍光拖尾；v10：合併等級越高殘影越多
+            const trails = [[0.36, 0.1], [0.3, 0.12], [0.24, 0.16], [0.12, 0.35], [0, 1]].slice(lv >= 2 ? 0 : (lv === 1 ? 1 : 2));
+            trails.forEach(([lag, op]) => {
+                html += `<div class="sword-orbit${lag ? ' ghost' : ''}${lvc}" style="--lag:${lag + offset}s; --glow:${glow}; opacity:${op}">`
+                    + `<div class="ox"><div class="oy">${!lag && lv >= 2 ? '<i class="sword-spark"></i>' : ''}<img class="sword-img" src="${sword.src}" alt=""></div></div></div>`;
             });
+            if (lv >= 3 && !qiRing) qiRing = `<div class="sword-qi-ring" style="--glow:${glow}"></div>`;
         });
+        html += qiRing;
         return html;
     }
 
-    function auraOf(s) {
-        const id = s.equipped && s.equipped.aura;
-        return id && AURAS[id] ? AURAS[id] : null;
+    function auraOf(s) { return equippedAuras(s).map(id => AURAS[id])[0] || null; }
+
+    // v10：氣場格子跟著等級開：Lv.1 一格、Lv.25 兩格、Lv.50 三格（存在 equipped.aura / aura2 / aura3）
+    const AURA_SLOT_LEVELS = [1, 25, 50];
+    const AURA_KEYS = ['aura', 'aura2', 'aura3'];
+    function auraSlots(s) { const lv = calculateLevel((s && s.exp) || 0); return AURA_SLOT_LEVELS.filter(x => lv >= x).length; }
+    function equippedAuras(s) {
+        const eq = (s && s.equipped) || {};
+        const out = [];
+        AURA_KEYS.forEach(k => { const id = eq[k]; if (id && AURAS[id] && out.indexOf(id) < 0) out.push(id); });
+        return out;
+    }
+    function setAuras(s, list) {
+        if (!s.equipped) s.equipped = {};
+        AURA_KEYS.forEach((k, n) => { s.equipped[k] = list[n] || null; });
+    }
+    // 點戴著的＝脫下；有空格就加上；格子滿了換掉最後一格。降級時已經戴的不會被拿掉，只是不能再加
+    function toggleAura(s, id) {
+        const on = equippedAuras(s);
+        const at = on.indexOf(id);
+        if (at >= 0) { on.splice(at, 1); setAuras(s, on); return 'off'; }
+        const slots = auraSlots(s);
+        if (on.length < slots) { on.push(id); setAuras(s, on); return 'on'; }
+        if (!on.length) { setAuras(s, [id]); return 'on'; }
+        on[on.length - 1] = id;
+        setAuras(s, on);
+        return 'swap';
+    }
+    function nextAuraSlotLevel(s) { const lv = calculateLevel((s && s.exp) || 0); return AURA_SLOT_LEVELS.find(x => x > lv) || 0; }
+    function ownsAllAuras(s) { const inv = (s && s.inventory) || []; return Object.keys(AURAS).every(id => inv.indexOf(id) >= 0); }
+    // 卡片的 avatar-area 要加的 class 和顏色變數
+    function auraLook(s) {
+        const list = equippedAuras(s).map(id => AURAS[id]);
+        if (!list.length) return { cls: '', style: '' };
+        const c = [list[0].rgb, (list[1] || list[0]).rgb, (list[2] || list[1] || list[0]).rgb];
+        const multi = list.length >= 2;
+        const rainbow = list.length >= 3 && ownsAllAuras(s);
+        return { cls: ' has-aura' + (multi ? ' multi-aura' : '') + (rainbow ? ' aura-rainbow' : ''), style: `--aura-rgb:${c[0]}; --aura-rgb2:${c[1]}; --aura-rgb3:${c[2]}`, multi: multi };
     }
 
     // quiet：打怪勝利自己有音效，不再疊加分聲
@@ -1635,6 +1955,7 @@
         pushUndo(s.name + ' 修為 ' + (real > 0 ? '+' : '') + real);
         const oldLvl = calculateLevel(s.exp);
         s.exp = Math.max(0, s.exp + real);
+        if (real < 0) noteMinus(s);
         const newLvl = calculateLevel(s.exp);
         showFloatText(real > 0 ? `+${real} Exp${real !== amount ? '（×2）' : ''}` : `${real}`, index);
         bossHit(real);
@@ -2055,7 +2376,7 @@
                 } else {
                     s.inventory.push(itemId);
                     autoEquip(s, itemData);
-                    showNotify(itemData.type === 'aura' ? `${s.name} 換上了${itemData.name}！`
+                    showNotify(itemData.type === 'aura' ? (equippedAuras(s).indexOf(itemId) >= 0 ? `${s.name} 換上了${itemData.name}！` : `${itemData.name}已放進行囊（氣場格子滿了，到行囊點它就能換上）`)
                         : (itemData.type === 'sword' ? `購買成功！${swordGetDesc(s, itemId)}` : `購買成功！${s.name} 戰力大增！`));
                 }
                 saveQuiet(); openShopModal(); renderGrid();
@@ -2080,6 +2401,12 @@
         const s = students[index];
         const modal = document.getElementById('inventory-modal');
         document.getElementById('inv-modal-title').innerText = `${s.name} 的行囊`;
+        renderBadgeGrid(s);
+        {
+            const on = equippedAuras(s).length, slots = auraSlots(s), nx = nextAuraSlotLevel(s);
+            document.getElementById('inv-aura-hint').textContent = `✨ 氣場格子：戴了 ${on} / ${slots} 格` + (nx ? `（Lv.${nx} 再開一格）` : '（已全部開啟）')
+                + (ownsAllAuras(s) ? (on >= 3 ? '｜五彩護體發動中！' : '｜五種集齊，戴滿 3 格會發動五彩護體') : '');
+        }
         const container = document.getElementById('inv-container'); container.innerHTML = '';
         if (!s.inventory || s.inventory.length === 0) { container.innerHTML = '<p style="color:#aaa; text-align:center; width:100%;">行囊空空如也...</p>'; }
         else {
@@ -2093,7 +2420,7 @@
                     // v9.8：同一種劍疊成一格，標出幾把、幾級
                     if (isSword) { if (shown[itemId]) return; shown[itemId] = true; }
                     const slot = isSword ? swordsOn.indexOf(itemId) : -1;
-                    const isEquipped = isSword ? slot >= 0 : (eq.pet === itemId || eq.aura === itemId);
+                    const isEquipped = isSword ? slot >= 0 : (eq.pet === itemId || equippedAuras(s).indexOf(itemId) >= 0);
                     const isConsumable = itemData.type === 'consumable';
                     const stars = itemData.type === 'pet' ? petStars(s, itemId) : 0;
                     const cpText = isSword ? swordCp(s, itemId) : (itemData.cp ? itemData.cp + awakenCpBonus(stars) : 0);
@@ -2102,7 +2429,7 @@
                     const div = document.createElement('div');
                     div.className = `inventory-item ${isEquipped ? 'equipped' : ''}`;
                     div.innerHTML = `
-                        ${itemData.type === 'aura' ? `<div class="aura-swatch" style="--aura-rgb:${itemData.rgb}"></div>` : `<img src="${itemData.icon || itemData.src}">`}
+                        ${itemData.type === 'aura' ? `<div class="aura-swatch" style="--aura-rgb:${itemData.rgb}"></div>` : `<img src="${itemData.icon || itemData.src}"${lv ? ` class="sw-lv-${lv}"` : ''}>`}
                         ${stars > 1 ? `<span class="item-stars">${'★'.repeat(stars)}</span>` : ''}
                         ${count > 1 ? `<span class="item-count">×${count}</span>` : ''}
                         ${lv ? `<span class="item-lv">+${lv}</span>` : ''}
@@ -2128,7 +2455,13 @@
         const s = students[studentIndex];
         if (!s.equipped) s.equipped = {};
         if (type === 'sword') equipSword(s, itemId);
-        else if (['pet', 'aura'].includes(type)) s.equipped[type] = (s.equipped[type] === itemId) ? null : itemId;
+        else if (type === 'aura') {
+            const r = toggleAura(s, itemId);
+            const nx = nextAuraSlotLevel(s);
+            if (r === 'swap') showNotify(`氣場格子滿了，換上${AURAS[itemId].name}` + (nx ? `（Lv.${nx} 再開一格）` : ''));
+            else if (r === 'on' && equippedAuras(s).length >= 2) showNotify(`${s.name} 同時散發 ${equippedAuras(s).length} 種氣場！`);
+        }
+        else if (type === 'pet') s.equipped.pet = (s.equipped.pet === itemId) ? null : itemId;
         saveQuiet(); renderGrid(); openInventory(studentIndex);
     }
 
@@ -2161,6 +2494,7 @@
             row.className = 'awaken-box';
             const img = document.createElement('img');
             img.src = it.icon || it.src; img.alt = '';
+            if (lv) img.className = 'sw-lv-' + lv;
             const info = document.createElement('div');
             info.className = 'awaken-info';
             info.textContent = swordLabel(s, id) + '　×' + n;
@@ -2168,7 +2502,7 @@
             sub.style.color = '#aaa';
             const nextCp = Math.round((it.cp || 500) * (1 + SWORD_LV_CP * (lv + 1)));
             sub.textContent = lv >= SWORD_LV_MAX ? '已經是最高 +' + SWORD_LV_MAX
-                : (n >= MERGE_NEED ? `合併成 +${lv + 1}：戰力 ${swordCp(s, id)} → ${nextCp}` : `再 ${MERGE_NEED - n} 把可以合併`);
+                : (n >= MERGE_NEED ? `合併成 +${lv + 1}「${SWORD_LV_NAMES[lv + 1]}」：戰力 ${swordCp(s, id)} → ${nextCp}，外觀會變` : `再 ${MERGE_NEED - n} 把可以合併`);
             info.appendChild(document.createElement('br'));
             info.appendChild(sub);
             row.appendChild(img); row.appendChild(info);
@@ -2195,6 +2529,7 @@
             onConfirm: () => {
                 pushUndo(`${s.name} 合併${ITEMS[id].name} +${next}`);
                 mergeSwordData(s, id);
+                bumpStat(s, 'merges');
                 playSfx(sfxLevelUp); showLevelUpEffect();
                 saveQuiet(); renderGrid(); openInventory(index);
                 showNotify(`${ITEMS[id].name}升到 +${next}！戰力 ${swordCp(s, id)}`);
@@ -2404,6 +2739,20 @@
         document.getElementById('edit-title').value = s.title || "";
         const genderRadios = document.getElementsByName('editGender');
         for(let r of genderRadios) r.checked = (r.value === (s.gender || 'male'));
+        const ms = document.getElementById('edit-mentor');
+        ms.innerHTML = '';
+        const none = document.createElement('option'); none.value = ''; none.textContent = '（沒有師父）'; ms.appendChild(none);
+        students.forEach(c => {
+            if (String(c.id) === String(s.id)) return;
+            if (String(c.mentorId || '') === String(s.id)) return; // 自己的徒弟不能當自己的師父
+            const full = apprenticesOf(c).filter(x => x !== s).length >= MENTOR_MAX;
+            const o = document.createElement('option');
+            o.value = String(c.id);
+            o.textContent = c.name + '（Lv.' + calculateLevel(c.exp || 0) + '）' + (full ? '　徒弟已滿' : '');
+            o.disabled = full;
+            ms.appendChild(o);
+        });
+        ms.value = s.mentorId && mentorOf(s) ? String(s.mentorId) : '';
         document.getElementById('edit-student-modal').style.display = 'flex';
     }
 
@@ -2414,7 +2763,16 @@
         const genderRadios = document.getElementsByName('editGender');
         let newGender = 'male'; for(let r of genderRadios) if(r.checked) newGender = r.value;
         const s = students.find(st => String(st.id) === String(id));
-        if (s && newName) { pushUndo('編輯 ' + s.name + ' 的資料'); s.name = newName; s.gender = newGender; s.title = newTitle; saveData(); renderGrid(); document.getElementById('edit-student-modal').style.display = 'none'; showNotify("弟子資料已更新！"); }
+        if (s && newName) {
+            const mid = document.getElementById('edit-mentor').value;
+            const m = mid ? findStudentById(mid) : null;
+            if (mid && (!m || m === s || String(m.mentorId || '') === String(s.id) || apprenticesOf(m).filter(x => x !== s).length >= MENTOR_MAX)) { showNotify('這位不能當師父（不能拜自己、不能互拜、一位師父最多 ' + MENTOR_MAX + ' 個徒弟）'); return; }
+            pushUndo('編輯 ' + s.name + ' 的資料');
+            s.name = newName; s.gender = newGender; s.title = newTitle;
+            if (String(s.mentorId || '') !== String(mid || '')) { s.mentorId = m ? String(m.id) : null; s.mentorLv = m ? calculateLevel(s.exp || 0) : null; }
+            saveData(); renderGrid(); document.getElementById('edit-student-modal').style.display = 'none';
+            showNotify(m && String(s.mentorId) === String(m.id) ? `弟子資料已更新！${s.name} 拜 ${m.name} 為師` : "弟子資料已更新！");
+        }
     }
 
     function confirmDeleteStudent() {
@@ -2440,7 +2798,7 @@
         const grid = document.getElementById('studentGrid'); grid.innerHTML = '';
         students.forEach((s, index) => {
             const info = getStudentInfo(s);
-            const aura = auraOf(s);
+            const look = auraLook(s);
             const auraClass = info.level >= 70 ? 'aura-high' : (info.level >= 40 ? 'aura-mid' : 'aura-low');
             const onLeave = isOnLeave(s);
             const card = document.createElement('div'); card.className = 'student-card pixel-border' + (onLeave ? ' on-leave' : ''); card.id = `card-${index}`;
@@ -2450,7 +2808,8 @@
                     <div class="student-name">${escHtml(s.name)} ${onLeave ? '<span class="leave-badge">請假</span>' : ''} ${s.title ? `<span class="title-badge">${escHtml(titleName(s.title))}</span>` : ''} ${sectBadgeHtml(s)}</div>
                     <div class="level-badge">Lv.${info.level}</div>
                 </div>
-                <div class="avatar-area ${auraClass}${aura ? ' has-aura' : ''}"${aura ? ` style="--aura-rgb:${aura.rgb}"` : ''}>
+                ${badgeRowHtml(s)}
+                <div class="avatar-area ${auraClass}${look.cls}"${look.style ? ` style="${look.style}"` : ''}>
                     ${gearLayersHtml(s)}
                     <img src="${info.avatar}" class="avatar-img" onerror="this.src='${PLAYER_ARTS[0]}'">
                 </div>
@@ -2752,7 +3111,7 @@
         const dx = (b.left + b.width / 2) - (a.left + a.width / 2);
         const dy = (b.top + b.height / 2) - (a.top + a.height * 0.35);
         const img = document.createElement('img');
-        img.src = sword.src; img.className = 'flying-sword'; img.alt = '';
+        img.src = sword.src; img.className = 'flying-sword' + swordLvClass(s, sword.id); img.alt = '';
         img.style.setProperty('--glow', sword.glow || '#ffd700');
         img.style.left = x0 + 'px'; img.style.top = y0 + 'px';
         stage.appendChild(img);
@@ -2810,6 +3169,7 @@
     }
     function showLevelUpEffect() { const overlay = document.getElementById('level-up-overlay'); overlay.style.display = 'flex'; setTimeout(() => overlay.style.display = 'none', 2000); }
     function saveData() {
+        settleProgress();
         localStorage.setItem('wuxia_class_data', JSON.stringify(students));
         localStorage.setItem(SECT_KEY, JSON.stringify(sects));
         markBackupDirty();
@@ -2817,6 +3177,7 @@
     }
     // 內部用：只存不提示（避免每次獎賞都跳「已保存」）
     function saveQuiet() {
+        settleProgress();
         localStorage.setItem('wuxia_class_data', JSON.stringify(students));
         localStorage.setItem(SECT_KEY, JSON.stringify(sects));
         markBackupDirty();
@@ -2887,7 +3248,8 @@
         const out = {
             boss: null, bossHistory: [], fortune: null,
             season: null, seasonHistory: [], seasonRewards: { sect: [300, 200, 100], student: [300, 200, 100] },
-            quests: DEFAULT_QUESTS.map(function (q) { return Object.assign({}, q); }), questDone: null
+            quests: DEFAULT_QUESTS.map(function (q) { return Object.assign({}, q); }), questDone: null,
+            rumors: []
         };
         if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return out;
         // 這裡會在程式很早的時候執行，不能用後面才宣告的 cleanName／SAFE_ID_RE
@@ -2963,6 +3325,14 @@
             });
             out.questDone = { date: qd.date, map: map };
         }
+        // v10：江湖傳聞
+        (Array.isArray(raw.rumors) ? raw.rumors : []).slice(0, RUMOR_MAX).forEach(function (r) {
+            if (!r || typeof r !== 'object') return;
+            const id = evId(r.id), text = evName(r.text, RUMOR_LEN);
+            const ids = (Array.isArray(r.ids) ? r.ids : []).map(function (x) { return evId(String(x)); }).filter(Boolean).slice(0, 40);
+            if (!id || !text || !ids.length) return;
+            out.rumors.push({ id: id, t: cleanTime(r.t), text: text, ids: ids });
+        });
         return out;
     }
     function saveEvents() {
@@ -3041,6 +3411,7 @@
     }
 
     function renderTodayBar() {
+        renderRumorBar();
         const bar = document.getElementById('today-bar');
         if (!bar) return;
         const f = todayFortune();
@@ -4300,7 +4671,10 @@
             if (typeof eq.sword2 === 'string' && isSwordId(eq.sword2) && eq.sword2 !== equipped.sword) {
                 if (equipped.sword) equipped.sword2 = eq.sword2; else equipped.sword = eq.sword2;
             }
-            if (typeof eq.aura === 'string' && AURAS[eq.aura]) equipped.aura = eq.aura;
+            // v10：最多 3 個氣場（aura / aura2 / aura3），重複的拿掉、往前補
+            var auraList = [];
+            ['aura', 'aura2', 'aura3'].forEach(function (k) { if (typeof eq[k] === 'string' && AURAS[eq[k]] && auraList.indexOf(eq[k]) < 0) auraList.push(eq[k]); });
+            ['aura', 'aura2', 'aura3'].forEach(function (k, n) { if (auraList[n]) equipped[k] = auraList[n]; });
 
             var petStarsClean = {};
             if (s.petStars && typeof s.petStars === 'object' && !Array.isArray(s.petStars)) {
@@ -4340,6 +4714,20 @@
                 petStars: petStarsClean,
                 swordLv: swordLvClean,
                 rep: Math.min(99999, cleanInt(s.rep)),
+                // v10：成就、統計、師徒（師父是不是還在，讀進來後 settleProgress 會再檢查）
+                badges: (Array.isArray(s.badges) ? s.badges : []).filter(function (b, n, arr) {
+                    return b && BADGES.some(function (x) { return x.id === b.id; }) && typeof b.d === 'string' && DATE_RE.test(b.d)
+                        && arr.findIndex(function (y) { return y && y.id === b.id; }) === n;
+                }).map(function (b) { return { id: b.id, d: b.d }; }),
+                stats: (function (st) {
+                    var o = {};
+                    if (!st || typeof st !== 'object' || Array.isArray(st)) return o;
+                    ['duelWins', 'underdog', 'specials', 'merges', 'rumors', 'apprenticeLv'].forEach(function (k) { var n = Math.min(999999, cleanInt(st[k])); if (n) o[k] = n; });
+                    ['lastMinus', 'since'].forEach(function (k) { if (typeof st[k] === 'string' && DATE_RE.test(st[k])) o[k] = st[k]; });
+                    return o;
+                })(s.stats),
+                mentorId: (s.mentorId != null && SAFE_ID_RE.test(String(s.mentorId)) && String(s.mentorId) !== id) ? String(s.mentorId) : null,
+                mentorLv: (Number.isInteger(s.mentorLv) && s.mentorLv >= 1 && s.mentorLv <= 9999) ? s.mentorLv : null,
                 sectId: (sid && seenSect[sid]) ? sid : null,
                 leaveDate: (typeof s.leaveDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s.leaveDate)) ? s.leaveDate : null,
                 freeDuel: (s.freeDuel && typeof s.freeDuel.d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s.freeDuel.d)) ? { d: s.freeDuel.d, n: Math.min(99, cleanInt(s.freeDuel.n)) } : null,
@@ -4837,6 +5225,106 @@
     }
 
     // ── 妖丹加扣（配合可自訂的卡片按鈕）──
+    // ══ v10：江湖傳聞（老師寫好人好事，上方跑馬燈播最近 7 天，被寫到的人聲望 +1）══
+    function recentRumors() {
+        const cut = Date.now() - RUMOR_DAYS * 86400000;
+        return (events.rumors || []).filter(function (r) { return r.t >= cut; });
+    }
+    function rumorNames(r) {
+        return r.ids.map(function (id) { const s = findStudentById(id); return s ? s.name : null; }).filter(Boolean).join('、') || '某位弟子';
+    }
+    function renderRumorBar() {
+        const bar = document.getElementById('rumor-bar');
+        if (!bar) return;
+        const list = recentRumors();
+        const el = document.getElementById('rumor-scroll');
+        if (!list.length && !(isTeacherMode && students.length)) { bar.style.display = 'none'; return; }
+        bar.style.display = 'flex';
+        if (!list.length) {
+            el.className = 'idle';
+            el.textContent = '還沒有傳聞，點這裡寫下第一件好人好事';
+            el.style.removeProperty('--dur');
+            return;
+        }
+        el.className = '';
+        const text = list.map(function (r) { return '【' + rumorNames(r) + '】' + r.text; }).join('　✦　');
+        if (el.textContent !== text) {
+            el.textContent = text;
+            // 字越多跑越久，每個字大約 0.3 秒，最少 14 秒
+            el.style.setProperty('--dur', Math.max(14, Math.round(text.length * 0.3)) + 's');
+            const track = el.parentElement;
+            el.style.setProperty('--from', (track.clientWidth || 600) + 'px');
+        }
+    }
+    function openRumorModal() {
+        playSfx(sfxClick);
+        const pick = document.getElementById('rumor-pick');
+        pick.innerHTML = '';
+        students.forEach(function (s) {
+            const lb = document.createElement('label');
+            const cb = document.createElement('input');
+            cb.type = 'checkbox'; cb.value = String(s.id);
+            lb.appendChild(cb);
+            lb.appendChild(document.createTextNode(s.name));
+            pick.appendChild(lb);
+        });
+        document.getElementById('rumor-form').style.display = isTeacherMode ? 'block' : 'none';
+        const input = document.getElementById('rumor-text');
+        input.value = '';
+        input.oninput = function () { document.getElementById('rumor-count').textContent = input.value.length + ' / ' + RUMOR_LEN + ' 字'; };
+        input.oninput();
+        renderRumorList();
+        document.getElementById('rumor-modal').style.display = 'flex';
+    }
+    function closeRumorModal() { playSfx(sfxClick); document.getElementById('rumor-modal').style.display = 'none'; }
+    function renderRumorList() {
+        const box = document.getElementById('rumor-list');
+        box.innerHTML = '';
+        const list = events.rumors || [];
+        if (!list.length) { const p = document.createElement('p'); p.style.cssText = 'color:#aaa; text-align:center; margin:4px;'; p.textContent = '還沒有傳聞'; box.appendChild(p); return; }
+        list.forEach(function (r) {
+            const row = document.createElement('div');
+            row.className = 'rumor-item';
+            const d = new Date(r.t);
+            const rd = document.createElement('span'); rd.className = 'rd'; rd.textContent = (d.getMonth() + 1) + '/' + d.getDate();
+            const rt = document.createElement('span'); rt.className = 'rt'; rt.textContent = '【' + rumorNames(r) + '】' + r.text;
+            row.appendChild(rd); row.appendChild(rt);
+            if (isTeacherMode) {
+                const del = document.createElement('button');
+                del.className = 'pixel-btn action-btn-small'; del.textContent = '刪除';
+                del.onclick = function () { deleteRumor(r.id); };
+                row.appendChild(del);
+            }
+            box.appendChild(row);
+        });
+    }
+    function addRumor() {
+        if (!requireTeacher('寫江湖傳聞')) return;
+        const text = cleanName(document.getElementById('rumor-text').value, RUMOR_LEN);
+        const ids = Array.prototype.map.call(document.querySelectorAll('#rumor-pick input:checked'), function (cb) { return cb.value; })
+            .filter(function (id) { return !!findStudentById(id); });
+        if (!ids.length) { showNotify('先勾選是誰做了好事'); return; }
+        if (!text) { showNotify('寫一句發生了什麼好事'); return; }
+        pushUndo('江湖傳聞：' + text);
+        if (!Array.isArray(events.rumors)) events.rumors = [];
+        events.rumors.unshift({ id: 'r' + Date.now().toString(36) + Math.floor(Math.random() * 1000), t: Date.now(), text: text, ids: ids });
+        events.rumors = events.rumors.slice(0, RUMOR_MAX);
+        ids.forEach(function (id) { const s = findStudentById(id); addRep(s, RUMOR_REP); bumpStat(s, 'rumors'); });
+        saveEvents(); saveQuiet(); renderGrid();
+        playSfx(sfxGetItem);
+        showNotify('📣 傳聞傳遍江湖！' + ids.length + ' 位弟子聲望 +' + RUMOR_REP);
+        openRumorModal();
+    }
+    function deleteRumor(id) {
+        if (!requireTeacher('刪除傳聞')) return;
+        const r = (events.rumors || []).find(function (x) { return x.id === id; });
+        if (!r) return;
+        pushUndo('刪除傳聞：' + r.text);
+        events.rumors = events.rumors.filter(function (x) { return x.id !== id; });
+        saveEvents(); renderTodayBar(); renderRumorList();
+        showNotify('已刪除（聲望不會收回，按復原可以救回這則）');
+    }
+
     function updateCoins(index, amount) {
         if (!requireTeacher('加扣妖丹')) return;
         const s = students[index];
@@ -4845,6 +5333,7 @@
         const real = boostCoins(amount);
         pushUndo(s.name + ' 妖丹 ' + (real > 0 ? '+' : '') + real);
         s.coins = Math.max(0, parseInt(s.coins || 0) + real);
+        if (real < 0) noteMinus(s);
         showFloatText((real > 0 ? '+' : '') + real + ' 妖丹' + (real !== amount ? '（×2）' : ''), index);
         saveQuiet();
         renderGrid();
@@ -5827,8 +6316,13 @@
     }
 
     // ══ 答題對戰 ══
-    const DUEL_HP = 100;
+    // v10：血量加厚。門派 240：就算一方全勝＋戰力加成 +30%＋必殺，也要第 6 題才倒（每派至少輪 6 人次）
+    const DUEL_HP = { solo: 150, sect: 240 };
     const DUEL_BASE_DMG = 30;
+    // v10：連續答對 3 題蓄滿必殺，下一次打中對方傷害 ×2，放完歸零
+    const DUEL_COMBO_NEED = 3;
+    const DUEL_SPECIAL_MULT = 2;
+    const DUEL_SPECIAL_NAMES = { sword_fire: '烈焰焚天', sword_wood: '萬木歸宗', sword_gold: '金剛破甲', sword_ice: '冰封千里', sword_light: '曦光萬丈' };
     const DUEL_MAX_BONUS = 0.3;
     const DUEL_AUTO_NEXT_MS = 3000;
     const DUEL_KEYS = { L: ['1', '2', '3', '4'], R: ['7', '8', '9', '0'] };
@@ -5870,6 +6364,19 @@
         const diff = picks.L.ms - picks.R.ms;
         if (diff === 0) return { winner: null, reason: 'tie', diffMs: 0 };
         return { winner: diff < 0 ? 'L' : 'R', reason: 'faster', diffMs: Math.abs(diff) };
+    }
+
+    // 使出必殺記到上場那位的成就統計（v10 徽章用）
+    function duelNoteSpecial(rep) { if (rep) bumpStat(rep, 'specials'); }
+
+    // 氣：答對（快慢都算）+1，答錯／沒答歸零；已經蓄滿就留著，等打中對方才放
+    function duelComboAfter(combo, correct) {
+        if (combo >= DUEL_COMBO_NEED) return DUEL_COMBO_NEED;
+        return correct ? combo + 1 : 0;
+    }
+    function duelSpecialName(rep) {
+        const id = rep ? (equippedSwords(rep)[0] || '') : '';
+        return DUEL_SPECIAL_NAMES[id] || '降龍掌';
     }
 
     function shuffled(arr) {
@@ -5991,11 +6498,11 @@
             if (duelMode === 'solo') {
                 const s = findStudentById(id);
                 if (!s) return null;
-                return { key: key, id: String(s.id), name: s.name, cp: calculateCP(s), hp: DUEL_HP, rep: s, queue: [] };
+                return { key: key, id: String(s.id), name: s.name, cp: calculateCP(s), hp: DUEL_HP.solo, maxHp: DUEL_HP.solo, combo: 0, rep: s, queue: [] };
             }
             const k = getSect(id);
             if (!k || !presentMembers(k.id).length) return null;
-            return { key: key, id: k.id, name: k.emblem + ' ' + k.name, color: k.color, cp: sectAvgCp(k.id), hp: DUEL_HP, rep: null, queue: [] };
+            return { key: key, id: k.id, name: k.emblem + ' ' + k.name, color: k.color, cp: sectAvgCp(k.id), hp: DUEL_HP.sect, maxHp: DUEL_HP.sect, combo: 0, rep: null, queue: [] };
         };
         const L = makeSide('L', l), R = makeSide('R', r);
         if (!L || !R) { showNotify(duelMode === 'solo' ? '找不到選的弟子' : '選的門派今天沒有可以上場的人'); return; }
@@ -6052,17 +6559,21 @@
         const rep = side.rep;
         document.getElementById('duel-name-' + k).textContent = side.name;
         document.getElementById('duel-sub-' + k).textContent = (duel.mode === 'sect' && rep ? '代表：' + rep.name + '　' : '') + (duel.mode === 'sect' ? '平均戰力 ' : '戰力 ') + side.cp;
-        const pct = Math.max(0, side.hp) / DUEL_HP * 100;
+        const pct = Math.max(0, side.hp) / side.maxHp * 100;
         const fill = document.getElementById('duel-hp-' + k);
         fill.style.width = pct + '%';
         fill.classList.toggle('low', pct <= 34);
-        document.getElementById('duel-hp-text-' + k).textContent = Math.max(0, side.hp) + ' / ' + DUEL_HP;
+        document.getElementById('duel-hp-text-' + k).textContent = Math.max(0, side.hp) + ' / ' + side.maxHp;
+        const combo = document.getElementById('duel-combo-' + k);
+        combo.querySelectorAll('i').forEach(function (bar, n) { bar.classList.toggle('on', n < side.combo); });
+        combo.classList.toggle('full', side.combo >= DUEL_COMBO_NEED);
         const img = document.getElementById('duel-img-' + k);
         const gear = document.getElementById('duel-gear-' + k);
         if (rep) {
             const info = getStudentInfo(rep);
             if (img.dataset.src !== info.battleAvatar) { img.src = info.battleAvatar; img.dataset.src = info.battleAvatar; }
-            gear.innerHTML = gearLayersHtml(rep);
+            const look = auraLook(rep);
+            gear.innerHTML = (look.style ? `<div class="duel-aura-ring${look.multi ? ' multi' : ''}" style="${look.style}"></div>` : '') + gearLayersHtml(rep);
         } else {
             img.removeAttribute('src');
             gear.innerHTML = '';
@@ -6091,6 +6602,7 @@
         document.getElementById('duel-next-btn').style.display = 'none';
         document.getElementById('duel-pause-btn').innerText = '⏸ 暫停';
         ['L', 'R'].forEach(function (k) { renderDuelSide(duel.sides[k]); renderDuelOptions(k); });
+        duelFitFigures();
         clearInterval(duel.timerId);
         duel.timerId = setInterval(duelTick, 100);
         duelTick();
@@ -6172,11 +6684,16 @@
             });
         });
         const res = duelJudge(q.answer, duel.picks);
+        ['L', 'R'].forEach(function (k) {
+            const p = duel.picks[k];
+            duel.sides[k].combo = duelComboAfter(duel.sides[k].combo, !!p && p.choice === q.answer);
+        });
         const resultEl = document.getElementById('duel-result');
         const ansText = '正確答案：' + OPTION_LETTERS[duel.current.order.indexOf(q.answer)] + ' ' + q.options[q.answer];
         const nameOf = function (k) { const s = duel.sides[k]; return duel.mode === 'sect' && s.rep ? s.rep.name + '（' + s.name + '）' : s.name; };
         if (!res.winner) {
             resultEl.textContent = (res.reason === 'tie' ? '兩邊同時答對，平手！' : '兩邊都沒答對，沒有人受傷。') + '\n' + ansText;
+            ['L', 'R'].forEach(function (k) { renderDuelSide(duel.sides[k]); });
             playSfx(sfxAttack);
             duelAfterRound();
             return;
@@ -6184,11 +6701,16 @@
         const att = duel.sides[res.winner];
         const def = duel.sides[res.winner === 'L' ? 'R' : 'L'];
         const d = duelDamage(att.cp, def.cp);
-        def.hp = Math.max(0, def.hp - d.dmg);
+        const special = att.combo >= DUEL_COMBO_NEED;
+        const dmg = special ? d.dmg * DUEL_SPECIAL_MULT : d.dmg;
+        const spName = special ? duelSpecialName(att.rep) : '';
+        if (special) { att.combo = 0; duelNoteSpecial(att.rep); }
+        def.hp = Math.max(0, def.hp - dmg);
         // 最後一擊：勝負已定，之後按「結束對戰」會直接結算，不會變成「不發獎勵」
         if (def.hp <= 0) { duel.phase = 'finishing'; duel.winKey = att.key; }
-        resultEl.textContent = nameOf(res.winner) + (res.reason === 'faster' ? ' 快了 ' + (res.diffMs / 1000).toFixed(1) + ' 秒，' : ' 答對，') + '造成 ' + d.dmg + ' 傷害' + (d.bonus > 0 ? '（戰力壓制 +' + Math.round(d.bonus * 100) + '%）' : '') + '\n' + ansText;
-        duelStrikeAnim(res.winner, d.dmg);
+        resultEl.textContent = nameOf(res.winner) + (res.reason === 'faster' ? ' 快了 ' + (res.diffMs / 1000).toFixed(1) + ' 秒，' : ' 答對，') + (special ? '使出必殺「' + spName + '」！' : '') + '造成 ' + dmg + ' 傷害' + (d.bonus > 0 ? '（戰力壓制 +' + Math.round(d.bonus * 100) + '%）' : '') + '\n' + ansText;
+        renderDuelSide(att);
+        duelStrikeAnim(res.winner, dmg, special ? spName : '');
         const thisDuel = duel;
         setTimeout(function () {
             if (duel !== thisDuel) return;
@@ -6207,7 +6729,7 @@
     }
 
     // 攻擊動畫：有飛劍就飛劍砍過去，沒有就直接打出火花
-    function duelStrikeAnim(attKey, dmg) {
+    function duelStrikeAnim(attKey, dmg, specialName) {
         const defKey = attKey === 'L' ? 'R' : 'L';
         const fromImg = document.getElementById('duel-img-' + attKey);
         const toImg = document.getElementById('duel-img-' + defKey);
@@ -6215,12 +6737,23 @@
         const rep = duel.sides[attKey].rep;
         const sword = rep ? getItemData(equippedSwords(rep)[0] || '') : null;
         playSfx(sfxWin);
+        if (specialName) {
+            const b = document.createElement('div');
+            b.className = 'duel-special';
+            b.style.setProperty('--sp-glow', attKey === 'L' ? '#00b4ff' : '#ff5a4a');
+            b.textContent = '必殺・' + specialName;
+            const sm = document.createElement('small');
+            sm.textContent = '連續答對 ' + DUEL_COMBO_NEED + ' 題！傷害 ×' + DUEL_SPECIAL_MULT;
+            b.appendChild(sm);
+            stage.appendChild(b);
+            setTimeout(function () { b.remove(); }, 1500);
+        }
         const hit = function () {
             toImg.classList.remove('shake-effect'); void toImg.offsetWidth; toImg.classList.add('shake-effect');
             playHitEffect(toImg, attKey === 'L' ? '#7fd8ff' : '#ff8a7a');
             const fig = toImg.parentElement.parentElement;
             const n = document.createElement('div');
-            n.className = 'duel-dmg';
+            n.className = 'duel-dmg' + (specialName ? ' special' : '');
             n.textContent = '-' + dmg;
             fig.style.position = 'relative';
             fig.appendChild(n);
@@ -6236,7 +6769,7 @@
             const dx = (b.left + b.width / 2) - (a.left + a.width / 2);
             const dy = (b.top + b.height / 2) - (a.top + a.height * 0.35);
             const img = document.createElement('img');
-            img.src = sword.src; img.className = 'flying-sword'; img.alt = '';
+            img.src = sword.src; img.className = 'flying-sword' + (specialName ? ' special' : '') + swordLvClass(rep, sword.id); img.alt = '';
             img.style.setProperty('--glow', sword.glow || '#ffd700');
             img.style.left = x0 + 'px'; img.style.top = y0 + 'px';
             stage.appendChild(img);
@@ -6252,9 +6785,29 @@
             hit();
         }
         const flash = document.getElementById('duel-flash');
-        flash.style.animation = 'flash 0.4s';
-        setTimeout(function () { flash.style.animation = ''; }, 400);
+        const fl = specialName ? 900 : 400;
+        flash.style.animation = 'flash ' + (fl / 1000) + 's';
+        setTimeout(function () { flash.style.animation = ''; }, fl);
+        if (specialName) { stage.classList.remove('shake-effect'); void stage.offsetWidth; stage.classList.add('shake-effect'); setTimeout(function () { stage.classList.remove('shake-effect'); }, 600); }
     }
+
+    // v10：角色大小跟著可用高度縮放，永遠不會掉到答案按鈕上
+    function duelFitFigures() {
+        if (!duel) return;
+        const stage = document.getElementById('duel-stage');
+        let scale = 1;
+        ['L', 'R'].forEach(function (k) {
+            const side = document.getElementById('duel-side-' + k);
+            const fig = side.querySelector('.duel-fig');
+            let others = 0, n = 0;
+            Array.prototype.forEach.call(side.children, function (c) { if (c !== fig) { others += c.offsetHeight; n++; } });
+            const gap = parseFloat(getComputedStyle(side).rowGap) || 0;
+            const room = side.clientHeight - others - gap * n - 12;
+            scale = Math.min(scale, room / 190);
+        });
+        stage.style.setProperty('--fig-scale', Math.max(0.35, Math.min(1, scale)).toFixed(3));
+    }
+    window.addEventListener('resize', function () { if (duel && document.getElementById('duel-modal').style.display === 'flex') duelFitFigures(); });
 
     function toggleDuelPause() {
         if (!duel || duel.phase === 'end' || duel.phase === 'finishing') return;
@@ -6324,6 +6877,11 @@
         };
         give(plan.win);
         give(plan.lose);
+        // v10 成就統計：勝場算所有上場那一方的人（就算今天練功獎勵用完也算）
+        (duel.mode === 'solo' ? [findStudentById(win.id)].filter(Boolean) : presentMembers(win.id)).forEach(function (s) {
+            bumpStat(s, 'duelWins');
+            if (plan.underdog) bumpStat(s, 'underdog');
+        });
         if (!duel.teacher) plan.win.people.concat(plan.lose.people).forEach(useFreeDuel);
         bossHit(plan.win.exp * plan.win.people.length + plan.lose.exp * plan.lose.people.length);
         saveQuiet();
