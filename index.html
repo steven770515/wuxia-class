@@ -248,11 +248,12 @@
         .duel-combo.full i { animation: comboPulse 0.6s ease-in-out infinite alternate; }
         .duel-combo.full span { display: inline; animation: comboPulse 0.6s ease-in-out infinite alternate; }
         @keyframes comboPulse { from { filter: brightness(1); } to { filter: brightness(1.6) drop-shadow(0 0 6px #fff3a0); } }
-        .duel-dmg.special { color: #ffd700; font-size: 3.6rem; text-shadow: 0 0 10px #ff6a00, 3px 3px 0 #000; }
+        .duel-dmg.special { color: #ffd700; font-size: 3.6rem; text-shadow: 0 0 10px #ff6a00, 3px 3px 0 #000; animation-duration: 2.8s; }
+        #duel-stage.shake-effect.special-shake, .duel-img.shake-effect.special-shake { animation-duration: 0.6s; }
         .duel-special { position: absolute; left: 50%; top: 38%; z-index: 30; pointer-events: none; white-space: nowrap;
             font-size: clamp(2.2rem, 6vw, 4.6rem); font-weight: bold; color: #fff3a0; letter-spacing: 0.15em;
             text-shadow: 0 0 12px var(--sp-glow, #ff9d00), 0 0 30px var(--sp-glow, #ff9d00), 4px 4px 0 #000;
-            animation: specialBanner 1.5s ease-out forwards; }
+            animation: specialBanner 3s ease-out forwards; }
         .duel-special small { display: block; font-size: 0.4em; letter-spacing: 0.05em; color: #fff; text-align: center; }
         @keyframes specialBanner {
             0% { transform: translate(-50%, -50%) scale(2.4); opacity: 0; }
@@ -670,7 +671,7 @@
         </div>
     </div>
     <div class="grid-container" id="studentGrid"></div>
-    <div class="app-footer">宗門啟示錄 Steven 加強版 v10 · 2026-10-01　｜　原版：chunsheng612／GameWuxia（經作者同意改作與公開）　｜　寶箱圖：DustDFG（CC-BY 4.0）</div>
+    <div class="app-footer">宗門啟示錄 Steven 加強版 v10.1 · 2026-10-01　｜　原版：chunsheng612／GameWuxia（經作者同意改作與公開）　｜　寶箱圖：DustDFG（CC-BY 4.0）</div>
 </div>
 
 <!-- 戰鬥模態框 -->
@@ -6322,6 +6323,8 @@
     // v10：連續答對 3 題蓄滿必殺，下一次打中對方傷害 ×2，放完歸零
     const DUEL_COMBO_NEED = 3;
     const DUEL_SPECIAL_MULT = 2;
+    // 必殺動畫放慢倍數（Steven 10/1：原本太快看不清楚，改成 0.5 倍速＝時間 ×2）
+    const DUEL_SPECIAL_SLOW = 2;
     const DUEL_SPECIAL_NAMES = { sword_fire: '烈焰焚天', sword_wood: '萬木歸宗', sword_gold: '金剛破甲', sword_ice: '冰封千里', sword_light: '曦光萬丈' };
     const DUEL_MAX_BONUS = 0.3;
     const DUEL_AUTO_NEXT_MS = 3000;
@@ -6710,14 +6713,14 @@
         if (def.hp <= 0) { duel.phase = 'finishing'; duel.winKey = att.key; }
         resultEl.textContent = nameOf(res.winner) + (res.reason === 'faster' ? ' 快了 ' + (res.diffMs / 1000).toFixed(1) + ' 秒，' : ' 答對，') + (special ? '使出必殺「' + spName + '」！' : '') + '造成 ' + dmg + ' 傷害' + (d.bonus > 0 ? '（戰力壓制 +' + Math.round(d.bonus * 100) + '%）' : '') + '\n' + ansText;
         renderDuelSide(att);
-        duelStrikeAnim(res.winner, dmg, special ? spName : '');
+        const hitMs = duelStrikeAnim(res.winner, dmg, special ? spName : '');
         const thisDuel = duel;
         setTimeout(function () {
             if (duel !== thisDuel) return;
             renderDuelSide(def);
-            if (def.hp <= 0) setTimeout(function () { if (duel === thisDuel && duel.phase === 'finishing') finishDuel(att.key); }, 900);
+            if (def.hp <= 0) setTimeout(function () { if (duel === thisDuel && duel.phase === 'finishing') finishDuel(att.key); }, special ? 900 * DUEL_SPECIAL_SLOW : 900);
             else duelAfterRound();
-        }, 560);
+        }, Math.max(560, hitMs + 40));
     }
 
     function duelAfterRound() {
@@ -6746,9 +6749,12 @@
             sm.textContent = '連續答對 ' + DUEL_COMBO_NEED + ' 題！傷害 ×' + DUEL_SPECIAL_MULT;
             b.appendChild(sm);
             stage.appendChild(b);
-            setTimeout(function () { b.remove(); }, 1500);
+            setTimeout(function () { b.remove(); }, 1500 * DUEL_SPECIAL_SLOW);
         }
+        const slow = specialName ? DUEL_SPECIAL_SLOW : 1;
+        const flyMs = SWORD_FLY_MS * slow;
         const hit = function () {
+            toImg.classList.toggle('special-shake', !!specialName);
             toImg.classList.remove('shake-effect'); void toImg.offsetWidth; toImg.classList.add('shake-effect');
             playHitEffect(toImg, attKey === 'L' ? '#7fd8ff' : '#ff8a7a');
             const fig = toImg.parentElement.parentElement;
@@ -6757,9 +6763,10 @@
             n.textContent = '-' + dmg;
             fig.style.position = 'relative';
             fig.appendChild(n);
-            setTimeout(function () { n.remove(); }, 1400);
+            setTimeout(function () { n.remove(); }, 1400 * slow);
             playSfx(sfxAttack);
         };
+        let hitMs = 0;
         if (sword && sword.src && stage.animate) {
             const st = stage.getBoundingClientRect();
             const a = fromImg.getBoundingClientRect();
@@ -6779,16 +6786,22 @@
                 { transform: 'translate(-50%,-50%) translateY(0)' + flip + ' rotate(-20deg) scale(0.6)', opacity: 0, easing: 'ease-out' },
                 { transform: 'translate(-50%,-50%) translateY(-70px)' + flip + ' rotate(60deg) scale(1)', opacity: 1, offset: 0.4, easing: 'ease-in' },
                 { transform: `translate(-50%,-50%) translate(${dx}px, ${dy}px)` + flip + ' rotate(60deg) scale(1.15)', opacity: 1 }
-            ], { duration: SWORD_FLY_MS, easing: 'linear' }).onfinish = function () { img.remove(); };
-            setTimeout(hit, SWORD_FLY_MS - 20);
+            ], { duration: flyMs, easing: 'linear' }).onfinish = function () { img.remove(); };
+            hitMs = flyMs - 20;
+            setTimeout(hit, hitMs);
+        } else if (specialName) {
+            // 沒有劍：先讓必殺大字亮一下再打中
+            hitMs = SWORD_FLY_MS * slow;
+            setTimeout(hit, hitMs);
         } else {
             hit();
         }
         const flash = document.getElementById('duel-flash');
-        const fl = specialName ? 900 : 400;
+        const fl = specialName ? 900 * slow : 400;
         flash.style.animation = 'flash ' + (fl / 1000) + 's';
         setTimeout(function () { flash.style.animation = ''; }, fl);
-        if (specialName) { stage.classList.remove('shake-effect'); void stage.offsetWidth; stage.classList.add('shake-effect'); setTimeout(function () { stage.classList.remove('shake-effect'); }, 600); }
+        if (specialName) { stage.classList.add('special-shake'); stage.classList.remove('shake-effect'); void stage.offsetWidth; stage.classList.add('shake-effect'); setTimeout(function () { stage.classList.remove('shake-effect', 'special-shake'); }, 600 * slow); }
+        return hitMs;
     }
 
     // v10：角色大小跟著可用高度縮放，永遠不會掉到答案按鈕上
