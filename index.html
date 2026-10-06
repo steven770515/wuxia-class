@@ -126,7 +126,7 @@
         .grant-hint { margin: 0; color: var(--text-brown); font-size: 0.85rem; text-align: center; }
         .grant-field { display: flex; align-items: center; gap: 10px; color: var(--text-brown); }
         .grant-field > span { min-width: 3em; font-size: 0.9rem; }
-        .grant-field select, .grant-field input { flex-grow: 1; font-size: 1.05rem; padding: 6px; }
+        .grant-field select, .grant-field input { flex-grow: 1; font-size: 1.05rem; padding: 6px; min-width: 0; width: 0; box-sizing: border-box; } /* v10.2：名字很長時手機上不撐出畫面 */
         .grant-quick { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
         .grant-actions { display: flex; gap: 10px; justify-content: center; margin-top: 4px; }
         /* ── v2：設定面板與 Excel 匯入 ── */
@@ -220,6 +220,8 @@
         .duel-round { color: var(--text-brown); font-size: 0.95rem; text-shadow: 1px 1px 0 #000; }
         .duel-timer { font-size: 2.2rem; font-weight: bold; color: var(--text-gold); text-shadow: 2px 2px 0 #000; }
         .duel-timer.urgent { color: #ff6b6b; }
+        .duel-timer.waiting { color: #96e1ff; }
+        .duel-opts.waiting .duel-opt { filter: grayscale(0.7) brightness(0.65); cursor: wait; }
         .duel-question { background: rgba(30,22,14,0.95); border: 3px solid var(--border-color); color: #fff; font-size: clamp(1.05rem, min(2.4vw, 3.6vh), 2rem); line-height: 1.45; padding: 12px 18px; text-align: center; width: 100%; box-sizing: border-box; word-break: break-word; min-height: 0; flex: 0 1 auto; overflow-y: auto; }
         .duel-result:empty { visibility: hidden; }
         .duel-result { background: rgba(0,0,0,0.6); padding: 4px 14px; white-space: pre-line; min-height: 2.2em; color: var(--text-gold); font-size: 1.25rem; text-align: center; text-shadow: 1px 1px 0 #000; }
@@ -421,6 +423,24 @@
         #rumor-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: center; }
         .rumor-pick { display: grid; grid-template-columns: repeat(auto-fill, minmax(86px, 1fr)); gap: 4px; max-height: 160px; overflow-y: auto; background: rgba(0,0,0,0.25); padding: 6px; }
         .rumor-pick label { color: var(--text-beige); font-size: 0.85rem; display: flex; gap: 4px; align-items: center; white-space: nowrap; overflow: hidden; }
+        #market-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: center; }
+        .market-sell { display: flex; flex-direction: column; gap: 6px; padding: 8px; border: 1px dashed rgba(140,111,79,0.7); background: rgba(0,0,0,0.3); }
+        .market-sell-row { display: flex; gap: 6px; align-items: center; }
+        .market-sell-row select { flex: 2; min-width: 0; width: 0; }
+        .market-sell-row input { flex: 1; min-width: 0; width: 0; }
+        .market-sell-row button { flex-shrink: 0; }
+        @media (max-width: 480px) { .market-sell-row, #market-modal .grant-field { flex-wrap: wrap; } .market-sell-row select, #market-modal .grant-field select { flex: 1 1 100%; } }
+        .market-note { color: #aaa; font-size: 0.78rem; overflow-wrap: anywhere; }
+        .market-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(150px, 100%), 1fr)); gap: 8px; }
+        .market-stall { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 6px; background: rgba(0,0,0,0.35); border: 1px solid var(--border-color); text-align: center; min-width: 0; }
+        .market-stall.mine { border-color: #48d46d; }
+        .market-stall img { width: 44px; height: 44px; image-rendering: pixelated; }
+        .market-stall .aura-swatch { width: 40px; height: 40px; }
+        .market-stall b { color: var(--text-beige); font-size: 0.9rem; overflow-wrap: anywhere; }
+        .market-stall .mk-price { color: var(--text-gold); font-size: 0.95rem; }
+        .market-stall .mk-sub { color: #aaa; font-size: 0.75rem; overflow-wrap: anywhere; }
+        .market-log { display: flex; flex-direction: column; gap: 3px; color: #cbb89a; font-size: 0.8rem; max-height: 160px; overflow-y: auto; overflow-wrap: anywhere; }
+        .market-empty { color: #888; font-size: 0.85rem; text-align: center; padding: 6px; grid-column: 1 / -1; }
         .rumor-list { display: flex; flex-direction: column; gap: 4px; max-height: 220px; overflow-y: auto; }
         .rumor-item { display: flex; gap: 8px; align-items: center; background: rgba(0,0,0,0.3); padding: 5px 8px; font-size: 0.88rem; color: var(--text-beige); }
         .rumor-item .rt { flex: 1; min-width: 0; word-break: break-word; }
@@ -488,7 +508,9 @@
         .lb-avatar { width: 40px; height: 40px; object-fit: cover; border-radius: 50%; border: 2px solid #503010; margin-right: 10px; background: #000;}
 
         /* 行囊與商店 */
-        .inventory-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 10px; max-height: 320px; overflow-y: auto; padding: 10px; }
+        .inventory-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 10px; padding: 10px; }
+        /* v10.2：行囊裡每一區都照內容長高，不被壓扁成小捲軸（Steven 10/6：氣場格子被覺醒欄蓋住），整個視窗一起捲 */
+        #inventory-modal > .pixel-border > * { flex-shrink: 0; }
         .inventory-item { width: 60px; height: 60px; background: rgba(0,0,0,0.35); border: 1px solid var(--border-color); border-radius: 4px; display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; }
         .inventory-item:hover { background: rgba(255,255,255,0.08); border-color: var(--text-gold); }
         .inventory-item img { width: 52px; height: 52px; image-rendering: pixelated; }
@@ -618,6 +640,7 @@
             <button class="pixel-btn primary" onclick="openBossModal()">🐲 世界 Boss</button>
             <button class="pixel-btn info" onclick="openQuestModal()">📋 門派任務</button>
             <button class="pixel-btn primary" onclick="openDuelSetup()">🥊 對戰</button>
+            <button class="pixel-btn gold" onclick="openMarket()">🏮 江湖市集</button>
         </div>
         <div class="controls teacher-row teacher-only teacher-controls-header" style="display: none;">
             <button class="pixel-btn" onclick="openBattleModal()">⚔️ 隨機歷練</button>
@@ -671,7 +694,7 @@
         </div>
     </div>
     <div class="grid-container" id="studentGrid"></div>
-    <div class="app-footer">宗門啟示錄 Steven 加強版 v10.1 · 2026-10-01　｜　原版：chunsheng612／GameWuxia（經作者同意改作與公開）　｜　寶箱圖：DustDFG（CC-BY 4.0）</div>
+    <div class="app-footer">宗門啟示錄 Steven 加強版 v10.2 · 2026-10-06　｜　原版：chunsheng612／GameWuxia（經作者同意改作與公開）　｜　寶箱圖：DustDFG（CC-BY 4.0）</div>
 </div>
 
 <!-- 戰鬥模態框 -->
@@ -762,7 +785,7 @@
 
 <!-- 行囊模態框 -->
 <div id="inventory-modal">
-    <div class="pixel-border" style="background:var(--panel-bg); padding:20px; width:440px; max-width:92vw; max-height:86vh; overflow-y:auto; display:flex; flex-direction:column; gap:12px;">
+    <div class="pixel-border" style="background:var(--panel-bg); padding:20px; width:440px; max-width:92vw; max-height:86vh; overflow-y:auto; display:flex; flex-direction:column; gap:12px; box-sizing:border-box;">
         <h3 id="inv-modal-title" style="margin:0; color:var(--text-gold); text-align:center;">弟子的行囊</h3>
         <p style="text-align:center; color:#aaa; font-size:0.8rem; margin:0;">(裝備、氣場點擊穿戴，劍可以掛主劍＋副劍兩把，氣場等級越高能同時戴越多個；特權卡點擊使用)</p>
         <div id="inv-aura-hint" class="aura-slot-hint" style="text-align:center;"></div>
@@ -774,7 +797,7 @@
         <div class="inv-section-label">造型（升級解鎖，解鎖後可以自由換穿）</div>
         <div id="inv-outfits" class="outfit-row"></div>
         <div class="outfit-auto"><span id="inv-outfit-state"></span><button class="pixel-btn action-btn-small" onclick="setOutfit(currentInvStudentIndex, null)">跟著等級自動換</button></div>
-        <div style="display:flex; justify-content:center; gap:10px;">
+        <div style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap;">
             <button class="pixel-btn gold" onclick="openShopForCurrent()">💰 前往萬寶閣</button>
             <button class="pixel-btn" onclick="document.getElementById('inventory-modal').style.display='none'">關閉</button>
         </div>
@@ -824,6 +847,21 @@
                 <button class="pixel-btn success" onclick="saveStudentEdit()">保存</button>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- v10.2：江湖市集（學生自己擺攤、互相買賣，免登入） -->
+<div id="market-modal">
+    <div class="pixel-border ev-panel">
+        <h3 style="margin:0; color:var(--text-gold); text-align:center;">🏮 江湖市集</h3>
+        <p class="set-hint" style="margin:0; text-align:center;">劍、靈獸、氣場可以擺攤賣給同門，價格自己訂，但不能高於萬寶閣原價。按錯可以請師尊復原。</p>
+        <label class="grant-field"><span>我是</span><select id="market-me" onchange="renderMarket()"></select></label>
+        <div id="market-sell" class="market-sell"></div>
+        <div class="inv-section-label">攤位（<span id="market-count">0</span>）</div>
+        <div id="market-list" class="market-list"></div>
+        <div class="inv-section-label">最近成交</div>
+        <div id="market-log" class="market-log"></div>
+        <div style="text-align:center;"><button class="pixel-btn" onclick="closeMarket()">離開</button></div>
     </div>
 </div>
 
@@ -950,7 +988,7 @@
             </select>
         </label>
         <p id="duel-hint" class="grant-hint"></p>
-        <p class="set-hint">個人對戰各 150 血、門派對戰各 240 血（每派至少輪 6 人次），答對就打對方；兩邊都答對，比較快的打。連續答對 3 題蓄滿「必殺」，下一次打中對方傷害 ×2，放完重新累積。戰力比較高的一方傷害最多 +30%，戰力比較低的一方打贏是「以弱勝強」，獎勵加倍、聲望 +1。</p>
+        <p class="set-hint">個人對戰各 150 血、門派對戰各 240 血（每派至少輪 6 人次），答對就打對方；兩邊都答對，比較快的打。題目出來先看 3 秒才能作答。連續答對 3 題蓄滿「必殺」，下一次打中對方傷害 ×2，放完重新累積。每場隨機一種地形（森林／洞窟／火山／遺跡／冰峰），主劍跟地形搭配（青木／銳金／炎陽／晨曦／冰晶）的人傷害 +20%。看得懂的數學題，數字每次都會換。戰力比較高的一方傷害最多 +30%，戰力比較低的一方打贏是「以弱勝強」，獎勵加倍、聲望 +1。</p>
         <div class="grant-actions">
             <button class="pixel-btn" onclick="closeDuelSetup()">取消</button>
             <button class="pixel-btn success" onclick="startDuel()">⚔️ 開戰</button>
@@ -1538,6 +1576,7 @@
     // v8：世界 Boss、每日奇遇（跟弟子資料分開存，但復原和備份都會一起帶）
     const EVENTS_KEY = 'wuxia_class_events';
     const RUMOR_MAX = 50, RUMOR_LEN = 40, RUMOR_DAYS = 7, RUMOR_REP = 1;
+    const MARKET_MAX = 60, MARKET_PER_SELLER = 5, MARKET_LOG_MAX = 30;
     const BOSS_DAY_EXP = 200;   // 估血量用：一位弟子一天大約拿到的修為
     const BOSS_PRESETS = [{ label: '約 3 天', days: 3 }, { label: '約 1 週', days: 5 }, { label: '約 2 週', days: 10 }];
     const FORTUNES = [
@@ -3250,7 +3289,8 @@
             boss: null, bossHistory: [], fortune: null,
             season: null, seasonHistory: [], seasonRewards: { sect: [300, 200, 100], student: [300, 200, 100] },
             quests: DEFAULT_QUESTS.map(function (q) { return Object.assign({}, q); }), questDone: null,
-            rumors: []
+            rumors: [],
+            market: { list: [], log: [] }
         };
         if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return out;
         // 這裡會在程式很早的時候執行，不能用後面才宣告的 cleanName／SAFE_ID_RE
@@ -3333,6 +3373,21 @@
             const ids = (Array.isArray(r.ids) ? r.ids : []).map(function (x) { return evId(String(x)); }).filter(Boolean).slice(0, 40);
             if (!id || !text || !ids.length) return;
             out.rumors.push({ id: id, t: cleanTime(r.t), text: text, ids: ids });
+        });
+        // v10.2：江湖市集（攤位、交易紀錄）
+        const mk = raw.market && typeof raw.market === 'object' ? raw.market : {};
+        const mkItem = function (v) { return (typeof v === 'string' && /^[a-z_]{1,30}$/.test(v)) ? v : null; };
+        (Array.isArray(mk.list) ? mk.list : []).slice(0, MARKET_MAX).forEach(function (x) {
+            if (!x || typeof x !== 'object') return;
+            const id = evId(x.id), seller = evId(String(x.seller)), item = mkItem(x.item), price = Math.min(99999, cleanInt(x.price));
+            if (!id || !seller || !item || price < 1) return;
+            out.market.list.push({ id: id, seller: seller, item: item, price: price, t: cleanTime(x.t) });
+        });
+        (Array.isArray(mk.log) ? mk.log : []).slice(-MARKET_LOG_MAX).forEach(function (x) {
+            if (!x || typeof x !== 'object') return;
+            const seller = evId(String(x.seller)), buyer = evId(String(x.buyer)), item = mkItem(x.item), price = Math.min(99999, cleanInt(x.price));
+            if (!seller || !buyer || !item) return;
+            out.market.log.push({ t: cleanTime(x.t), seller: seller, buyer: buyer, item: item, price: price });
         });
         return out;
     }
@@ -5278,6 +5333,226 @@
         document.getElementById('rumor-modal').style.display = 'flex';
     }
     function closeRumorModal() { playSfx(sfxClick); document.getElementById('rumor-modal').style.display = 'none'; }
+
+    // ══ v10.2：江湖市集（Steven 10/6：學生不用登入，自己訂價互相買賣；價格不能高於原價）══
+    // 擺攤時東西先從行囊收進攤位（不能一邊賣一邊用），收攤就拿回來；成交時妖丹直接轉給賣家
+    function marketItem(id) {
+        const it = ITEMS[id] || AURAS[id];
+        if (!it || !(it.price > 0)) return null;
+        return (it.type === 'sword' || it.type === 'pet' || it.type === 'aura') ? it : null;
+    }
+    function marketMaxPrice(id) { const it = marketItem(id); return it ? it.price : 0; }
+    function marketMe() { return findStudentById(document.getElementById('market-me').value); }
+    function marketListingsOf(s) { return events.market.list.filter(x => String(x.seller) === String(s.id)); }
+    // 這件可不可以擺出去：回傳原因，可以就回傳空字串
+    function marketSellBlock(s, id) {
+        const it = marketItem(id);
+        if (!it) return '這件不能交易';
+        if (((s && s.inventory) || []).indexOf(id) < 0) return '行囊裡沒有';
+        if (it.type === 'sword' && swordLv(s, id) > 0 && swordCount(s, id) < 2) return '合過的劍要留一把，只能賣多的';
+        if (marketListingsOf(s).length >= MARKET_PER_SELLER) return `一個人最多擺 ${MARKET_PER_SELLER} 個攤`;
+        if (events.market.list.length >= MARKET_MAX) return '市集攤位滿了';
+        return '';
+    }
+    // 靈獸、氣場一人只能有一個：已經有、或自己也擺著同一種，就不能買
+    function marketBuyBlock(s, listing) {
+        const it = marketItem(listing.item);
+        if (!it) return '這件已經不能交易';
+        if (!findStudentById(listing.seller)) return '賣家已經不在名冊';
+        if (String(listing.seller) === String(s.id)) return '自己的攤位';
+        if (it.type !== 'sword' && ((s.inventory || []).indexOf(listing.item) >= 0 || marketListingsOf(s).some(x => x.item === listing.item))) return '已經有了';
+        if ((s.coins || 0) < listing.price) return '妖丹不夠';
+        return '';
+    }
+    function marketTakeOut(s, id) {
+        const inv = s.inventory.slice();
+        inv.splice(inv.lastIndexOf(id), 1);
+        s.inventory = inv;
+        if (inv.indexOf(id) < 0) {
+            const eq = s.equipped || (s.equipped = {});
+            if (eq.sword === id || eq.sword2 === id) { const on = equippedSwords(s).filter(x => x !== id); eq.sword = on[0] || null; eq.sword2 = on[1] || null; }
+            if (eq.pet === id) eq.pet = null;
+            if (AURAS[id]) setAuras(s, equippedAuras(s).filter(x => x !== id));
+        }
+    }
+
+    function openMarket() {
+        playSfx(sfxClick);
+        const sel = document.getElementById('market-me');
+        const keep = sel.value;
+        sel.innerHTML = '<option value="">── 先選你自己 ──</option>';
+        students.forEach(s => { const o = document.createElement('option'); o.value = String(s.id); o.textContent = `${s.name}（妖丹 ${s.coins || 0}）`; sel.appendChild(o); });
+        sel.value = findStudentById(keep) ? keep : '';
+        renderMarket();
+        document.getElementById('market-modal').style.display = 'flex';
+    }
+    function closeMarket() { playSfx(sfxClick); document.getElementById('market-modal').style.display = 'none'; }
+
+    function marketIconEl(it) {
+        if (it.type === 'aura') { const d = document.createElement('div'); d.className = 'aura-swatch'; d.style.setProperty('--aura-rgb', it.rgb); return d; }
+        const img = document.createElement('img'); img.src = it.icon || it.src; img.alt = ''; return img;
+    }
+
+    function renderMarket() {
+        const me = marketMe();
+        // 下拉選單的妖丹數字跟著更新
+        document.querySelectorAll('#market-me option').forEach(o => { const s = findStudentById(o.value); if (s) o.textContent = `${s.name}（妖丹 ${s.coins || 0}）`; });
+        // 擺攤區
+        const sell = document.getElementById('market-sell');
+        sell.innerHTML = '';
+        if (!me) {
+            const p = document.createElement('div'); p.className = 'market-note'; p.textContent = '先在上面選你自己，就可以擺攤或買東西。'; sell.appendChild(p);
+        } else {
+            const ids = [];
+            (me.inventory || []).forEach(id => { if (marketItem(id) && ids.indexOf(id) < 0) ids.push(id); });
+            const head = document.createElement('div'); head.className = 'market-note'; head.textContent = `${me.name} 要擺攤賣：`; sell.appendChild(head);
+            const row = document.createElement('div'); row.className = 'market-sell-row';
+            const pickSel = document.createElement('select'); pickSel.id = 'market-item';
+            const price = document.createElement('input'); price.type = 'number'; price.id = 'market-price'; price.min = '1'; price.step = '1'; price.inputMode = 'numeric';
+            const btn = document.createElement('button'); btn.className = 'pixel-btn success action-btn-small'; btn.textContent = '擺上攤';
+            const note = document.createElement('div'); note.className = 'market-note';
+            if (!ids.length) pickSel.innerHTML = '<option value="">行囊裡沒有可以賣的東西</option>';
+            ids.forEach(id => {
+                const it = marketItem(id), why = marketSellBlock(me, id);
+                const o = document.createElement('option'); o.value = id;
+                o.textContent = it.name + (it.type === 'sword' ? `（有 ${swordCount(me, id)} 把）` : '') + (why ? `｜${why}` : '');
+                o.disabled = !!why;
+                pickSel.appendChild(o);
+            });
+            const firstOk = ids.find(id => !marketSellBlock(me, id));
+            pickSel.value = firstOk || '';
+            const syncHint = () => {
+                const id = pickSel.value, it = marketItem(id);
+                price.max = String(marketMaxPrice(id) || 1);
+                price.placeholder = it ? `最高 ${marketMaxPrice(id)}` : '價格';
+                if (!it) { note.textContent = ''; return; }
+                note.textContent = `萬寶閣原價 ${marketMaxPrice(id)} 妖丹，價格不能更高。`
+                    + (it.type === 'pet' && petStars(me, id) > 1 ? `賣出後覺醒的 ${petStars(me, id)} 星不會跟過去。` : '')
+                    + (it.type === 'sword' ? '賣出去的是一把普通的劍（合併等級留在你身上）。' : '')
+                    + ((me.equipped && (me.equipped.pet === id || equippedAuras(me).indexOf(id) >= 0)) ? '擺攤期間會先卸下。' : '');
+            };
+            pickSel.onchange = syncHint;
+            syncHint();
+            btn.disabled = !firstOk;
+            btn.onclick = () => marketSell(me, pickSel.value, price.value);
+            price.onkeydown = e => { if (e.key === 'Enter') marketSell(me, pickSel.value, price.value); };
+            row.appendChild(pickSel); row.appendChild(price); row.appendChild(btn);
+            sell.appendChild(row); sell.appendChild(note);
+        }
+        // 攤位
+        const list = document.getElementById('market-list');
+        list.innerHTML = '';
+        document.getElementById('market-count').textContent = events.market.list.length;
+        if (!events.market.list.length) { const e = document.createElement('div'); e.className = 'market-empty'; e.textContent = '還沒有人擺攤'; list.appendChild(e); }
+        events.market.list.slice().reverse().forEach(x => {
+            const it = marketItem(x.item) || getItemData(x.item);
+            const seller = findStudentById(x.seller);
+            const card = document.createElement('div');
+            card.className = 'market-stall' + (me && String(x.seller) === String(me.id) ? ' mine' : '');
+            if (it) card.appendChild(marketIconEl(it));
+            const name = document.createElement('b'); name.textContent = it ? it.name : x.item; card.appendChild(name);
+            const pr = document.createElement('div'); pr.className = 'mk-price'; pr.textContent = `${x.price} 妖丹`; card.appendChild(pr);
+            const sub = document.createElement('div'); sub.className = 'mk-sub';
+            sub.textContent = `賣家：${seller ? seller.name : '（已離開）'}｜原價 ${marketMaxPrice(x.item) || '—'}`;
+            card.appendChild(sub);
+            const b = document.createElement('button'); b.className = 'pixel-btn action-btn-small';
+            if (me && String(x.seller) === String(me.id) || (isTeacherMode && !me)) {
+                b.textContent = '收攤'; b.onclick = () => marketCancel(x.id);
+            } else {
+                const why = me ? marketBuyBlock(me, x) : '先選你自己';
+                b.textContent = why ? why : '買下'; b.className += why ? '' : ' gold'; b.disabled = !!why;
+                b.onclick = () => marketBuy(me, x.id);
+            }
+            card.appendChild(b);
+            if (isTeacherMode && me && String(x.seller) !== String(me.id)) {
+                const t = document.createElement('button'); t.className = 'pixel-btn action-btn-small'; t.textContent = '師尊撤攤'; t.onclick = () => marketCancel(x.id); card.appendChild(t);
+            }
+            list.appendChild(card);
+        });
+        // 紀錄
+        const log = document.getElementById('market-log');
+        log.innerHTML = '';
+        if (!events.market.log.length) { const e = document.createElement('div'); e.className = 'market-empty'; e.textContent = '還沒有成交'; log.appendChild(e); }
+        events.market.log.slice().reverse().forEach(x => {
+            const d = document.createElement('div');
+            const sN = (findStudentById(x.seller) || {}).name || '（已離開）', bN = (findStudentById(x.buyer) || {}).name || '（已離開）';
+            const it = getItemData(x.item);
+            const tm = x.t ? new Date(x.t) : null;
+            d.textContent = (tm ? `${tm.getMonth() + 1}/${tm.getDate()} ` : '') + `${bN} 向 ${sN} 買了${it ? it.name : x.item}，${x.price} 妖丹`;
+            log.appendChild(d);
+        });
+    }
+
+    function marketSell(me, id, priceText) {
+        if (!me) return;
+        const why = marketSellBlock(me, id);
+        if (why) { showNotify(why); return; }
+        const max = marketMaxPrice(id);
+        const price = Number(priceText);
+        if (!Number.isInteger(price) || price < 1) { showNotify('價格要填 1 以上的整數'); return; }
+        if (price > max) { showNotify(`不能高於萬寶閣原價 ${max} 妖丹`); return; }
+        const it = marketItem(id);
+        showCustomModal({
+            title: '擺攤', showCancel: true,
+            msg: `${me.name} 要用 ${price} 妖丹賣出「${it.name}」？\n東西會先放到攤位上，沒賣掉可以收回。`,
+            onConfirm: () => {
+                pushUndo(`${me.name} 在江湖市集擺攤賣${it.name}`);
+                marketTakeOut(me, id);
+                events.market.list.push({ id: 'mk' + Date.now().toString(36) + Math.floor(Math.random() * 1296).toString(36), seller: String(me.id), item: id, price: price, t: Date.now() });
+                saveEvents(); saveQuiet(); renderGrid(); renderMarket();
+                playSfx(sfxGetItem);
+                showNotify(`「${it.name}」擺上攤了！`);
+            }
+        });
+    }
+
+    function marketCancel(listingId) {
+        const x = events.market.list.find(l => l.id === listingId);
+        if (!x) return;
+        const seller = findStudentById(x.seller);
+        const it = marketItem(x.item) || getItemData(x.item);
+        const name = it ? it.name : x.item;
+        if (seller && it && it.type !== 'sword' && (seller.inventory || []).indexOf(x.item) >= 0) { showNotify(`${seller.name} 已經又有一個${name}了，這個只能賣掉`); return; }
+        showCustomModal({
+            title: '收攤', showCancel: true,
+            msg: seller ? `把「${name}」收回 ${seller.name} 的行囊？` : `賣家已經不在名冊，「${name}」會直接撤掉。`,
+            onConfirm: () => {
+                pushUndo(`${seller ? seller.name : ''} 收攤（${name}）`);
+                events.market.list = events.market.list.filter(l => l.id !== listingId);
+                if (seller && getItemData(x.item)) seller.inventory.push(x.item);
+                saveEvents(); saveQuiet(); renderGrid(); renderMarket();
+                showNotify('已收攤');
+            }
+        });
+    }
+
+    function marketBuy(me, listingId) {
+        const x = events.market.list.find(l => l.id === listingId);
+        if (!me || !x) return;
+        const why = marketBuyBlock(me, x);
+        if (why) { showNotify(why); return; }
+        const seller = findStudentById(x.seller);
+        const it = marketItem(x.item);
+        showCustomModal({
+            title: '買下', showCancel: true,
+            msg: `${me.name} 要花 ${x.price} 妖丹，向 ${seller.name} 買「${it.name}」？`,
+            onConfirm: () => {
+                if (marketBuyBlock(me, x) || events.market.list.indexOf(x) < 0) { renderMarket(); return; }
+                pushUndo(`${me.name} 向 ${seller.name} 買${it.name}`);
+                me.coins = (me.coins || 0) - x.price;
+                seller.coins = (seller.coins || 0) + x.price;
+                if (it.type === 'pet') { if (seller.petStars) delete seller.petStars[x.item]; if (me.petStars) delete me.petStars[x.item]; }
+                me.inventory.push(x.item);
+                autoEquip(me, it);
+                events.market.list = events.market.list.filter(l => l !== x);
+                events.market.log.push({ t: Date.now(), seller: String(seller.id), buyer: String(me.id), item: x.item, price: x.price });
+                events.market.log = events.market.log.slice(-MARKET_LOG_MAX);
+                saveEvents(); saveQuiet(); renderGrid(); renderMarket();
+                playSfx(sfxGetItem);
+                showNotify(`${me.name} 買到了${it.name}！${seller.name} 妖丹 +${x.price}`);
+            }
+        });
+    }
     function renderRumorList() {
         const box = document.getElementById('rumor-list');
         box.innerHTML = '';
@@ -6004,6 +6279,7 @@
 
     function saveQuestions() {
         try { localStorage.setItem(QUESTION_KEY, JSON.stringify(questions)); } catch (e) { showNotify('題庫存不下（瀏覽器空間不足）'); }
+        qvaryPlans = null;
         markBackupDirty();
     }
 
@@ -6164,6 +6440,14 @@
                 tag.textContent = [q.subject, q.unit].filter(Boolean).join('｜');
                 meta.appendChild(tag);
             }
+            if (qvaryPlanFor(q)) {
+                const vt = document.createElement('span');
+                vt.className = 'qb-tag';
+                vt.style.color = '#96e1ff';
+                vt.title = '對戰時數字每次都會換，答案跟著重算';
+                vt.textContent = '🔀 數字會換';
+                meta.appendChild(vt);
+            }
             meta.appendChild(document.createTextNode('答案 ' + OPTION_LETTERS[q.answer] + '：' + q.options[q.answer] + '（共 ' + q.options.length + ' 個選項）'));
             main.appendChild(t);
             main.appendChild(meta);
@@ -6316,6 +6600,292 @@
         showNotify('已匯入 ' + adding.length + ' 題' + (adding.length < total ?'（題庫最多 ' + QUESTION_MAX + ' 題，多的沒放進去）' : '') + '，題庫共 ' + questions.length + ' 題');
     }
 
+    // ══ v10.2：對戰題目數字自動換（Steven 10/6：防學生背答案，不用重新匯入題庫）══
+    // 做法：同一個故事（題目去掉「第N題【步驟】…？」開頭）的幾題放在一起看，
+    // 找出「答案是一串數字」的那題，試著用故事裡的數字推算答案（某數的倍數／因數、在範圍內…）。
+    // 推算結果跟題庫標的答案一模一樣、而且其他選項都不對，才算看懂；看不懂的題目照原樣出。
+    // 出題時換一組新數字：故事和步驟題的選項跟著換，計算題重新算答案、重新產生錯誤選項。
+    const QVary = (function () {
+        const CN = '零一二三四五六七八九';
+        const CN_RANGE_RE = /([一二三四五六七八九])百([一二三四五六七八九])十幾/;
+        const PREFIX_RE = /^(?:第\s*\d+\s*題\s*)?(?:【[^】]{0,20}】[^？?]{0,30}[？?]\s*)?/;
+        const MAX_TRIES = 60;
+
+        function split(text) {
+            const p = (text.match(PREFIX_RE) || [''])[0];
+            return { prefix: p, story: text.slice(p.length) };
+        }
+        function nums(str) { return (String(str).match(/\d+/g) || []).map(Number); }
+        function uniqSorted(a) { return a.filter((x, i) => a.indexOf(x) === i).sort((x, y) => x - y); }
+        function same(a, b) { return a.length === b.length && a.every((x, i) => x === b[i]); }
+        function cnRange(story) {
+            const m = story.match(CN_RANGE_RE);
+            if (!m) return null;
+            const lo = CN.indexOf(m[1]) * 100 + CN.indexOf(m[2]) * 10;
+            return { lo: lo, hi: lo + 9, text: m[0] };
+        }
+        function cnText(lo) { return CN[Math.floor(lo / 100)] + '百' + CN[Math.floor(lo / 10) % 10] + '十幾'; }
+        function multiplesIn(k, lo, hi) { const o = []; for (let x = lo; x <= hi; x++) if (x % k === 0) o.push(x); return o; }
+        function factorsOf(n) { const o = []; for (let x = 1; x <= n; x++) if (n % x === 0) o.push(x); return o; }
+        function factorsIn(n, lo, hi) { return factorsOf(n).filter(x => x >= lo && x <= hi); }
+
+        // 依題型算出正確答案（數字由小到大）
+        function solve(m) {
+            if (m.type === 'mul') return multiplesIn(m.k, m.lo, m.hi);
+            if (m.type === 'fac') return factorsOf(m.n);
+            if (m.type === 'facR') return factorsIn(m.n, m.lo, m.hi);
+            return null; // 單選題型答案在產生時決定
+        }
+        const PICK_TEST = {
+            pickMul: (m, x) => x % m.k === 0,
+            pickNotMul: (m, x) => x % m.k !== 0,
+            pickFac: (m, x) => m.n % x === 0,
+            pickNotFac: (m, x) => m.n % x !== 0
+        };
+
+        // 從計算題反推題型。stNums：故事裡的數字；cn：國字範圍；ans：正確選項的數字；wrong：錯誤選項的數字
+        function infer(stNums, cn, ans, wrong) {
+            const N = uniqSorted(stNums);
+            const ranges = [];
+            N.forEach(a => N.forEach(b => { if (a < b) ranges.push({ lo: a, hi: b }); }));
+            if (cn) ranges.push({ lo: cn.lo, hi: cn.hi, cn: true });
+            const ok = function (m, set) {
+                if (!same(set, ans)) return false;
+                if (wrong.some(w => same(w, set))) return false;
+                // 故事裡每個數字都要有角色，不然不敢換
+                const used = [m.k, m.n].concat(m.cn ? [] : [m.lo, m.hi]).filter(x => x !== undefined);
+                return N.every(x => used.indexOf(x) >= 0);
+            };
+            const found = [];
+            N.forEach(k => ranges.forEach(r => {
+                if (k === r.lo || k === r.hi) return;
+                const m = { type: 'mul', k: k, lo: r.lo, hi: r.hi, cn: !!r.cn };
+                if (ok(m, solve(m))) found.push(m);
+            }));
+            N.forEach(n => {
+                const m = { type: 'fac', n: n };
+                if (ok(m, solve(m))) found.push(m);
+                ranges.forEach(r => {
+                    if (n === r.lo || n === r.hi) return;
+                    const m2 = { type: 'facR', n: n, lo: r.lo, hi: r.hi, cn: !!r.cn };
+                    if (ok(m2, solve(m2))) found.push(m2);
+                });
+            });
+            if (ans.length === 1 && wrong.length && wrong.every(w => w.length === 1)) {
+                const a = ans[0];
+                N.forEach(v => Object.keys(PICK_TEST).forEach(t => {
+                    const m = t.indexOf('Mul') >= 0 ? { type: t, k: v } : { type: t, n: v };
+                    if (v === a || !PICK_TEST[t](m, a) || wrong.some(w => PICK_TEST[t](m, w[0]))) return;
+                    if (N.length !== 1) return;
+                    found.push(m);
+                }));
+            }
+            return found.length === 1 ? found[0] : null; // 兩種以上都說得通＝看不懂，不換
+        }
+
+        // 選項的寫法（單位、連接詞）照原本正確選項
+        function styleOf(opt) {
+            const s = String(opt);
+            const tail = s.match(/\d+(\s*[^\d、，,和或]*)$/);
+            const unit = tail ? tail[1] : '';
+            const each = unit.trim() ? (s.split(unit.trim()).length - 1) > 1 : false;
+            const conj = s.indexOf('或') >= 0 ? '或' : (s.indexOf('和') >= 0 ? '和' : '、');
+            return { unit: unit, each: each, conj: conj };
+        }
+        function fmt(list, st) {
+            const items = list.map(n => st.each ? n + st.unit : String(n));
+            let out;
+            if (items.length === 1) out = items[0];
+            else if (st.conj === '、') out = items.join('、');
+            else out = items.slice(0, -1).join('、') + st.conj + ' ' + items[items.length - 1];
+            return st.each ? out : out + st.unit;
+        }
+
+        function rint(rng, a, b) { return a + Math.floor(rng() * (b - a + 1)); }
+        function pick(rng, arr) { return arr[Math.floor(rng() * arr.length)]; }
+        function niceStep(v) { return v % 10 === 0 ? 10 : (v % 5 === 0 ? 5 : 1); }
+
+        // 換一組新數字（跟原本差不多大、答案個數差不多）
+        function newParams(m, ans, rng) {
+            if (m.type === 'mul') {
+                const k = rint(rng, Math.max(2, m.k - 3), Math.min(m.k + 3, Math.max(m.k, 10)));
+                let lo, hi;
+                if (m.cn) {
+                    lo = Math.floor(m.lo / 100) * 100 + rint(rng, 2, 9) * 10;
+                    hi = lo + 9;
+                    if (lo % k === 0) return null; // 「一百六十幾」算不算 160 說不清楚，避開
+                } else {
+                    const st = niceStep(m.lo), w = m.hi - m.lo;
+                    lo = Math.max(st, Math.round(rint(rng, Math.round(m.lo * 0.6), Math.round(m.lo * 1.5)) / st) * st);
+                    hi = lo + w;
+                    if (lo % k === 0 || hi % k === 0) return null; // 邊界剛好整除時「之間」包不包含說不清楚，避開
+                }
+                if (k >= lo) return null;
+                const set = multiplesIn(k, lo, hi);
+                if (set.length < Math.max(1, Math.min(2, ans.length)) || set.length > Math.max(3, ans.length)) return null;
+                return { type: 'mul', k: k, lo: lo, hi: hi, cn: m.cn };
+            }
+            if (m.type === 'fac') {
+                const n = rint(rng, Math.max(8, Math.round(m.n * 0.5)), Math.round(m.n * 1.6));
+                const c = factorsOf(n).length;
+                if (c < 6 || c > 9) return null; // 因數太少（像 26 只有 4 個）練不到
+                return { type: 'fac', n: n };
+            }
+            if (m.type === 'facR') {
+                const n = rint(rng, Math.max(12, Math.round(m.n * 0.6)), Math.round(m.n * 1.5));
+                const st = niceStep(m.lo), w = m.hi - m.lo;
+                const lo = Math.max(2, Math.round(rint(rng, Math.round(m.lo * 0.6), Math.round(m.lo * 1.6)) / st) * st);
+                const hi = lo + w;
+                if (hi >= n || n % lo === 0 || n % hi === 0) return null;
+                const set = factorsIn(n, lo, hi);
+                if (set.length < 2 || set.length > 3) return null;
+                return { type: 'facR', n: n, lo: lo, hi: hi };
+            }
+            if (m.k !== undefined) return { type: m.type, k: rint(rng, Math.max(2, m.k - 3), Math.min(m.k + 3, Math.max(m.k, 10))) };
+            const n = rint(rng, Math.max(12, Math.round(m.n * 0.6)), Math.round(m.n * 1.5));
+            const proper = factorsOf(n).filter(x => x > 1 && x < n);
+            if (proper.length < 4) return null;
+            return { type: m.type, n: n };
+        }
+
+        // 計算題：正確答案＋常見錯法當錯誤選項
+        function buildOptions(p, ans0, count, rng) {
+            const t = p.type;
+            if (PICK_TEST[t]) {
+                const top = Math.max(ans0[0] * 1.5, 20);
+                const lo = t.indexOf('Fac') >= 0 ? 2 : Math.max(2, Math.round(ans0[0] * 0.5));
+                const hi = t.indexOf('Fac') >= 0 ? p.n - 1 : Math.round(top);
+                const pool = [], bad = [];
+                for (let x = lo; x <= hi; x++) (PICK_TEST[t](p, x) ? pool : bad).push(x);
+                if (!pool.length || bad.length < count - 1) return null;
+                const right = pick(rng, pool);
+                const wrong = [];
+                while (wrong.length < count - 1) { const x = pick(rng, bad); if (wrong.indexOf(x) < 0) wrong.push(x); }
+                return { right: [right], wrong: wrong.map(x => [x]) };
+            }
+            const right = solve(p);
+            const cands = [];
+            if (t === 'mul' || t === 'facR') cands.push([p.lo, p.hi]);
+            if (t === 'mul') {
+                const mid = Math.round((right[0] + right[right.length - 1]) / 2);
+                cands.push(uniqSorted(right.concat([mid % p.k ? mid : mid + 1])));
+                cands.push(right.map(x => x + 2).filter(x => x <= p.hi));
+                cands.push(multiplesIn(p.k + (p.k > 3 ? -1 : 1), p.lo, p.hi));
+                if (right.length >= 2) cands.push(right.slice(1));
+                cands.push(uniqSorted([right[0] - p.k].concat(right)).filter(x => x > 0));
+            }
+            if (t === 'fac') {
+                cands.push([p.n, p.n * 2, p.n * 3]);
+                cands.push(right.slice(0, -1));
+                cands.push(multiplesIn(2, 2, Math.floor(p.n / 2)).slice(0, 6));
+                cands.push(right.slice(1, -1));
+            }
+            if (t === 'facR') {
+                const extra = [];
+                for (let x = p.lo + 1; x < p.hi; x++) if (p.n % x && right.indexOf(x) < 0) extra.push(x);
+                if (extra.length) cands.push(uniqSorted(right.concat([pick(rng, extra)])));
+                const below = factorsOf(p.n).filter(x => x < p.lo && x > 1);
+                if (below.length) cands.push(uniqSorted([below[below.length - 1], right[right.length - 1]]));
+                cands.push(factorsOf(p.n).filter(x => x <= p.hi && x > 1));
+                if (right.length >= 2) cands.push(right.slice(0, -1));
+            }
+            const wrong = [];
+            cands.forEach(c => {
+                if (wrong.length >= count - 1 || !c.length || same(c, right)) return;
+                if (wrong.some(w => same(w, c))) return;
+                wrong.push(c);
+            });
+            if (wrong.length < count - 1) return null;
+            return { right: right, wrong: wrong };
+        }
+
+        function mapNumbers(str, map) {
+            return String(str).replace(/\d+/g, d => (map[d] !== undefined ? String(map[d]) : d));
+        }
+
+        // bank：整個題庫。回傳 { 題目id: 計畫 }，只有看得懂的題目會出現
+        function analyze(bank) {
+            const groups = {};
+            bank.forEach(q => {
+                const sp = split(q.text);
+                if (!/\d|[一二三四五六七八九]百/.test(sp.story)) return;
+                (groups[sp.story] = groups[sp.story] || []).push(q);
+            });
+            const plans = {};
+            Object.keys(groups).forEach(story => {
+                const cn = cnRange(story);
+                const stNums = nums(story.replace(CN_RANGE_RE, ''));
+                if (!stNums.length && !cn) return;
+                let model = null, calcIds = [], ans0 = null;
+                groups[story].forEach(q => {
+                    const sets = q.options.map(o => uniqSorted(nums(o)));
+                    if (sets.some(s => !s.length)) return;
+                    const m = infer(stNums, cn, sets[q.answer], sets.filter((_, i) => i !== q.answer));
+                    if (!m) return;
+                    if (model && JSON.stringify(model) !== JSON.stringify(m)) { model = 'conflict'; return; }
+                    if (model !== 'conflict') { model = m; ans0 = sets[q.answer]; calcIds.push(q.id); }
+                });
+                if (!model || model === 'conflict') return;
+                groups[story].forEach(q => {
+                    plans[q.id] = { model: model, cn: cn, ans0: ans0, calc: calcIds.indexOf(q.id) >= 0 };
+                });
+            });
+            return plans;
+        }
+
+        // 產生換過數字的題目；換不出來（例如試很多次都撞選項）就回傳 null，照原題出
+        function vary(q, plan, rng) {
+            rng = rng || Math.random;
+            const sp = split(q.text);
+            for (let tries = 0; tries < MAX_TRIES; tries++) {
+                const p = newParams(plan.model, plan.ans0, rng);
+                if (!p) continue;
+                const m = plan.model;
+                const map = {};
+                const put = function (a, b) { if (a !== undefined && b !== undefined) map[a] = b; };
+                put(m.k, p.k); put(m.n, p.n); put(m.lo, p.lo); put(m.hi, p.hi);
+                const vals = Object.keys(map).map(k => map[k]);
+                if (uniqSorted(vals).length !== vals.length) continue;
+                let story = mapNumbers(sp.story.replace(CN_RANGE_RE, '\u0001'), map);
+                if (plan.cn) story = story.replace('\u0001', cnText(p.lo));
+                let options, answer = q.answer;
+                if (plan.calc) {
+                    const built = buildOptions(p, plan.ans0, q.options.length, rng);
+                    if (!built) continue;
+                    const st = styleOf(q.options[q.answer]);
+                    const wrong = built.wrong.slice();
+                    options = q.options.map((_, i) => fmt(i === answer ? built.right : wrong.shift(), st));
+                    // 自我檢查：正確選項真的對、錯的真的錯
+                    const check = PICK_TEST[p.type]
+                        ? options.every((o, i) => PICK_TEST[p.type](p, nums(o)[0]) === (i === answer))
+                        : options.every((o, i) => same(uniqSorted(nums(o)), solve(p)) === (i === answer));
+                    if (!check) continue;
+                } else {
+                    // 選項裡沒換的數字（例如「要超過 170 人」）跟換過的數字比大小的關係要不變，不然錯的選項可能變成對的
+                    const olds = Object.keys(map).map(Number);
+                    const keepsOrder = q.options.every(o => nums(o).every(x => map[x] !== undefined || olds.every(v => (x < v) === (x < map[v]) && (x > v) === (x > map[v]))));
+                    if (!keepsOrder) continue;
+                    options = q.options.map(o => mapNumbers(o, map));
+                }
+                if (options.some(o => o.length > 40)) continue;
+                if (uniqSorted(options.map(o => o.replace(/\s/g, ''))).length !== options.length) continue;
+                const text = sp.prefix + story;
+                if (text.length > 150) continue;
+                return Object.assign({}, q, { text: text, options: options, answer: answer, varied: true });
+            }
+            return null;
+        }
+
+        return { analyze: analyze, vary: vary, _t: { split, infer, styleOf, fmt, solve, cnText } };
+    })();
+
+    // 題庫改過就重新分析（saveQuestions 會清掉）
+    let qvaryPlans = null, qvaryBank = null;
+    function qvaryPlanFor(q) {
+        if (!qvaryPlans || qvaryBank !== questions) { qvaryPlans = QVary.analyze(questions); qvaryBank = questions; }
+        return q ? qvaryPlans[q.id] : null;
+    }
+
     // ══ 答題對戰 ══
     // v10：血量加厚。門派 240：就算一方全勝＋戰力加成 +30%＋必殺，也要第 6 題才倒（每派至少輪 6 人次）
     const DUEL_HP = { solo: 150, sect: 240 };
@@ -6328,6 +6898,19 @@
     const DUEL_SPECIAL_NAMES = { sword_fire: '烈焰焚天', sword_wood: '萬木歸宗', sword_gold: '金剛破甲', sword_ice: '冰封千里', sword_light: '曦光萬丈' };
     const DUEL_MAX_BONUS = 0.3;
     const DUEL_AUTO_NEXT_MS = 3000;
+    // v10.2：題目出來先看 3 秒才能按（Steven 10/6），比快慢、倒數都從能按的那一刻算
+    const DUEL_LOCK_MS = 3000;
+    // v10.2：地形跟主劍搭配（地利），打中對方傷害 +20%。順序跟 BATTLE_BG 一樣
+    const DUEL_TERRAIN = [
+        { icon: '🌲', name: '森林', sword: 'sword_wood' },
+        { icon: '⛏️', name: '洞窟', sword: 'sword_gold' },
+        { icon: '🌋', name: '火山', sword: 'sword_fire' },
+        { icon: '🏛️', name: '遺跡', sword: 'sword_light' },
+        { icon: '🏔️', name: '冰峰', sword: 'sword_ice' }
+    ];
+    const DUEL_TERRAIN_BONUS = 0.2;
+    function duelTerrainMatch(t, rep) { return !!(t && rep && equippedSwords(rep)[0] === t.sword); }
+    function duelTerrainLabel(t) { return t ? t.icon + ' ' + t.name + '（主劍是' + ITEMS[t.sword].name + '的人傷害 +' + Math.round(DUEL_TERRAIN_BONUS * 100) + '%）' : ''; }
     const DUEL_KEYS = { L: ['1', '2', '3', '4'], R: ['7', '8', '9', '0'] };
     const DUEL_REWARD = {
         // v9.8：輸了也有妖丹（個人 50、門派 30），贏的跟著調高，贏還是比輸多一倍
@@ -6455,7 +7038,8 @@
         document.getElementById('duel-right-cp').innerText = r ? unit + rc : '';
         const hint = document.getElementById('duel-hint');
         const n = questionsInScope(document.getElementById('duel-scope').value).length;
-        let msg = '題目範圍 ' + n + ' 題';
+        const nv = questionsInScope(document.getElementById('duel-scope').value).filter(function (q) { return qvaryPlanFor(q); }).length;
+        let msg = '題目範圍 ' + n + ' 題' + (nv ? '（其中 ' + nv + ' 題數字會自動換）' : '');
         if (l && r && l !== r && lc !== rc) {
             const strong = lc > rc ? 'L' : 'R';
             const d = duelDamage(Math.max(lc, rc), Math.min(lc, rc));
@@ -6525,8 +7109,11 @@
             autoId: null
         };
         document.getElementById('duel-setup-modal').style.display = 'none';
-        document.getElementById('duel-stage').style.backgroundImage = `url('${BATTLE_BG[Math.floor(Math.random() * BATTLE_BG.length)]}')`;
+        const bgIdx = Math.floor(Math.random() * BATTLE_BG.length);
+        duel.terrain = DUEL_TERRAIN[bgIdx] || null;
+        document.getElementById('duel-stage').style.backgroundImage = `url('${BATTLE_BG[bgIdx]}')`;
         document.getElementById('duel-modal').style.display = 'flex';
+        if (duel.terrain) showNotify('這場地形：' + duelTerrainLabel(duel.terrain));
         document.getElementById('duel-answers').style.display = '';
         document.getElementById('duel-quit-btn').innerText = '結束對戰';
         document.getElementById('duel-quit-btn').onclick = endDuelEarly;
@@ -6561,7 +7148,8 @@
         const k = side.key;
         const rep = side.rep;
         document.getElementById('duel-name-' + k).textContent = side.name;
-        document.getElementById('duel-sub-' + k).textContent = (duel.mode === 'sect' && rep ? '代表：' + rep.name + '　' : '') + (duel.mode === 'sect' ? '平均戰力 ' : '戰力 ') + side.cp;
+        document.getElementById('duel-sub-' + k).textContent = (duel.mode === 'sect' && rep ? '代表：' + rep.name + '　' : '') + (duel.mode === 'sect' ? '平均戰力 ' : '戰力 ') + side.cp
+            + (duelTerrainMatch(duel.terrain, rep) ? '　' + duel.terrain.icon + '地利 +' + Math.round(DUEL_TERRAIN_BONUS * 100) + '%' : '');
         const pct = Math.max(0, side.hp) / side.maxHp * 100;
         const fill = document.getElementById('duel-hp-' + k);
         fill.style.width = pct + '%';
@@ -6586,8 +7174,11 @@
     function duelNextQuestion() {
         if (!duel || duel.phase === 'end' || duel.phase === 'finishing') return;
         clearTimeout(duel.autoId);
-        const q = duelDrawQuestion();
-        if (!q) { showNotify('題目都被刪掉了，對戰結束'); closeDuel(); return; }
+        const base = duelDrawQuestion();
+        if (!base) { showNotify('題目都被刪掉了，對戰結束'); closeDuel(); return; }
+        // v10.2：看得懂的數學題每次換一組數字（換不出來就出原題）
+        const plan = qvaryPlanFor(base);
+        const q = (plan && QVary.vary(base, plan)) || base;
         duel.round++;
         duelPickRep(duel.sides.L);
         duelPickRep(duel.sides.R);
@@ -6599,7 +7190,8 @@
         duel.paused = false;
         duel.elapsed = 0;
         duel.startedAt = performance.now();
-        document.getElementById('duel-round').textContent = '第 ' + duel.round + ' 題' + (q.subject || q.unit ? '｜' + [q.subject, q.unit].filter(Boolean).join(' ') : '');
+        document.getElementById('duel-round').textContent = '第 ' + duel.round + ' 題' + (q.subject || q.unit ? '｜' + [q.subject, q.unit].filter(Boolean).join(' ') : '')
+            + (duel.terrain ? '｜地形 ' + duel.terrain.icon + duel.terrain.name : '');
         document.getElementById('duel-question').textContent = q.text;
         document.getElementById('duel-result').textContent = '';
         document.getElementById('duel-next-btn').style.display = 'none';
@@ -6649,19 +7241,24 @@
 
     function duelTick() {
         if (!duel || duel.phase !== 'answer') return;
-        const left = Math.max(0, duel.timeLimit - duelElapsed());
+        const el = duelElapsed();
+        const waiting = el < DUEL_LOCK_MS;
+        const left = Math.max(0, duel.timeLimit + DUEL_LOCK_MS - el);
         const t = document.getElementById('duel-timer');
-        t.textContent = duel.paused ? '暫停中' : Math.ceil(left / 1000);
-        t.classList.toggle('urgent', !duel.paused && left <= 5000);
+        t.textContent = duel.paused ? '暫停中' : (waiting ? '看題 ' + Math.ceil((DUEL_LOCK_MS - el) / 1000) : Math.ceil(left / 1000));
+        t.classList.toggle('urgent', !duel.paused && !waiting && left <= 5000);
+        t.classList.toggle('waiting', !duel.paused && waiting);
+        ['L', 'R'].forEach(function (k) { document.getElementById('duel-opts-' + k).classList.toggle('waiting', waiting); });
         if (!duel.paused && left <= 0) duelReveal();
     }
 
     // pos：按下的是畫面上第幾個按鈕
     function duelAnswer(k, pos) {
         if (!duel || duel.phase !== 'answer' || duel.paused || duel.picks[k]) return;
+        if (duelElapsed() < DUEL_LOCK_MS) return; // 還在看題
         const optIdx = duel.current.order[pos];
         if (optIdx === undefined) return;
-        duel.picks[k] = { choice: optIdx, ms: Math.round(duelElapsed()) };
+        duel.picks[k] = { choice: optIdx, ms: Math.round(duelElapsed() - DUEL_LOCK_MS) };
         playSfx(sfxClick);
         const box = document.getElementById('duel-opts-' + k);
         box.classList.add('locked');
@@ -6675,10 +7272,11 @@
         duel.phase = 'reveal';
         clearInterval(duel.timerId);
         document.getElementById('duel-timer').textContent = '';
+        document.getElementById('duel-timer').classList.remove('waiting');
         const q = duel.current.q;
         ['L', 'R'].forEach(function (k) {
             const box = document.getElementById('duel-opts-' + k);
-            box.classList.remove('locked');
+            box.classList.remove('locked', 'waiting');
             box.classList.add('revealed');
             box.querySelectorAll('.duel-opt').forEach(function (b) {
                 const idx = Number(b.dataset.opt);
@@ -6705,13 +7303,16 @@
         const def = duel.sides[res.winner === 'L' ? 'R' : 'L'];
         const d = duelDamage(att.cp, def.cp);
         const special = att.combo >= DUEL_COMBO_NEED;
-        const dmg = special ? d.dmg * DUEL_SPECIAL_MULT : d.dmg;
+        const terrainHit = duelTerrainMatch(duel.terrain, att.rep);
+        const baseDmg = terrainHit ? Math.round(d.dmg * (1 + DUEL_TERRAIN_BONUS)) : d.dmg;
+        const dmg = special ? baseDmg * DUEL_SPECIAL_MULT : baseDmg;
         const spName = special ? duelSpecialName(att.rep) : '';
         if (special) { att.combo = 0; duelNoteSpecial(att.rep); }
         def.hp = Math.max(0, def.hp - dmg);
         // 最後一擊：勝負已定，之後按「結束對戰」會直接結算，不會變成「不發獎勵」
         if (def.hp <= 0) { duel.phase = 'finishing'; duel.winKey = att.key; }
-        resultEl.textContent = nameOf(res.winner) + (res.reason === 'faster' ? ' 快了 ' + (res.diffMs / 1000).toFixed(1) + ' 秒，' : ' 答對，') + (special ? '使出必殺「' + spName + '」！' : '') + '造成 ' + dmg + ' 傷害' + (d.bonus > 0 ? '（戰力壓制 +' + Math.round(d.bonus * 100) + '%）' : '') + '\n' + ansText;
+        const extras = [d.bonus > 0 ? '戰力壓制 +' + Math.round(d.bonus * 100) + '%' : '', terrainHit ? duel.terrain.icon + '地利 +' + Math.round(DUEL_TERRAIN_BONUS * 100) + '%' : ''].filter(Boolean);
+        resultEl.textContent = nameOf(res.winner) + (res.reason === 'faster' ? ' 快了 ' + (res.diffMs / 1000).toFixed(1) + ' 秒，' : ' 答對，') + (special ? '使出必殺「' + spName + '」！' : '') + '造成 ' + dmg + ' 傷害' + (extras.length ? '（' + extras.join('、') + '）' : '') + '\n' + ansText;
         renderDuelSide(att);
         const hitMs = duelStrikeAnim(res.winner, dmg, special ? spName : '');
         const thisDuel = duel;
