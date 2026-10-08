@@ -461,6 +461,12 @@
             filter: drop-shadow(0 0 6px var(--glow)) drop-shadow(0 0 18px var(--glow)); }
 
         /* ── v4：行囊裡的造型與神獸覺醒 ── */
+        .stored-chest-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; margin-top: 6px; }
+        .stored-chest { min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 2px; background: rgba(0,0,0,0.3); border: 1px solid #503010; border-radius: 4px; padding: 4px; color: var(--text-beige); font-size: 0.75rem; text-align: center; word-break: keep-all; }
+        .stored-chest.tier-2 { border-color: #2a7fa0; }
+        .stored-chest.tier-3 { border-color: #c792ea; }
+        .stored-chest img { width: 56px; height: 56px; image-rendering: pixelated; }
+        .stored-chest button { touch-action: manipulation; }
         .inv-section-label { color: var(--text-brown); font-size: 0.9rem; border-bottom: 1px solid #503010; padding-bottom: 4px; }
         .outfit-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
         .outfit-opt { position: relative; background: rgba(0,0,0,0.35); border: 1px solid var(--border-color); border-radius: 4px; padding: 4px 2px; cursor: pointer; text-align: center; font-size: 0.72rem; color: var(--text-beige); font-family: inherit; }
@@ -558,6 +564,14 @@
         .quest-edit-row { display: grid; grid-template-columns: 1fr 70px 70px auto; gap: 6px; align-items: center; color: var(--text-beige); }
         .quest-edit-row input { width: 100%; box-sizing: border-box; }
         .lb-history { color: #bbb; font-size: 0.85rem; line-height: 1.6; }
+        .lb-duel-end { display: flex; justify-content: center; align-items: center; gap: 8px; color: var(--text-beige); font-size: 0.9rem; flex-wrap: wrap; }
+        .lb-duel-end input { min-width: 0; max-width: 100%; font-family: inherit; font-size: 0.9rem; padding: 2px 4px; }
+        .lb-duel-due { color: #ffb347; }
+        .lb-sub { display: block; font-size: 0.7em; color: #aaa; }
+        .duel-rw { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+        .duel-rw label { display: flex; align-items: center; gap: 2px; font-size: 0.8rem; white-space: nowrap; }
+        .ev-panel .duel-rw input { width: 64px; padding: 3px; font-size: 0.9rem; }
+        .duel-settle-name { min-width: 0; flex: 1 1 140px; overflow-wrap: anywhere; }
         .lb-history summary { cursor: pointer; color: var(--text-gold); }
         .tier-tag { font-size: 0.7rem; padding: 0 4px; margin-right: 4px; border: 1px solid #a88; color: #ddd; vertical-align: middle; }
         .tier-tag.tier-2 { border-color: #00d2ff; color: #8fe3ff; }
@@ -694,7 +708,7 @@
         </div>
     </div>
     <div class="grid-container" id="studentGrid"></div>
-    <div class="app-footer">宗門啟示錄 Steven 加強版 v10.2 · 2026-10-06　｜　原版：chunsheng612／GameWuxia（經作者同意改作與公開）　｜　寶箱圖：DustDFG（CC-BY 4.0）</div>
+    <div class="app-footer">宗門啟示錄 Steven 加強版 v10.3 · 2026-10-08　｜　原版：chunsheng612／GameWuxia（經作者同意改作與公開）　｜　寶箱圖：DustDFG（CC-BY 4.0）</div>
 </div>
 
 <!-- 戰鬥模態框 -->
@@ -734,14 +748,23 @@
 
 <!-- 排行榜模態框 -->
 <div id="leaderboard-modal">
-    <div class="pixel-border" style="background:var(--panel-bg); padding:20px; width:450px; max-height:80vh; display:flex; flex-direction:column; gap:10px;">
+    <div class="pixel-border" style="background:var(--panel-bg); padding:20px; width:450px; max-width:94vw; box-sizing:border-box; max-height:80vh; display:flex; flex-direction:column; gap:10px;">
         <h2 style="margin:0; color:var(--text-gold); text-align:center; text-shadow: 2px 2px 0 #000;">🏆 宗門戰力榜</h2>
         <div class="lb-tabs">
             <button class="pixel-btn action-btn-small lb-tab active" id="lb-scope-season" onclick="setLbScope('season')">本季</button>
             <button class="pixel-btn action-btn-small lb-tab" id="lb-scope-all" onclick="setLbScope('all')">總戰力</button>
             <button class="pixel-btn action-btn-small lb-tab" id="lb-scope-rep" onclick="setLbScope('rep')">🌟 聲望</button>
+            <button class="pixel-btn action-btn-small lb-tab" id="lb-scope-duel" onclick="setLbScope('duel')">🥊 對戰</button>
         </div>
         <div class="season-info" id="lb-season-info"></div>
+        <div class="lb-duel-end" id="lb-duel-end" style="display:none;">
+            <label for="lb-duel-end-date">結算日</label>
+            <input type="date" id="lb-duel-end-date" onchange="setDuelEndDate(this.value)">
+        </div>
+        <div class="lb-tabs" id="lb-duel-tabs" style="display:none;">
+            <button class="pixel-btn action-btn-small lb-tab active" id="lb-duel-n" onclick="setLbDuelKey('n')">比場數</button>
+            <button class="pixel-btn action-btn-small lb-tab" id="lb-duel-c" onclick="setLbDuelKey('c')">比答對題數</button>
+        </div>
         <div class="lb-tabs">
             <button class="pixel-btn action-btn-small lb-tab active" id="lb-tab-student" onclick="setLbMode('student')">弟子榜</button>
             <button class="pixel-btn action-btn-small lb-tab" id="lb-tab-sect" onclick="setLbMode('sect')">門派榜</button>
@@ -755,7 +778,9 @@
         </div>
         <div id="lb-container" style="flex-grow:1; overflow-y:auto;"></div>
         <button class="pixel-btn gold" id="lb-settle-btn" onclick="openSeasonSettle()" style="display:none;">🏁 結算本季</button>
+        <button class="pixel-btn gold" id="lb-duel-settle-btn" onclick="openDuelSettle()" style="display:none;">🏁 結算對戰統計</button>
         <details class="lb-history" id="lb-season-history" style="display:none;"><summary>歷屆賽季</summary><div id="lb-season-history-list"></div></details>
+        <details class="lb-history" id="lb-duel-history" style="display:none;"><summary>歷屆對戰統計</summary><div id="lb-duel-history-list"></div></details>
         <button class="pixel-btn" onclick="document.getElementById('leaderboard-modal').style.display='none'">關閉</button>
     </div>
 </div>
@@ -790,6 +815,7 @@
         <p style="text-align:center; color:#aaa; font-size:0.8rem; margin:0;">(裝備、氣場點擊穿戴，劍可以掛主劍＋副劍兩把，氣場等級越高能同時戴越多個；特權卡點擊使用)</p>
         <div id="inv-aura-hint" class="aura-slot-hint" style="text-align:center;"></div>
         <div id="inv-container" class="inventory-grid"></div>
+        <div id="inv-chests"></div>
         <div id="inv-merge"></div>
         <div id="inv-awaken"></div>
         <div class="inv-section-label">🏅 武林成就（達成條件自動拿到，每枚聲望 +1）</div>
@@ -1066,12 +1092,13 @@
 
 <!-- 系統提示模態框 -->
 <div id="system-modal">
-    <div class="pixel-border" style="background:var(--panel-bg); padding:20px; width:300px; text-align:center; display:flex; flex-direction:column; gap:15px;">
+    <div class="pixel-border" style="background:var(--panel-bg); padding:20px; width:300px; max-width:90vw; box-sizing:border-box; text-align:center; display:flex; flex-direction:column; gap:15px;">
         <h3 id="modal-title" style="margin:0; color:var(--text-gold);">提示</h3>
         <p id="modal-msg" style="margin:0; color:var(--text-beige);"></p>
         <div id="modal-input-container" style="display:none;"><input type="text" id="modal-input" style="width:90%; font-size:1.1rem; text-align:center; padding: 5px;"></div>
-        <div style="display:flex; justify-content:center; gap:10px; margin-top:5px;">
+        <div style="display:flex; justify-content:center; gap:10px; margin-top:5px; flex-wrap:wrap;">
             <button id="modal-cancel-btn" class="pixel-btn" style="display:none;">取消</button>
+            <button id="modal-alt-btn" class="pixel-btn gold" style="display:none;"></button>
             <button id="modal-confirm-btn" class="pixel-btn success">確定</button>
         </div>
     </div>
@@ -1374,7 +1401,8 @@
     document.addEventListener('click', () => { if (isMusicEnabled && bgmMain.paused && bgmBattle.paused && document.getElementById('battle-modal').style.display === 'none') playBGM('main'); }, {once:true});
 
     // 通用系統彈窗
-    function showCustomModal({ title, msg, hasInput = false, isPassword = false, showCancel = false, onConfirm, onCancel }) {
+    // v10.3：altText／onAlt 多一顆按鈕（寶箱「存起來」用）；confirmText 換掉「確定」兩個字
+    function showCustomModal({ title, msg, hasInput = false, isPassword = false, showCancel = false, onConfirm, onCancel, confirmText, altText, onAlt }) {
         const modal = document.getElementById('system-modal');
         document.getElementById('modal-title').innerText = title || "提示";
         document.getElementById('modal-msg').innerText = msg || "";
@@ -1390,9 +1418,15 @@
         cancelBtn.style.display = showCancel ? 'block' : 'none';
         cancelBtn.onclick = () => { modal.style.display = 'none'; if (onCancel) onCancel(); };
 
+        const altBtn = document.getElementById('modal-alt-btn');
+        altBtn.style.display = altText ? '' : 'none';
+        altBtn.textContent = altText || '';
+        altBtn.onclick = () => { modal.style.display = 'none'; if (onAlt) onAlt(); };
+
         const confirmBtn = document.getElementById('modal-confirm-btn');
         const newConfirmBtn = confirmBtn.cloneNode(true);
         confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+        newConfirmBtn.textContent = confirmText || '確定';
 
         newConfirmBtn.onclick = () => {
             modal.style.display = 'none';
@@ -1505,6 +1539,8 @@
     // v9.8：特權卡寶箱，開到一張萬寶閣現在有賣的特權卡；越便宜的卡越容易開到，不會空箱
     // 800 是照預設 7 張卡算的：開到的卡平均值大約 870
     const CARD_CHEST = { price: 800 };
+    // v10.3：行囊最多存幾個還沒開的寶箱
+    const STORED_CHEST_MAX = 30;
     // v7.1 前的預設箱價，讀到就換成新預設（老師改過的保留）
     const OLD_CHEST_PRICES = { sword: [200, 350, 500], aura: [400, 700, 1100], pet: [1800, 3000, 4500] };
     const CHEST_TIERS = [
@@ -1599,6 +1635,7 @@
     try { events = sanitizeEvents(JSON.parse(localStorage.getItem(EVENTS_KEY))); } catch (e) {}
     let undoStack = [];
     let lastPickedStudentId = null;
+    let lbDuelKey = 'n';      // v10.3：對戰榜比 n 場數 / c 答對題數
     let lbScope = 'season';   // v9：排行榜 season 本季 / all 總戰力；v9.8 加 rep 聲望
     let lbMode = 'student';   // 排行榜：student 弟子榜 / sect 門派榜
     let lbAgg = 'sum';        // 門派榜：sum 總和 / avg 平均
@@ -1639,6 +1676,7 @@
     window.onload = () => {
         loadSettings();
         ensureSeason();
+        ensureDuelPeriod();
         updateBackupBtn();
         students = (students || []).map(normalizeStudent);
         // v10：開頁面時結算一次（第一次升版會補發已經達成的徽章）；有變才存，避免每次開都亮「沒備份」
@@ -2024,6 +2062,7 @@
 
     function updateTeacherUI() {
         renderTodayBar();
+        remindDuelDue();
         const teacherElements = document.querySelectorAll('.teacher-only');
         teacherElements.forEach(el => { if (isTeacherMode) { if (el.classList.contains('card-actions')) el.style.setProperty('display', 'grid', 'important'); else if (el.classList.contains('teacher-controls-header')) el.style.setProperty('display', 'flex', 'important'); else el.style.setProperty('display', 'block', 'important'); } else el.style.setProperty('display', 'none', 'important'); });
     }
@@ -2040,11 +2079,21 @@
         const repScope = lbScope === 'rep';
         document.getElementById('lb-scope-all').classList.toggle('active', lbScope === 'all');
         document.getElementById('lb-scope-rep').classList.toggle('active', repScope);
+        const duelScope = lbScope === 'duel';
+        document.getElementById('lb-scope-duel').classList.toggle('active', duelScope);
         const sInfo = document.getElementById('lb-season-info');
-        sInfo.textContent = season && events.season ? seasonLabel() : '';
-        sInfo.style.display = season ? 'block' : 'none';
+        sInfo.textContent = season && events.season ? seasonLabel() : (duelScope && events.duelPeriod ? duelPeriodLabel() : '');
+        sInfo.classList.toggle('lb-duel-due', duelScope && duelPeriodDue());
+        sInfo.style.display = (season || duelScope) ? 'block' : 'none';
         document.getElementById('lb-settle-btn').style.display = (season && isTeacherMode) ? '' : 'none';
+        document.getElementById('lb-duel-settle-btn').style.display = (duelScope && isTeacherMode) ? '' : 'none';
+        document.getElementById('lb-duel-end').style.display = (duelScope && isTeacherMode) ? 'flex' : 'none';
+        if (duelScope && events.duelPeriod) document.getElementById('lb-duel-end-date').value = events.duelPeriod.endsAt || '';
+        document.getElementById('lb-duel-tabs').style.display = duelScope ? 'flex' : 'none';
+        document.getElementById('lb-duel-n').classList.toggle('active', lbDuelKey === 'n');
+        document.getElementById('lb-duel-c').classList.toggle('active', lbDuelKey === 'c');
         renderSeasonHistory();
+        renderDuelHistory();
         document.getElementById('lb-tab-student').classList.toggle('active', lbMode === 'student');
         document.getElementById('lb-tab-sect').classList.toggle('active', lbMode === 'sect');
         document.getElementById('lb-agg-tabs').style.display = (lbMode === 'sect') ? 'flex' : 'none';
@@ -2053,11 +2102,11 @@
 
         if (lbMode === 'sect') {
             document.getElementById('lb-head-left').innerText = '排名 / 門派';
-            document.getElementById('lb-head-right').innerText = repScope ? ((lbAgg === 'sum') ? '聲望總和' : '聲望平均') : season ? ((lbAgg === 'sum') ? '本季修為總和' : '本季修為平均') : ((lbAgg === 'sum') ? '總戰力' : '平均戰力');
+            document.getElementById('lb-head-right').innerText = duelScope ? ((lbAgg === 'sum' ? '' : '平均') + (lbDuelKey === 'n' ? '場數' : '答對題數') + (lbAgg === 'sum' ? '總和' : '')) : repScope ? ((lbAgg === 'sum') ? '聲望總和' : '聲望平均') : season ? ((lbAgg === 'sum') ? '本季修為總和' : '本季修為平均') : ((lbAgg === 'sum') ? '總戰力' : '平均戰力');
             renderSectLeaderboard(container);
         } else {
             document.getElementById('lb-head-left').innerText = '排名 / 弟子';
-            document.getElementById('lb-head-right').innerText = repScope ? '武林聲望' : season ? '本季修為' : '戰鬥力 (CP)';
+            document.getElementById('lb-head-right').innerText = duelScope ? (lbDuelKey === 'n' ? '本期場數' : '本期答對') : repScope ? '武林聲望' : season ? '本季修為' : '戰鬥力 (CP)';
             renderStudentLeaderboard(container);
         }
         modal.style.display = 'flex';
@@ -2066,10 +2115,11 @@
     function setLbScope(scope) { lbScope = scope; playSfx(sfxClick); openLeaderboard(true); }
     function setLbMode(mode) { lbMode = mode; playSfx(sfxClick); openLeaderboard(true); }
     function setLbAgg(agg) { lbAgg = agg; playSfx(sfxClick); openLeaderboard(true); }
+    function setLbDuelKey(key) { lbDuelKey = key === 'c' ? 'c' : 'n'; playSfx(sfxClick); openLeaderboard(true); }
 
     function renderStudentLeaderboard(container) {
-        const valueOf = s => lbScope === 'season' ? seasonScore(s) : (lbScope === 'rep' ? repOf(s) : calculateCP(s));
-        const sortedStudents = [...students].sort((a, b) => valueOf(b) - valueOf(a));
+        const valueOf = s => lbScope === 'season' ? seasonScore(s) : lbScope === 'duel' ? duelStatOf(s)[lbDuelKey] : (lbScope === 'rep' ? repOf(s) : calculateCP(s));
+        const sortedStudents = [...students].sort(lbScope === 'duel' ? duelCompare(lbDuelKey) : (a, b) => valueOf(b) - valueOf(a));
         if (sortedStudents.length === 0) {
             container.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa;">暫無弟子數據</div>';
             return;
@@ -2082,7 +2132,7 @@
             row.innerHTML = `
                 <div class="rank-num">${i+1}</div>
                 <img class="lb-avatar" src="${info.avatar}">
-                <div class="lb-name">${escHtml(s.name)} ${s.title ? `<span class="title-badge">${escHtml(titleName(s.title))}</span>` : ''} ${sectBadgeHtml(s)} <span style="font-size:0.8em; color:#aaa;">Lv.${info.level}</span>${lbScope === 'rep' ? ` <span class="rep-rank">${repRank(repOf(s))}</span>` : ''}</div>
+                <div class="lb-name">${escHtml(s.name)} ${s.title ? `<span class="title-badge">${escHtml(titleName(s.title))}</span>` : ''} ${sectBadgeHtml(s)} <span style="font-size:0.8em; color:#aaa;">Lv.${info.level}</span>${lbScope === 'rep' ? ` <span class="rep-rank">${repRank(repOf(s))}</span>` : ''}${lbScope === 'duel' ? `<span class="lb-sub">${escHtml(duelStatText(s))}</span>` : ''}</div>
                 <div class="lb-cp">${cp}</div>`;
             container.appendChild(row);
         });
@@ -2095,8 +2145,8 @@
         }
         const rows = sects.map(sect => {
             const members = sectMembers(sect.id);
-            let cp = 0, coins = 0, ss = 0, rp = 0;
-            members.forEach(s => { cp += calculateCP(s); coins += (s.coins || 0); ss += seasonScore(s); rp += repOf(s); });
+            let cp = 0, coins = 0, ss = 0, rp = 0, dv = 0;
+            members.forEach(s => { cp += calculateCP(s); coins += (s.coins || 0); ss += seasonScore(s); rp += repOf(s); dv += duelStatOf(s)[lbDuelKey]; });
             const r = {
                 sect: sect,
                 count: members.length,
@@ -2108,7 +2158,9 @@
                 rp: rp,
                 avgRp: members.length ? Math.round(rp / members.length * 10) / 10 : 0
             };
-            r.value = lbScope === 'rep' ? (lbAgg === 'sum' ? r.rp : r.avgRp)
+            r.dv = dv;
+            r.avgDv = members.length ? Math.round(dv / members.length * 10) / 10 : 0;
+            r.value = lbScope === 'duel' ? (lbAgg === 'sum' ? r.dv : r.avgDv) : lbScope === 'rep' ? (lbAgg === 'sum' ? r.rp : r.avgRp)
                 : lbScope === 'season' ? (lbAgg === 'sum' ? r.ss : r.avgSs) : (lbAgg === 'sum' ? r.cp : r.avgCp);
             return r;
         }).sort((a, b) => b.value - a.value);
@@ -2268,22 +2320,21 @@
         if (!cardChestOdds().length) { showNotify("萬寶閣目前沒有特權卡"); return; }
         const price = salePrice(CARD_CHEST.price);
         if ((s.coins || 0) < price) { showNotify(`${s.name} 的妖丹不足（有 ${s.coins || 0}，要 ${price}）`); return; }
-        showCustomModal({
-            title: '確認開箱',
-            msg: `幫「${s.name}」花 ${price} 妖丹開【特權卡寶箱】？\n（剩下 ${(s.coins || 0) - price} 妖丹，開錯可以按復原）`,
-            showCancel: true,
-            onConfirm: () => {
-                const c = rollCardChest();
-                if (!c) { showNotify("萬寶閣目前沒有特權卡"); return; }
-                pushUndo(`${s.name} 開 特權卡寶箱`);
-                s.coins = (s.coins || 0) - price;
-                if (!s.inventory) s.inventory = [];
-                s.inventory.push(`${c.id}_${Date.now()}`);
-                showItemGet({ chest: { tier: 2, empty: false }, icon: c.icon, title: `開到 ${c.name}！`, desc: `${c.desc || ''}\n已放入行囊，請向老師出示使用` });
-                playSfx(sfxGetItem);
-                saveQuiet(); openShopModal(); renderGrid();
-            }
-        });
+        confirmChestBuy(s, 'card', 2, '特權卡寶箱', price);
+    }
+    // 開特權卡寶箱（錢已經付過）；萬寶閣沒卡了就退錢
+    function openCardChestFor(s, paid) {
+        const c = rollCardChest();
+        if (!c) {
+            s.coins = (s.coins || 0) + paid;
+            showItemGet({ chest: { tier: 2, empty: true }, title: '萬寶閣目前沒有特權卡', desc: `退回 ${paid} 妖丹` });
+            playSfx(sfxClick);
+            return;
+        }
+        if (!s.inventory) s.inventory = [];
+        s.inventory.push(`${c.id}_${Date.now()}`);
+        showItemGet({ chest: { tier: 2, empty: false }, icon: c.icon, title: `開到 ${c.name}！`, desc: `${c.desc || ''}\n已放入行囊，請向老師出示使用` });
+        playSfx(sfxGetItem);
     }
 
     function renderChestShop(container) {
@@ -2331,32 +2382,104 @@
         const price = salePrice(k.prices[tier - 1]);
         if (!chestCandidates(s, kind, tier).length) { showNotify(`${s.name} 的${t.name}${k.name.replace('箱', '')}已經集齊了`); return; }
         if ((s.coins || 0) < price) { showNotify(`${s.name} 的妖丹不足（有 ${s.coins || 0}，要 ${price}）`); return; }
+        confirmChestBuy(s, kind, tier, t.name + k.name, price);
+    }
+
+    // ── v10.3：寶箱買了可以先存著，之後在行囊打開 ──
+    function storedChests(s) { return Array.isArray(s && s.chests) ? s.chests : []; }
+    function chestLabel(kind, tier) {
+        if (kind === 'card') return '特權卡寶箱';
+        const k = CHEST_KINDS.find(x => x.kind === kind);
+        return tierName(tier) + (k ? k.name : '寶箱');
+    }
+    function confirmChestBuy(s, kind, tier, label, price) {
+        const full = storedChests(s).length >= STORED_CHEST_MAX;
         showCustomModal({
-            title: '確認開箱',
-            msg: `幫「${s.name}」花 ${price} 妖丹開【${t.name}${k.name}】？\n（剩下 ${(s.coins || 0) - price} 妖丹，開錯可以按復原）`,
+            title: '購買寶箱',
+            msg: `幫「${s.name}」花 ${price} 妖丹買【${label}】？\n（剩下 ${(s.coins || 0) - price} 妖丹，買錯可以按復原）`
+                + (full ? `\n行囊已經存了 ${STORED_CHEST_MAX} 個寶箱，先開掉一些才能再存` : '\n存起來的寶箱放在行囊，想開再開'),
             showCancel: true,
-            onConfirm: () => {
-                const res = rollChest(s, kind, tier);
-                if (!res) { showNotify('已經集齊了'); return; }
-                pushUndo(`${s.name} 開 ${t.name}${k.name}`);
-                s.coins = (s.coins || 0) - price;
-                if (res.empty) {
-                    const refund = Math.floor(price / 2);
-                    s.coins += refund;
-                    showItemGet({ chest: { tier: tier, empty: true }, title: '寶箱是空的…', desc: `撿回 ${refund} 妖丹` });
-                    playSfx(sfxClick);
-                } else {
-                    const item = res.item;
-                    if (!s.inventory) s.inventory = [];
-                    s.inventory.push(item.id);
-                    autoEquip(s, item);
-                    const desc = item.type === 'aura' ? '純外觀，已放進行囊' : (item.type === 'sword' ? swordGetDesc(s, item.id) : `戰力 +${item.cp}`);
-                    showItemGet({ chest: { tier: tier, empty: false }, icon: item.icon, rgb: item.type === 'aura' ? item.rgb : null, title: `開到 ${item.name}！`, desc: desc });
-                    playSfx(sfxGetItem);
-                }
-                saveQuiet(); openShopModal(); renderGrid();
-            }
+            confirmText: '直接開',
+            onConfirm: () => buyChestNow(s, kind, tier, label, price, false),
+            altText: full ? '' : '📦 存起來',
+            onAlt: () => buyChestNow(s, kind, tier, label, price, true)
         });
+    }
+    function buyChestNow(s, kind, tier, label, price, store) {
+        if ((s.coins || 0) < price) { showNotify(`${s.name} 的妖丹不足`); return; }
+        if (kind !== 'card' && !chestCandidates(s, kind, tier).length) { showNotify('已經集齊了'); return; }
+        if (store && storedChests(s).length >= STORED_CHEST_MAX) { showNotify(`最多存 ${STORED_CHEST_MAX} 個寶箱`); return; }
+        pushUndo(`${s.name} ${store ? '買' : '開'} ${label}`);
+        s.coins = (s.coins || 0) - price;
+        if (store) {
+            if (!Array.isArray(s.chests)) s.chests = [];
+            s.chests.push({ k: kind, t: tier, p: price });
+            showNotify(`📦 ${label} 已存進 ${s.name} 的行囊，想開時到行囊打開`);
+            playSfx(sfxGetItem);
+        } else if (kind === 'card') openCardChestFor(s, price);
+        else openChestFor(s, kind, tier, price);
+        saveQuiet(); openShopModal(); renderGrid();
+    }
+    // 開一般寶箱（錢已經付過）：空箱退一半；存著的這段時間已經集齊的話全額退
+    function openChestFor(s, kind, tier, paid) {
+        const res = rollChest(s, kind, tier);
+        if (!res) {
+            s.coins = (s.coins || 0) + paid;
+            showItemGet({ chest: { tier: tier, empty: true }, title: '這一階已經集齊了', desc: `退回 ${paid} 妖丹` });
+            playSfx(sfxClick);
+        } else if (res.empty) {
+            const refund = Math.floor(paid / 2);
+            s.coins = (s.coins || 0) + refund;
+            showItemGet({ chest: { tier: tier, empty: true }, title: '寶箱是空的…', desc: `撿回 ${refund} 妖丹` });
+            playSfx(sfxClick);
+        } else {
+            const item = res.item;
+            if (!s.inventory) s.inventory = [];
+            s.inventory.push(item.id);
+            autoEquip(s, item);
+            const desc = item.type === 'aura' ? '純外觀，已放進行囊' : (item.type === 'sword' ? swordGetDesc(s, item.id) : `戰力 +${item.cp}`);
+            showItemGet({ chest: { tier: tier, empty: false }, icon: item.icon, rgb: item.type === 'aura' ? item.rgb : null, title: `開到 ${item.name}！`, desc: desc });
+            playSfx(sfxGetItem);
+        }
+    }
+    function openStoredChest(index, n) {
+        const s = students[index];
+        const c = storedChests(s)[n];
+        if (!s || !c) return;
+        const label = chestLabel(c.k, c.t);
+        pushUndo(`${s.name} 開存著的 ${label}`);
+        s.chests.splice(n, 1);
+        if (c.k === 'card') openCardChestFor(s, c.p);
+        else openChestFor(s, c.k, c.t, c.p);
+        saveQuiet(); renderGrid(); openInventory(index);
+    }
+    function renderStoredChests(index) {
+        const box = document.getElementById('inv-chests');
+        const s = students[index];
+        box.innerHTML = '';
+        const list = storedChests(s);
+        if (!list.length) return;
+        const label = document.createElement('div');
+        label.className = 'inv-section-label';
+        label.textContent = `📦 存著的寶箱（${list.length} 個）`;
+        box.appendChild(label);
+        const row = document.createElement('div');
+        row.className = 'stored-chest-row';
+        list.forEach((c, n) => {
+            const cell = document.createElement('div');
+            cell.className = `stored-chest tier-${c.t}`;
+            const img = document.createElement('img');
+            img.src = CHEST_IMG[c.t + '_closed']; img.alt = '';
+            const name = document.createElement('div');
+            name.textContent = chestLabel(c.k, c.t);
+            const btn = document.createElement('button');
+            btn.className = 'pixel-btn success action-btn-small';
+            btn.textContent = '開箱';
+            btn.onclick = () => openStoredChest(index, n);
+            cell.appendChild(img); cell.appendChild(name); cell.appendChild(btn);
+            row.appendChild(cell);
+        });
+        box.appendChild(row);
     }
 
     // 「機緣已到」彈窗：氣場沒有圖，改顯示光暈；有 chest 時先播寶箱打開，再揭曉
@@ -2485,6 +2608,7 @@
                 }
             });
         }
+        renderStoredChests(index);
         renderMergeBox(index);
         renderAwakenBox(index);
         renderOutfitPicker(index);
@@ -3222,7 +3346,7 @@
         localStorage.setItem(SECT_KEY, JSON.stringify(sects));
         markBackupDirty();
     }
-    function resetAll() { showCustomModal({ title: "解散宗門", msg: "確定要燒毀名冊？所有資料將消失。", showCancel: true, onConfirm: () => { pushUndo('重置前的名冊'); localStorage.removeItem('wuxia_class_data'); localStorage.removeItem(SECT_KEY); students = []; sects = []; events = sanitizeEvents({ fortune: events.fortune }); ensureSeason(); saveEvents(); renderGrid(); showNotify("一切回歸虛無...（可按復原救回）"); } }); }
+    function resetAll() { showCustomModal({ title: "解散宗門", msg: "確定要燒毀名冊？所有資料將消失。", showCancel: true, onConfirm: () => { pushUndo('重置前的名冊'); localStorage.removeItem('wuxia_class_data'); localStorage.removeItem(SECT_KEY); students = []; sects = []; events = sanitizeEvents({ fortune: events.fortune }); ensureSeason(); ensureDuelPeriod(); saveEvents(); renderGrid(); showNotify("一切回歸虛無...（可按復原救回）"); } }); }
     /* ══════════════════════════════════════════════════════════
        以下為加購功能：門派、獎賞、復原、匯出匯入
        原版沒有這些，其餘玩法與畫面皆維持原樣
@@ -3290,7 +3414,8 @@
             season: null, seasonHistory: [], seasonRewards: { sect: [300, 200, 100], student: [300, 200, 100] },
             quests: DEFAULT_QUESTS.map(function (q) { return Object.assign({}, q); }), questDone: null,
             rumors: [],
-            market: { list: [], log: [] }
+            market: { list: [], log: [] },
+            duelPeriod: null, duelHistory: [], duelRewards: defaultDuelRewards()
         };
         if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return out;
         // 這裡會在程式很早的時候執行，不能用後面才宣告的 cleanName／SAFE_ID_RE
@@ -3336,6 +3461,37 @@
                 })
             });
         });
+        // v10.3：對戰統計期
+        const dp = raw.duelPeriod;
+        if (dp && typeof dp === 'object') {
+            out.duelPeriod = {
+                no: Math.max(1, Math.min(9999, cleanInt(dp.no))), startedAt: cleanTime(dp.startedAt),
+                endsAt: (typeof dp.endsAt === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dp.endsAt)) ? dp.endsAt : null
+            };
+        }
+        (Array.isArray(raw.duelHistory) ? raw.duelHistory : []).slice(0, 24).forEach(function (h) {
+            if (!h || typeof h !== 'object') return;
+            const rows = function (arr) {
+                return (Array.isArray(arr) ? arr : []).slice(0, 12).map(function (r) {
+                    r = r || {};
+                    return { name: evName(r.name, NAME_MAX) || '弟子', v: cleanInt(r.v), rank: Math.max(1, Math.min(3, cleanInt(r.rank))) };
+                });
+            };
+            out.duelHistory.push({
+                no: Math.max(1, Math.min(9999, cleanInt(h.no))), startedAt: cleanTime(h.startedAt), endedAt: cleanTime(h.endedAt),
+                n: rows(h.n), c: rows(h.c)
+            });
+        });
+        const dr = raw.duelRewards;
+        if (dr && typeof dr === 'object') {
+            ['n', 'c'].forEach(function (key) {
+                if (!Array.isArray(dr[key])) return;
+                out.duelRewards[key] = [0, 1, 2].map(function (i) {
+                    const r = dr[key][i] || {};
+                    return { exp: small(r.exp), coins: small(r.coins), rep: Math.min(99, cleanInt(r.rep)) };
+                });
+            });
+        }
         const sr = raw.seasonRewards;
         if (sr && typeof sr === 'object') {
             ['sect', 'student'].forEach(function (key) {
@@ -3764,6 +3920,256 @@
         line('p', '第 ' + (se.no + 1) + ' 季開始，大家從 0 重新出發！');
         document.getElementById('event-modal').style.display = 'flex';
         playSfx(sfxLevelUp); showLevelUpEffect();
+    }
+
+    // ── v10.3：對戰統計（場數、答對題數），老師訂結算日，結算時前 3 名發修為／妖丹／聲望 ──
+    // 只算打完的對戰（中途按結束不算）；老師沒登入、練功獎勵用完的場次也算，因為這裡比的是練習量
+    // 門派賽只算真的上場答過題的人
+    function defaultDuelRewards() {
+        const r = function () { return [{ exp: 50, coins: 300, rep: 2 }, { exp: 30, coins: 200, rep: 1 }, { exp: 20, coins: 100, rep: 1 }]; };
+        return { n: r(), c: r() };
+    }
+    const DUEL_PERIOD_DAYS = 14;
+    function addDaysStr(days) {
+        const d = new Date(); d.setDate(d.getDate() + days);
+        const p = function (n) { return String(n).padStart(2, '0'); };
+        return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+    }
+    function ensureDuelPeriod() {
+        if (events.duelPeriod) { if (!events.duelPeriod.endsAt) { events.duelPeriod.endsAt = addDaysStr(DUEL_PERIOD_DAYS); saveEvents(); } return; }
+        const last = events.duelHistory[0];
+        events.duelPeriod = { no: last ? last.no + 1 : 1, startedAt: Date.now(), endsAt: addDaysStr(DUEL_PERIOD_DAYS) };
+        saveEvents();
+    }
+    function duelStatOf(s) {
+        const d = s && s.duelP;
+        if (!d || !events.duelPeriod || d.p !== events.duelPeriod.no) return { n: 0, w: 0, c: 0, a: 0 };
+        return { n: d.n || 0, w: d.w || 0, c: d.c || 0, a: d.a || 0 };
+    }
+    function duelStatText(s) {
+        const d = duelStatOf(s);
+        if (!d.n) return '本期還沒打完過對戰';
+        return d.n + ' 場・勝 ' + d.w + '・答對 ' + d.c + ' / ' + d.a + ' 題' + (d.a ? '（' + Math.round(d.c / d.a * 100) + '%）' : '');
+    }
+    function daysUntil(dateStr) {
+        const t = new Date(dateStr + 'T00:00:00'), now = new Date(todayStr() + 'T00:00:00');
+        return Math.round((t - now) / 86400000);
+    }
+    function duelPeriodDue() { const p = events.duelPeriod; return !!(p && p.endsAt && daysUntil(p.endsAt) <= 0); }
+    function duelPeriodLabel() {
+        const p = events.duelPeriod;
+        const end = p.endsAt ? (Number(p.endsAt.slice(5, 7)) + '/' + Number(p.endsAt.slice(8, 10))) : '';
+        const left = p.endsAt ? daysUntil(p.endsAt) : null;
+        return '🥊 對戰統計第 ' + p.no + ' 期 · ' + fmtMD(p.startedAt) + ' 起 · 結算日 ' + end
+            + (left === null ? '' : left > 0 ? '（還有 ' + left + ' 天）' : '（⏰ 已到結算日，等老師結算）');
+    }
+    function setDuelEndDate(v) {
+        if (!requireTeacher('改結算日')) { openLeaderboard(true); return; }
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(v || '')) { showNotify('請選一個日期'); openLeaderboard(true); return; }
+        if (v < todayStr()) { showNotify('結算日不能早於今天'); openLeaderboard(true); return; }
+        events.duelPeriod.endsAt = v;
+        saveEvents();
+        showNotify('結算日改成 ' + Number(v.slice(5, 7)) + '/' + Number(v.slice(8, 10)));
+        openLeaderboard(true);
+    }
+    // 這一題上場的人記一筆（沒作答也算答一題）
+    function duelTallyAnswer(k, right) {
+        if (!duel || !duel.tally) return;
+        const side = duel.sides[k];
+        const rep = side.rep || (duel.mode === 'solo' ? findStudentById(side.id) : null);
+        if (!rep) return;
+        const id = String(rep.id);
+        const t = duel.tally[id] || (duel.tally[id] = { k: k, a: 0, c: 0 });
+        t.a++;
+        if (right) t.c++;
+    }
+    function duelRecordStats(winKey) {
+        if (!duel || !duel.tally) return;
+        ensureDuelPeriod();
+        const no = events.duelPeriod.no;
+        Object.keys(duel.tally).forEach(function (id) {
+            const s = findStudentById(id);
+            if (!s) return;
+            const t = duel.tally[id];
+            const d = (s.duelP && s.duelP.p === no) ? s.duelP : { p: no, n: 0, w: 0, c: 0, a: 0 };
+            d.n = Math.min(99999, (d.n || 0) + 1);
+            if (t.k === winKey) d.w = Math.min(99999, (d.w || 0) + 1);
+            d.c = Math.min(999999, (d.c || 0) + t.c);
+            d.a = Math.min(999999, (d.a || 0) + t.a);
+            s.duelP = d;
+            bumpStat(s, 'duels');
+            if (t.c) bumpStat(s, 'duelCorrect', t.c);
+        });
+    }
+    // 個人對戰兩個人一定一起 +1 場，很容易同分：場數一樣比勝場、再比答對；答對一樣比答題少的（答對率高）
+    function duelSortKey(s, key) {
+        const d = duelStatOf(s);
+        return key === 'n' ? [d.n, d.w, d.c] : [d.c, -d.a];
+    }
+    function duelCompare(key) {
+        return function (a, b) {
+            const x = duelSortKey(a, key), y = duelSortKey(b, key);
+            for (let i = 0; i < x.length; i++) if (x[i] !== y[i]) return y[i] - x[i];
+            return 0;
+        };
+    }
+    // 前 3 名（全部都一樣才同名次，例如 1、1、3），0 的不算
+    function duelPeriodRanking(key) {
+        const cmp = duelCompare(key);
+        const rows = students.filter(function (s) { return duelStatOf(s)[key] > 0; })
+            .sort(cmp).map(function (s) { return { s: s, v: duelStatOf(s)[key] }; });
+        rows.forEach(function (r, i) { r.rank = (i > 0 && cmp(rows[i - 1].s, r.s) === 0) ? rows[i - 1].rank : i + 1; });
+        return rows.filter(function (r) { return r.rank <= 3; });
+    }
+    function renderDuelHistory() {
+        const box = document.getElementById('lb-duel-history');
+        const list = document.getElementById('lb-duel-history-list');
+        list.innerHTML = '';
+        box.style.display = (lbScope === 'duel' && events.duelHistory.length) ? '' : 'none';
+        events.duelHistory.forEach(function (h) {
+            const row = document.createElement('div');
+            const txt = function (arr, unit) { return arr.map(function (r) { return MEDALS[r.rank - 1] + r.name + ' ' + r.v + unit; }).join(' '); };
+            row.textContent = '第 ' + h.no + ' 期（' + fmtMD(h.startedAt) + '～' + fmtMD(h.endedAt) + '）'
+                + (h.n.length ? '　場數：' + txt(h.n, ' 場') : '') + (h.c.length ? '　答對：' + txt(h.c, ' 題') : '');
+            list.appendChild(row);
+        });
+    }
+    const DUEL_SETTLE_KINDS = [
+        { key: 'n', title: '🥊 對戰場數最多', unit: ' 場', tie: '場數一樣比勝場，再比答對' },
+        { key: 'c', title: '✅ 答對題數最多', unit: ' 題', tie: '答對一樣比答對率' }
+    ];
+    function openDuelSettle() {
+        if (!requireTeacher('結算對戰統計')) return;
+        ensureDuelPeriod();
+        playSfx(sfxClick);
+        document.getElementById('leaderboard-modal').style.display = 'none';
+        const body = document.getElementById('season-body');
+        body.innerHTML = '';
+        const add = function (tag, cls, text) {
+            const e = document.createElement(tag);
+            if (cls) e.className = cls;
+            if (text != null) e.textContent = text;
+            body.appendChild(e);
+            return e;
+        };
+        const p = events.duelPeriod;
+        add('h2', '', '🏁 結算對戰統計第 ' + p.no + ' 期');
+        add('div', 'season-info', duelPeriodLabel());
+        DUEL_SETTLE_KINDS.forEach(function (kd) {
+            add('div', 'season-section', kd.title + '（前 3 名；' + kd.tie + '，全都一樣就一起拿）');
+            const rk = duelPeriodRanking(kd.key);
+            if (!rk.length) { add('p', '', '這一期還沒有人打完對戰'); return; }
+            [1, 2, 3].forEach(function (rank) {
+                const who = rk.filter(function (r) { return r.rank === rank; });
+                if (!who.length) return;
+                const row = add('div', 'season-row');
+                const l = document.createElement('span');
+                l.className = 'duel-settle-name';
+                l.textContent = MEDALS[rank - 1] + ' ' + who.map(function (r) { return r.s.name; }).join('、') + '　' + duelStatText(who[0].s);
+                const right = document.createElement('span');
+                right.className = 'duel-rw';
+                const def = events.duelRewards[kd.key][rank - 1];
+                [['exp', '修為'], ['coins', '妖丹'], ['rep', '聲望']].forEach(function (f) {
+                    const lab = document.createElement('label');
+                    lab.textContent = f[1] + '+';
+                    const inp = document.createElement('input');
+                    inp.type = 'number'; inp.min = 0; inp.max = f[0] === 'rep' ? 99 : 99999; inp.value = def[f[0]];
+                    inp.id = 'duel-r-' + kd.key + '-' + rank + '-' + f[0];
+                    lab.appendChild(inp);
+                    right.appendChild(lab);
+                });
+                row.appendChild(l); row.appendChild(right);
+            });
+        });
+        const nextRow = add('div', 'season-row');
+        const nl = document.createElement('span'); nl.textContent = '下一期結算日';
+        const nd = document.createElement('input'); nd.type = 'date'; nd.id = 'duel-next-end';
+        // 下一期預設跟這一期一樣長；這一期少於 7 天（例如提早結算）就用 14 天
+        const len0 = p.endsAt ? Math.round((new Date(p.endsAt + 'T00:00:00') - new Date(new Date(p.startedAt).toDateString())) / 86400000) : 0;
+        const len = len0 >= 7 ? len0 : DUEL_PERIOD_DAYS;
+        nd.value = addDaysStr(len); nd.min = addDaysStr(1);
+        nd.style.minWidth = '0'; nd.style.maxWidth = '100%';
+        nextRow.appendChild(nl); nextRow.appendChild(nd);
+        add('p', '', '結算後場數、答對題數從 0 重新算（總紀錄會留著）；按復原可以退回。').style.color = '#aaa';
+        const btns = add('div', 'season-row');
+        btns.style.justifyContent = 'center';
+        const ok = document.createElement('button'); ok.className = 'pixel-btn success'; ok.textContent = '確認結算'; ok.onclick = settleDuelPeriod;
+        const cancel = document.createElement('button'); cancel.className = 'pixel-btn'; cancel.textContent = '取消';
+        cancel.onclick = function () { playSfx(sfxClick); document.getElementById('season-modal').style.display = 'none'; };
+        btns.appendChild(ok); btns.appendChild(cancel);
+        document.getElementById('season-modal').style.display = 'flex';
+    }
+    function settleDuelPeriod() {
+        if (!requireTeacher('結算對戰統計')) return;
+        // 先讀所有輸入，有一格不對就整個不結算
+        const rw = { n: [], c: [] };
+        let bad = false;
+        ['n', 'c'].forEach(function (key) {
+            [0, 1, 2].forEach(function (i) {
+                const o = {};
+                ['exp', 'coins', 'rep'].forEach(function (f) {
+                    const el = document.getElementById('duel-r-' + key + '-' + (i + 1) + '-' + f);
+                    if (!el || !el.isConnected) { o[f] = events.duelRewards[key][i][f]; return; }
+                    const n = Math.round(Number(el.value));
+                    const max = f === 'rep' ? 99 : 99999;
+                    if (el.value === '' || !isFinite(n) || n < 0 || n > max) bad = true;
+                    o[f] = n;
+                });
+                rw[key].push(o);
+            });
+        });
+        if (bad) { showNotify('獎勵要填 0 以上的數字（聲望最多 99、其他最多 99999）'); return; }
+        const nextEnd = (document.getElementById('duel-next-end') || {}).value || '';
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(nextEnd) || nextEnd <= todayStr()) { showNotify('下一期結算日要選明天以後'); return; }
+        const p = events.duelPeriod;
+        const rk = { n: duelPeriodRanking('n'), c: duelPeriodRanking('c') };
+        pushUndo('結算對戰統計第 ' + p.no + ' 期');
+        let leveledUp = false;
+        ['n', 'c'].forEach(function (key) {
+            rk[key].forEach(function (r) {
+                const g = rw[key][r.rank - 1], s = r.s;
+                if (g.coins) s.coins = parseInt(s.coins || 0) + g.coins;
+                if (g.rep) addRep(s, g.rep);
+                if (g.exp) {
+                    const old = calculateLevel(s.exp);
+                    s.exp = (s.exp || 0) + g.exp;
+                    if (calculateLevel(s.exp) > old) leveledUp = true;
+                }
+            });
+        });
+        events.duelRewards = rw;
+        events.duelHistory.unshift({
+            no: p.no, startedAt: p.startedAt, endedAt: Date.now(),
+            n: rk.n.map(function (r) { return { name: r.s.name, v: r.v, rank: r.rank }; }),
+            c: rk.c.map(function (r) { return { name: r.s.name, v: r.v, rank: r.rank }; })
+        });
+        events.duelHistory = events.duelHistory.slice(0, 24);
+        events.duelPeriod = { no: p.no + 1, startedAt: Date.now(), endsAt: nextEnd };
+        saveEvents();
+        saveQuiet();
+        renderGrid();
+        document.getElementById('season-modal').style.display = 'none';
+        const body = document.getElementById('event-body');
+        body.innerHTML = '';
+        const line = function (tag, text) { const e = document.createElement(tag); e.textContent = text; body.appendChild(e); };
+        const fmt = function (g) { return [g.exp ? '修為 +' + g.exp : '', g.coins ? '妖丹 +' + g.coins : '', g.rep ? '聲望 +' + g.rep : ''].filter(Boolean).join('、') || '（沒有獎勵）'; };
+        line('h2', '🏆 對戰統計第 ' + p.no + ' 期結算完成');
+        DUEL_SETTLE_KINDS.forEach(function (kd) {
+            if (!rk[kd.key].length) return;
+            line('h3', kd.title);
+            rk[kd.key].forEach(function (r) { line('p', MEDALS[r.rank - 1] + ' ' + r.s.name + '（' + r.v + kd.unit + '）　' + fmt(rw[kd.key][r.rank - 1])); });
+        });
+        if (!rk.n.length) line('p', '這一期沒有人打完對戰，沒有發獎勵。');
+        line('p', '第 ' + (p.no + 1) + ' 期開始，結算日 ' + Number(nextEnd.slice(5, 7)) + '/' + Number(nextEnd.slice(8, 10)) + '。');
+        document.getElementById('event-modal').style.display = 'flex';
+        playSfx(sfxLevelUp); if (leveledUp || rk.n.length) showLevelUpEffect();
+    }
+    // 老師登入時，到了結算日提醒一次
+    let duelDueNotified = false;
+    function remindDuelDue() {
+        if (!isTeacherMode || duelDueNotified || !duelPeriodDue()) return;
+        duelDueNotified = true;
+        showNotify('⏰ 對戰統計第 ' + events.duelPeriod.no + ' 期到結算日了，到「🏆 排行榜 → 🥊 對戰」結算');
     }
 
     // ── v9：門派任務 ──
@@ -4671,6 +5077,7 @@
                         students.forEach(function (s) { s.seasonBase = s.exp || 0; });
                     }
                     ensureSeason();
+                    ensureDuelPeriod();
                     lastPickedStudentId = null;
                     saveQuiet();
                     renderGrid();
@@ -4778,7 +5185,7 @@
                 stats: (function (st) {
                     var o = {};
                     if (!st || typeof st !== 'object' || Array.isArray(st)) return o;
-                    ['duelWins', 'underdog', 'specials', 'merges', 'rumors', 'apprenticeLv'].forEach(function (k) { var n = Math.min(999999, cleanInt(st[k])); if (n) o[k] = n; });
+                    ['duelWins', 'underdog', 'specials', 'merges', 'rumors', 'apprenticeLv', 'duels', 'duelCorrect'].forEach(function (k) { var n = Math.min(999999, cleanInt(st[k])); if (n) o[k] = n; });
                     ['lastMinus', 'since'].forEach(function (k) { if (typeof st[k] === 'string' && DATE_RE.test(st[k])) o[k] = st[k]; });
                     return o;
                 })(s.stats),
@@ -4787,7 +5194,20 @@
                 sectId: (sid && seenSect[sid]) ? sid : null,
                 leaveDate: (typeof s.leaveDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s.leaveDate)) ? s.leaveDate : null,
                 freeDuel: (s.freeDuel && typeof s.freeDuel.d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s.freeDuel.d)) ? { d: s.freeDuel.d, n: Math.min(99, cleanInt(s.freeDuel.n)) } : null,
-                seasonBase: (typeof s.seasonBase === 'number' && isFinite(s.seasonBase)) ? cleanInt(s.seasonBase) : 0
+                seasonBase: (typeof s.seasonBase === 'number' && isFinite(s.seasonBase)) ? cleanInt(s.seasonBase) : 0,
+                // v10.3：買了先存著的寶箱 { k 種類, t 等級, p 付了多少 }
+                chests: (Array.isArray(s.chests) ? s.chests : []).filter(function (c) {
+                    if (!c || typeof c !== 'object') return false;
+                    if (c.k === 'card') return c.t === 2;
+                    var k = CHEST_KINDS.find(function (x) { return x.kind === c.k; });
+                    return !!k && k.tiers.indexOf(c.t) >= 0;
+                }).slice(0, STORED_CHEST_MAX).map(function (c) { return { k: c.k, t: c.t, p: Math.min(99999, cleanInt(c.p)) }; }),
+                // v10.3：本期對戰統計 { p 第幾期, n 場數, w 勝場, c 答對, a 答題 }
+                duelP: (s.duelP && typeof s.duelP === 'object' && !Array.isArray(s.duelP)) ? {
+                    p: Math.max(1, Math.min(9999, cleanInt(s.duelP.p))),
+                    n: Math.min(99999, cleanInt(s.duelP.n)), w: Math.min(99999, cleanInt(s.duelP.w)),
+                    c: Math.min(999999, cleanInt(s.duelP.c)), a: Math.min(999999, cleanInt(s.duelP.a))
+                } : null
             }));
         });
 
@@ -7117,7 +7537,8 @@
             picks: { L: null, R: null },
             current: null,
             timerId: null,
-            autoId: null
+            autoId: null,
+            tally: {} // v10.3：這場每位上場的人 { k 哪一邊, a 答幾題, c 答對幾題 }，打完才記進統計
         };
         document.getElementById('duel-setup-modal').style.display = 'none';
         const bgIdx = Math.floor(Math.random() * BATTLE_BG.length);
@@ -7298,7 +7719,9 @@
         const res = duelJudge(q.answer, duel.picks);
         ['L', 'R'].forEach(function (k) {
             const p = duel.picks[k];
-            duel.sides[k].combo = duelComboAfter(duel.sides[k].combo, !!p && p.choice === q.answer);
+            const right = !!p && p.choice === q.answer;
+            duel.sides[k].combo = duelComboAfter(duel.sides[k].combo, right);
+            duelTallyAnswer(k, right);
         });
         const resultEl = document.getElementById('duel-result');
         const ansText = '正確答案：' + OPTION_LETTERS[duel.current.order.indexOf(q.answer)] + ' ' + q.options[q.answer];
@@ -7508,6 +7931,7 @@
             if (plan.underdog) bumpStat(s, 'underdog');
         });
         if (!duel.teacher) plan.win.people.concat(plan.lose.people).forEach(useFreeDuel);
+        duelRecordStats(winKey);
         bossHit(plan.win.exp * plan.win.people.length + plan.lose.exp * plan.lose.people.length);
         saveQuiet();
         renderGrid();
