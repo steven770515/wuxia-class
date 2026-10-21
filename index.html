@@ -708,7 +708,7 @@
         </div>
     </div>
     <div class="grid-container" id="studentGrid"></div>
-    <div class="app-footer">宗門啟示錄 Steven 加強版 v10.3 · 2026-10-08　｜　原版：chunsheng612／GameWuxia（經作者同意改作與公開）　｜　寶箱圖：DustDFG（CC-BY 4.0）</div>
+    <div class="app-footer">宗門啟示錄 Steven 加強版 v10.4 · 2026-10-21　｜　原版：chunsheng612／GameWuxia（經作者同意改作與公開）　｜　寶箱圖：DustDFG（CC-BY 4.0）</div>
 </div>
 
 <!-- 戰鬥模態框 -->
@@ -2333,7 +2333,7 @@
         }
         if (!s.inventory) s.inventory = [];
         s.inventory.push(`${c.id}_${Date.now()}`);
-        showItemGet({ chest: { tier: 2, empty: false }, icon: c.icon, title: `開到 ${c.name}！`, desc: `${c.desc || ''}\n已放入行囊，請向老師出示使用` });
+        showItemGet({ chest: { tier: 2, empty: false }, icon: c.icon, title: `開到 ${c.name}！`, desc: `${c.desc || ''}\n已放入行囊，在行囊點它就能使用` });
         playSfx(sfxGetItem);
     }
 
@@ -2535,7 +2535,7 @@
                 s.coins = (s.coins || 0) - price;
                 if (isConsumable) {
                     s.inventory.push(`${itemId}_${Date.now()}`);
-                    showNotify("購買成功！已放入行囊，請向老師出示使用。");
+                    showNotify("購買成功！已放入行囊，在行囊點它就能使用。");
                 } else {
                     s.inventory.push(itemId);
                     autoEquip(s, itemData);
@@ -2777,15 +2777,18 @@
         });
     }
 
+    // v10.4：學生免登入也能自己使用（跟購買一樣，按錯靠復原）
     function useRealReward(studentIndex, uniqueId) {
-        if (!requireTeacher('使用特權卡')) return;
         const s = students[studentIndex];
+        if (!s) return;
         // 原版用 split('_')[0] 比對，card_vocab_123 會被切成 card 而永遠對不到；v5 起下架的卡也查得到
         const item = findRewardCard(uniqueId);
         if (!item) { showNotify("找不到這張特權卡"); return; }
         showCustomModal({
             title: '使用特權卡',
-            msg: `確定要幫「${s.name}」使用【${item.name}】嗎？`,
+            msg: isTeacherMode
+                ? `確定要幫「${s.name}」使用【${item.name}】嗎？`
+                : `「${s.name}」要使用【${item.name}】嗎？\n用掉就沒有了，按錯可以按復原`,
             showCancel: true,
             onConfirm: () => {
                 pushUndo(`${s.name} 使用 ${item.name}`);
