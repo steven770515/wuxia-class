@@ -708,7 +708,7 @@
         </div>
     </div>
     <div class="grid-container" id="studentGrid"></div>
-    <div class="app-footer">宗門啟示錄 Steven 加強版 v10.4 · 2026-10-21　｜　原版：chunsheng612／GameWuxia（經作者同意改作與公開）　｜　寶箱圖：DustDFG（CC-BY 4.0）</div>
+    <div class="app-footer">宗門啟示錄 Steven 加強版 v10.5 · 2026-11-04　｜　原版：chunsheng612／GameWuxia（經作者同意改作與公開）　｜　寶箱圖：DustDFG（CC-BY 4.0）</div>
 </div>
 
 <!-- 戰鬥模態框 -->
@@ -1014,7 +1014,7 @@
             </select>
         </label>
         <p id="duel-hint" class="grant-hint"></p>
-        <p class="set-hint">個人對戰各 150 血、門派對戰各 240 血（每派至少輪 6 人次），答對就打對方；兩邊都答對，比較快的打。題目出來先看 3 秒才能作答。連續答對 3 題蓄滿「必殺」，下一次打中對方傷害 ×2，放完重新累積。每場隨機一種地形（森林／洞窟／火山／遺跡／冰峰），主劍跟地形搭配（青木／銳金／炎陽／晨曦／冰晶）的人傷害 +20%。看得懂的數學題，數字每次都會換。戰力比較高的一方傷害最多 +30%，戰力比較低的一方打贏是「以弱勝強」，獎勵加倍、聲望 +1。</p>
+        <p class="set-hint">個人對戰各 150 血、門派對戰各 240 血（每派至少輪 6 人次），答對就打對方；兩邊都答對，比較快的打。題目出來先看 3 秒才能作答。連續答對 3 題蓄滿「必殺」，下一次打中對方傷害 ×2，放完重新累積。每場隨機一種地形（森林／洞窟／火山／遺跡／冰峰），主劍跟地形搭配（青木／銳金／炎陽／晨曦／冰晶）的人傷害 +20%。看得懂的數學題，數字每次都會換。戰力比較高的一方傷害最多 +30%，戰力比較低的一方打贏是「以弱勝強」，獎勵加倍、聲望 +1。對戰一律用自己最強的裝備算戰力，脫裝備沒有用。左右兩邊的選項順序不一樣。對手先答錯、你後答對是「看準反擊」，傷害 +50%。連續 3 題開放作答後不到 1 秒就答錯，直接判輸、沒有獎勵。</p>
         <div class="grant-actions">
             <button class="pixel-btn" onclick="closeDuelSetup()">取消</button>
             <button class="pixel-btn success" onclick="startDuel()">⚔️ 開戰</button>
@@ -3986,7 +3986,8 @@
         t.a++;
         if (right) t.c++;
     }
-    function duelRecordStats(winKey) {
+    // forfeit：對手亂猜判輸。輸的那邊整場不算；贏的那邊只算答題，不算場數和勝場（免得兩人互相亂猜刷排行）
+    function duelRecordStats(winKey, forfeit) {
         if (!duel || !duel.tally) return;
         ensureDuelPeriod();
         const no = events.duelPeriod.no;
@@ -3994,13 +3995,14 @@
             const s = findStudentById(id);
             if (!s) return;
             const t = duel.tally[id];
+            if (forfeit && t.k !== winKey) return;
             const d = (s.duelP && s.duelP.p === no) ? s.duelP : { p: no, n: 0, w: 0, c: 0, a: 0 };
-            d.n = Math.min(99999, (d.n || 0) + 1);
-            if (t.k === winKey) d.w = Math.min(99999, (d.w || 0) + 1);
+            if (!forfeit) d.n = Math.min(99999, (d.n || 0) + 1);
+            if (!forfeit && t.k === winKey) d.w = Math.min(99999, (d.w || 0) + 1);
             d.c = Math.min(999999, (d.c || 0) + t.c);
             d.a = Math.min(999999, (d.a || 0) + t.a);
             s.duelP = d;
-            bumpStat(s, 'duels');
+            if (!forfeit) bumpStat(s, 'duels');
             if (t.c) bumpStat(s, 'duelCorrect', t.c);
         });
     }
@@ -7343,7 +7345,12 @@
         { icon: '🏔️', name: '冰峰', sword: 'sword_ice' }
     ];
     const DUEL_TERRAIN_BONUS = 0.2;
-    function duelTerrainMatch(t, rep) { return !!(t && rep && equippedSwords(rep)[0] === t.sword); }
+    // v10.5：對手先答錯、自己後答對＝看準反擊，傷害加成
+    const DUEL_COUNTER_BONUS = 0.5;
+    // v10.5：開放作答後這麼快就答錯，連續這麼多題直接判輸（防亂猜）
+    const DUEL_RUSH_MS = 1000;
+    const DUEL_RUSH_LIMIT = 3;
+    function duelTerrainMatch(t, rep) { return !!(t && rep && equippedSwords(duelGearView(rep))[0] === t.sword); }
     function duelTerrainLabel(t) { return t ? t.icon + ' ' + t.name + '（主劍是' + ITEMS[t.sword].name + '的人傷害 +' + Math.round(DUEL_TERRAIN_BONUS * 100) + '%）' : ''; }
     const DUEL_KEYS = { L: ['1', '2', '3', '4'], R: ['7', '8', '9', '0'] };
     const DUEL_REWARD = {
@@ -7378,8 +7385,9 @@
     function duelJudge(answerIdx, picks) {
         const ok = function (k) { return !!picks[k] && picks[k].choice === answerIdx; };
         const L = ok('L'), R = ok('R');
-        if (L && !R) return { winner: 'L', reason: 'only' };
-        if (R && !L) return { winner: 'R', reason: 'only' };
+        // counter：對手有作答、答錯，而且比自己早按
+        if (L && !R) return { winner: 'L', reason: 'only', counter: !!picks.R && picks.R.ms < picks.L.ms };
+        if (R && !L) return { winner: 'R', reason: 'only', counter: !!picks.L && picks.L.ms < picks.R.ms };
         if (!L && !R) return { winner: null, reason: 'none' };
         const diff = picks.L.ms - picks.R.ms;
         if (diff === 0) return { winner: null, reason: 'tie', diffMs: 0 };
@@ -7395,7 +7403,7 @@
         return correct ? combo + 1 : 0;
     }
     function duelSpecialName(rep) {
-        const id = rep ? (equippedSwords(rep)[0] || '') : '';
+        const id = rep ? (equippedSwords(duelGearView(rep))[0] || '') : '';
         return DUEL_SPECIAL_NAMES[id] || '降龍掌';
     }
 
@@ -7408,13 +7416,37 @@
         return a;
     }
 
+    // v10.5：左右兩邊各自的選項順序，同一個位置一定是不同選項，看隔壁按哪裡沒有用
+    function duelSideOrders(n) {
+        const base = [];
+        for (let i = 0; i < n; i++) base.push(i);
+        const L = shuffled(base);
+        let R = shuffled(base);
+        while (R.some(function (v, i) { return v === L[i]; })) R = shuffled(base);
+        return { L: L, R: R };
+    }
+
+    // v10.5：對戰一律用最強裝備（Steven：學生先脫裝備拿以弱勝強）。回傳複本，不動學生自己穿的。
+    // 掛在市集還沒賣掉的也算，不然掛上去再收回來一樣能壓低戰力
+    function duelGearView(s) {
+        const eq = s.equipped || {};
+        const owned = (s.inventory || []).concat(marketListingsOf(s).map(function (x) { return x.item; }), [eq.sword, eq.sword2, eq.pet]);
+        const swords = owned.filter(function (id, i) { return isSwordId(id) && owned.indexOf(id) === i; })
+            .sort(function (a, b) { return swordCp(s, b) - swordCp(s, a); });
+        const petCp = function (id) { return (getItemData(id).cp || 300) + awakenCpBonus(petStars(s, id)); };
+        const pets = owned.filter(function (id, i) { const it = id ? getItemData(id) : null; return it && it.type === 'pet' && owned.indexOf(id) === i; })
+            .sort(function (a, b) { return petCp(b) - petCp(a); });
+        return Object.assign({}, s, { equipped: Object.assign({}, eq, { sword: swords[0] || null, sword2: swords[1] || null, pet: pets[0] || null }) });
+    }
+    function duelCp(s) { return calculateCP(duelGearView(s)); }
+
     function presentMembers(sectId) {
         return sectMembers(sectId).filter(function (s) { return !isOnLeave(s); });
     }
     function sectAvgCp(sectId) {
         const m = presentMembers(sectId);
         if (!m.length) return 0;
-        return Math.round(m.reduce(function (sum, s) { return sum + calculateCP(s); }, 0) / m.length);
+        return Math.round(m.reduce(function (sum, s) { return sum + duelCp(s); }, 0) / m.length);
     }
 
     // ── 開場視窗 ──
@@ -7459,7 +7491,7 @@
     }
 
     function duelSideCp(id) {
-        if (duelMode === 'solo') { const s = findStudentById(id); return s ? calculateCP(s) : 0; }
+        if (duelMode === 'solo') { const s = findStudentById(id); return s ? duelCp(s) : 0; }
         return sectAvgCp(id);
     }
 
@@ -7519,11 +7551,11 @@
             if (duelMode === 'solo') {
                 const s = findStudentById(id);
                 if (!s) return null;
-                return { key: key, id: String(s.id), name: s.name, cp: calculateCP(s), hp: DUEL_HP.solo, maxHp: DUEL_HP.solo, combo: 0, rep: s, queue: [] };
+                return { key: key, id: String(s.id), name: s.name, cp: duelCp(s), hp: DUEL_HP.solo, maxHp: DUEL_HP.solo, combo: 0, rush: 0, rep: s, queue: [] };
             }
             const k = getSect(id);
             if (!k || !presentMembers(k.id).length) return null;
-            return { key: key, id: k.id, name: k.emblem + ' ' + k.name, color: k.color, cp: sectAvgCp(k.id), hp: DUEL_HP.sect, maxHp: DUEL_HP.sect, combo: 0, rep: null, queue: [] };
+            return { key: key, id: k.id, name: k.emblem + ' ' + k.name, color: k.color, cp: sectAvgCp(k.id), hp: DUEL_HP.sect, maxHp: DUEL_HP.sect, combo: 0, rush: 0, rep: null, queue: [] };
         };
         const L = makeSide('L', l), R = makeSide('R', r);
         if (!L || !R) { showNotify(duelMode === 'solo' ? '找不到選的弟子' : '選的門派今天沒有可以上場的人'); return; }
@@ -7599,7 +7631,7 @@
             const info = getStudentInfo(rep);
             if (img.dataset.src !== info.battleAvatar) { img.src = info.battleAvatar; img.dataset.src = info.battleAvatar; }
             const look = auraLook(rep);
-            gear.innerHTML = (look.style ? `<div class="duel-aura-ring${look.multi ? ' multi' : ''}" style="${look.style}"></div>` : '') + gearLayersHtml(rep);
+            gear.innerHTML = (look.style ? `<div class="duel-aura-ring${look.multi ? ' multi' : ''}" style="${look.style}"></div>` : '') + gearLayersHtml(duelGearView(rep));
         } else {
             img.removeAttribute('src');
             gear.innerHTML = '';
@@ -7618,8 +7650,8 @@
         duelPickRep(duel.sides.L);
         duelPickRep(duel.sides.R);
         if (!duel.sides.L.rep || !duel.sides.R.rep) { showNotify('有一方沒有可以上場的人，對戰結束'); closeDuel(); return; }
-        // 左右兩邊用同一個洗牌後的順序
-        duel.current = { q: q, order: shuffled(q.options.map(function (_, i) { return i; })) };
+        // v10.5：左右兩邊的順序不一樣，避免看隔壁答案
+        duel.current = { q: q, orders: duelSideOrders(q.options.length) };
         duel.picks = { L: null, R: null };
         duel.phase = 'answer';
         duel.paused = false;
@@ -7646,7 +7678,7 @@
         lock.className = 'duel-lock';
         lock.textContent = '已作答';
         box.appendChild(lock);
-        duel.current.order.forEach(function (optIdx, pos) {
+        duel.current.orders[k].forEach(function (optIdx, pos) {
             const b = document.createElement('button');
             b.type = 'button';
             b.className = 'duel-opt';
@@ -7691,7 +7723,7 @@
     function duelAnswer(k, pos) {
         if (!duel || duel.phase !== 'answer' || duel.paused || duel.picks[k]) return;
         if (duelElapsed() < DUEL_LOCK_MS) return; // 還在看題
-        const optIdx = duel.current.order[pos];
+        const optIdx = duel.current.orders[k][pos];
         if (optIdx === undefined) return;
         duel.picks[k] = { choice: optIdx, ms: Math.round(duelElapsed() - DUEL_LOCK_MS) };
         playSfx(sfxClick);
@@ -7724,13 +7756,19 @@
             const p = duel.picks[k];
             const right = !!p && p.choice === q.answer;
             duel.sides[k].combo = duelComboAfter(duel.sides[k].combo, right);
+            duel.sides[k].rush = (p && !right && p.ms < DUEL_RUSH_MS) ? duel.sides[k].rush + 1 : 0;
             duelTallyAnswer(k, right);
         });
         const resultEl = document.getElementById('duel-result');
-        const ansText = '正確答案：' + OPTION_LETTERS[duel.current.order.indexOf(q.answer)] + ' ' + q.options[q.answer];
+        const ansText = '正確答案：' + q.options[q.answer];
         const nameOf = function (k) { const s = duel.sides[k]; return duel.mode === 'sect' && s.rep ? s.rep.name + '（' + s.name + '）' : s.name; };
+        const out = ['L', 'R'].filter(function (k) { return duel.sides[k].rush >= DUEL_RUSH_LIMIT; });
+        if (out.length) { duelForfeit(out, ansText); return; }
+        const rushWarn = ['L', 'R'].filter(function (k) { return duel.sides[k].rush === DUEL_RUSH_LIMIT - 1; }).map(function (k) {
+            return '\n⚠️ ' + duel.sides[k].name + ' 已連續 ' + duel.sides[k].rush + ' 題不到 1 秒就答錯，再一題直接判輸';
+        }).join('');
         if (!res.winner) {
-            resultEl.textContent = (res.reason === 'tie' ? '兩邊同時答對，平手！' : '兩邊都沒答對，沒有人受傷。') + '\n' + ansText;
+            resultEl.textContent = (res.reason === 'tie' ? '兩邊同時答對，平手！' : '兩邊都沒答對，沒有人受傷。') + '\n' + ansText + rushWarn;
             ['L', 'R'].forEach(function (k) { renderDuelSide(duel.sides[k]); });
             playSfx(sfxAttack);
             duelAfterRound();
@@ -7741,15 +7779,16 @@
         const d = duelDamage(att.cp, def.cp);
         const special = att.combo >= DUEL_COMBO_NEED;
         const terrainHit = duelTerrainMatch(duel.terrain, att.rep);
-        const baseDmg = terrainHit ? Math.round(d.dmg * (1 + DUEL_TERRAIN_BONUS)) : d.dmg;
+        const terrainDmg = terrainHit ? Math.round(d.dmg * (1 + DUEL_TERRAIN_BONUS)) : d.dmg;
+        const baseDmg = res.counter ? Math.round(terrainDmg * (1 + DUEL_COUNTER_BONUS)) : terrainDmg;
         const dmg = special ? baseDmg * DUEL_SPECIAL_MULT : baseDmg;
         const spName = special ? duelSpecialName(att.rep) : '';
         if (special) { att.combo = 0; duelNoteSpecial(att.rep); }
         def.hp = Math.max(0, def.hp - dmg);
         // 最後一擊：勝負已定，之後按「結束對戰」會直接結算，不會變成「不發獎勵」
         if (def.hp <= 0) { duel.phase = 'finishing'; duel.winKey = att.key; }
-        const extras = [d.bonus > 0 ? '戰力壓制 +' + Math.round(d.bonus * 100) + '%' : '', terrainHit ? duel.terrain.icon + '地形加成+' + Math.round(DUEL_TERRAIN_BONUS * 100) + '%' : ''].filter(Boolean);
-        resultEl.textContent = nameOf(res.winner) + (res.reason === 'faster' ? ' 快了 ' + (res.diffMs / 1000).toFixed(1) + ' 秒，' : ' 答對，') + (special ? '使出必殺「' + spName + '」！' : '') + '造成 ' + dmg + ' 傷害' + (extras.length ? '（' + extras.join('、') + '）' : '') + '\n' + ansText;
+        const extras = [d.bonus > 0 ? '戰力壓制 +' + Math.round(d.bonus * 100) + '%' : '', terrainHit ? duel.terrain.icon + '地形加成+' + Math.round(DUEL_TERRAIN_BONUS * 100) + '%' : '', res.counter ? '🎯看準反擊+' + Math.round(DUEL_COUNTER_BONUS * 100) + '%' : ''].filter(Boolean);
+        resultEl.textContent = nameOf(res.winner) + (res.reason === 'faster' ? ' 快了 ' + (res.diffMs / 1000).toFixed(1) + ' 秒，' : ' 答對，') + (special ? '使出必殺「' + spName + '」！' : '') + '造成 ' + dmg + ' 傷害' + (extras.length ? '（' + extras.join('、') + '）' : '') + '\n' + ansText + rushWarn;
         renderDuelSide(att);
         const hitMs = duelStrikeAnim(res.winner, dmg, special ? spName : '');
         const thisDuel = duel;
@@ -7759,6 +7798,19 @@
             if (def.hp <= 0) setTimeout(function () { if (duel === thisDuel && duel.phase === 'finishing') finishDuel(att.key); }, special ? 900 * DUEL_SPECIAL_SLOW : 900);
             else duelAfterRound();
         }, Math.max(560, hitMs + 40));
+    }
+
+    // v10.5：連續亂猜判輸。兩邊同一題一起到就都算輸，沒有人贏
+    function duelForfeit(out, ansText) {
+        duel.phase = 'finishing';
+        duel.forfeit = true;
+        duel.winKey = out.length === 1 ? (out[0] === 'L' ? 'R' : 'L') : null;
+        ['L', 'R'].forEach(function (k) { renderDuelSide(duel.sides[k]); });
+        const who = out.map(function (k) { return duel.sides[k].name; }).join('、');
+        document.getElementById('duel-result').textContent = '🚫 ' + who + ' 連續 ' + DUEL_RUSH_LIMIT + ' 題不到 1 秒就答錯，判定用猜的，直接判輸！\n' + ansText;
+        playSfx(sfxAttack);
+        const thisDuel = duel;
+        setTimeout(function () { if (duel === thisDuel && duel.phase === 'finishing') finishDuel(duel.winKey); }, 2500);
     }
 
     function duelAfterRound() {
@@ -7776,7 +7828,7 @@
         const toImg = document.getElementById('duel-img-' + defKey);
         const stage = document.getElementById('duel-stage');
         const rep = duel.sides[attKey].rep;
-        const sword = rep ? getItemData(equippedSwords(rep)[0] || '') : null;
+        const sword = rep ? getItemData(equippedSwords(duelGearView(rep))[0] || '') : null;
         playSfx(sfxWin);
         if (specialName) {
             const b = document.createElement('div');
@@ -7881,7 +7933,8 @@
     function duelRewardPlan(d, winKey) {
         const loseKey = winKey === 'L' ? 'R' : 'L';
         const win = d.sides[winKey], lose = d.sides[loseKey];
-        const underdog = win.cp < lose.cp;
+        // 對手是亂猜判輸的，不算以弱勝強（免得強的故意亂猜幫朋友拿加倍）
+        const underdog = !d.forfeit && win.cp < lose.cp;
         const mult = underdog ? 2 : 1;
         const fm = fortuneIs('duel2') ? 2 : 1;
         const table = DUEL_REWARD[d.mode];
@@ -7901,9 +7954,21 @@
         return {
             underdog: underdog,
             win: { people: people(win), coins: boostCoins(table.win.coins * mult * fm), exp: boostExp(table.win.exp * mult * fm), rep: underdog ? REP_UNDERDOG : 0 },
-            lose: { people: people(lose), coins: boostCoins(table.lose.coins * fm), exp: boostExp(table.lose.exp * fm) },
+            lose: d.forfeit ? { people: people(lose), coins: 0, exp: 0 } : { people: people(lose), coins: boostCoins(table.lose.coins * fm), exp: boostExp(table.lose.exp * fm) },
+            forfeit: !!d.forfeit,
             capped: capped
         };
+    }
+
+    function duelShowEndButtons() {
+        document.getElementById('duel-round').textContent = '對戰結束（共 ' + duel.round + ' 題）';
+        document.getElementById('duel-timer').textContent = '';
+        document.getElementById('duel-answers').style.display = 'none';
+        document.getElementById('duel-next-btn').style.display = 'none';
+        document.getElementById('duel-pause-btn').style.display = 'none';
+        const quit = document.getElementById('duel-quit-btn');
+        quit.innerText = '關閉';
+        quit.onclick = closeDuel;
     }
 
     function finishDuel(winKey) {
@@ -7911,6 +7976,23 @@
         duel.phase = 'end';
         clearInterval(duel.timerId);
         clearTimeout(duel.autoId);
+        if (!winKey) {
+            // 兩邊同時亂猜判輸：沒有人贏、不發獎勵、不記統計
+            const center = document.getElementById('duel-question');
+            center.innerHTML = '';
+            const end = document.createElement('div');
+            end.className = 'duel-end';
+            const h = document.createElement('h2');
+            h.textContent = '🚫 雙方都判輸';
+            const r = document.createElement('div');
+            r.className = 'duel-reward';
+            r.textContent = '兩邊都連續用猜的，這場沒有獎勵';
+            end.appendChild(h);
+            end.appendChild(r);
+            center.appendChild(end);
+            duelShowEndButtons();
+            return;
+        }
         const win = duel.sides[winKey], lose = duel.sides[winKey === 'L' ? 'R' : 'L'];
         const plan = duelRewardPlan(duel, winKey);
         pushUndo('對戰：' + win.name + ' 勝 ' + lose.name);
@@ -7929,12 +8011,12 @@
         give(plan.win);
         give(plan.lose);
         // v10 成就統計：勝場算所有上場那一方的人（就算今天練功獎勵用完也算）
-        (duel.mode === 'solo' ? [findStudentById(win.id)].filter(Boolean) : presentMembers(win.id)).forEach(function (s) {
+        (duel.forfeit ? [] : duel.mode === 'solo' ? [findStudentById(win.id)].filter(Boolean) : presentMembers(win.id)).forEach(function (s) {
             bumpStat(s, 'duelWins');
             if (plan.underdog) bumpStat(s, 'underdog');
         });
         if (!duel.teacher) plan.win.people.concat(plan.lose.people).forEach(useFreeDuel);
-        duelRecordStats(winKey);
+        duelRecordStats(winKey, duel.forfeit);
         bossHit(plan.win.exp * plan.win.people.length + plan.lose.exp * plan.lose.people.length);
         saveQuiet();
         renderGrid();
@@ -7963,9 +8045,9 @@
             const line = function (side, g, tail) {
                 return side.name + ' ' + (g.people.length ? fmt(g) + tail : '今天的練功獎勵用完了');
             };
-            rewardText = line(win, plan.win, '') + '\n' + line(lose, plan.lose, '（參加獎）');
+            rewardText = line(win, plan.win, '') + '\n' + (plan.forfeit ? lose.name + ' 亂猜判輸，沒有獎勵' : line(lose, plan.lose, '（參加獎）'));
         } else {
-            rewardText = win.name + ' ' + each + fmt(plan.win) + '\n' + lose.name + ' ' + each + fmt(plan.lose) + '（參加獎）';
+            rewardText = win.name + ' ' + each + fmt(plan.win) + '\n' + lose.name + (plan.forfeit ? ' 亂猜判輸，沒有獎勵' : ' ' + each + fmt(plan.lose) + '（參加獎）');
             if (plan.capped.length) rewardText += '\n今天練功獎勵已用完：' + plan.capped.map(function (s) { return s.name; }).join('、');
         }
         if (!duel.teacher) rewardText += '\n（老師沒登入：每人每天前 ' + DUEL_FREE_DAILY + ' 場有獎勵）';
@@ -7973,14 +8055,7 @@
         r.style.whiteSpace = 'pre-line';
         end.appendChild(r);
         center.appendChild(end);
-        document.getElementById('duel-round').textContent = '對戰結束（共 ' + duel.round + ' 題）';
-        document.getElementById('duel-timer').textContent = '';
-        document.getElementById('duel-answers').style.display = 'none';
-        document.getElementById('duel-next-btn').style.display = 'none';
-        document.getElementById('duel-pause-btn').style.display = 'none';
-        const quit = document.getElementById('duel-quit-btn');
-        quit.innerText = '關閉';
-        quit.onclick = closeDuel;
+        duelShowEndButtons();
     }
 
     function endDuelEarly() {
@@ -8013,7 +8088,7 @@
         const key = e.key;
         ['L', 'R'].forEach(function (k) {
             const pos = DUEL_KEYS[k].indexOf(key);
-            if (pos >= 0 && pos < duel.current.order.length) { e.preventDefault(); duelAnswer(k, pos); }
+            if (pos >= 0 && pos < duel.current.orders[k].length) { e.preventDefault(); duelAnswer(k, pos); }
         });
     });
 </script>
