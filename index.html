@@ -708,7 +708,7 @@
         </div>
     </div>
     <div class="grid-container" id="studentGrid"></div>
-    <div class="app-footer">宗門啟示錄 Steven 加強版 v10.5 · 2026-11-04　｜　原版：chunsheng612／GameWuxia（經作者同意改作與公開）　｜　寶箱圖：DustDFG（CC-BY 4.0）</div>
+    <div class="app-footer">宗門啟示錄 Steven 加強版 v10.7 · 2026-11-21　｜　原版：chunsheng612／GameWuxia（經作者同意改作與公開）　｜　寶箱圖：DustDFG（CC-BY 4.0）</div>
 </div>
 
 <!-- 戰鬥模態框 -->
@@ -1014,7 +1014,7 @@
             </select>
         </label>
         <p id="duel-hint" class="grant-hint"></p>
-        <p class="set-hint">個人對戰各 150 血、門派對戰各 240 血（每派至少輪 6 人次），答對就打對方；兩邊都答對，比較快的打。題目出來先看 3 秒才能作答。連續答對 3 題蓄滿「必殺」，下一次打中對方傷害 ×2，放完重新累積。每場隨機一種地形（森林／洞窟／火山／遺跡／冰峰），主劍跟地形搭配（青木／銳金／炎陽／晨曦／冰晶）的人傷害 +20%。看得懂的數學題，數字每次都會換。戰力比較高的一方傷害最多 +30%，戰力比較低的一方打贏是「以弱勝強」，獎勵加倍、聲望 +1。對戰一律用自己最強的裝備算戰力，脫裝備沒有用。左右兩邊的選項順序不一樣。對手先答錯、你後答對是「看準反擊」，傷害 +50%。連續 3 題開放作答後不到 1 秒就答錯，直接判輸、沒有獎勵。</p>
+        <p class="set-hint">個人對戰各 250 血、門派對戰各 240 血；保底：個人至少打到第 5 題、門派至少第 6 題才會被打倒（之前最多打到剩 1 血），答對就打對方；兩邊都答對，比較快的打。題目出來先看 3 秒才能作答。連續答對 3 題蓄滿「必殺」，下一次打中對方傷害 ×2，放完重新累積。每場隨機一種地形（森林／洞窟／火山／遺跡／冰峰），主劍跟地形搭配（青木／銳金／炎陽／晨曦／冰晶）的人傷害 +20%。看得懂的數學題，數字每次都會換。戰力比較高的一方傷害最多 +30%，戰力比較低的一方打贏是「以弱勝強」，獎勵加倍、聲望 +1。對戰一律用自己最強的裝備算戰力，脫裝備沒有用。左右兩邊的選項順序不一樣。對手先答錯、你後答對是「看準反擊」，傷害 +50%。連續 3 題開放作答後不到 1 秒就答錯，直接判輸、沒有獎勵。一場打完全對或只錯 1～2 題（沒答算錯），獎勵 ×3（贏輸都算，門派算整派，不跟以弱勝強疊加）。</p>
         <div class="grant-actions">
             <button class="pixel-btn" onclick="closeDuelSetup()">取消</button>
             <button class="pixel-btn success" onclick="startDuel()">⚔️ 開戰</button>
@@ -7323,8 +7323,11 @@
     }
 
     // ══ 答題對戰 ══
-    // v10：血量加厚。門派 240：就算一方全勝＋戰力加成 +30%＋必殺，也要第 6 題才倒（每派至少輪 6 人次）
-    const DUEL_HP = { solo: 150, sect: 240 };
+    // v10：血量加厚。v10.7（Steven 11/21）：個人 150 → 250，一般約 8 題分勝負
+    const DUEL_HP = { solo: 250, sect: 240 };
+    // v10.7 保底：第幾題以前不會被打倒（最多打到剩 1 血）。加成全疊（戰力＋地形＋反擊＋必殺）也打不穿
+    // 個人至少答 5 題、門派至少輪 6 人次
+    const DUEL_MIN_ROUND = { solo: 5, sect: 6 };
     const DUEL_BASE_DMG = 30;
     // v10：連續答對 3 題蓄滿必殺，下一次打中對方傷害 ×2，放完歸零
     const DUEL_COMBO_NEED = 3;
@@ -7350,6 +7353,9 @@
     // v10.5：開放作答後這麼快就答錯，連續這麼多題直接判輸（防亂猜）
     const DUEL_RUSH_MS = 1000;
     const DUEL_RUSH_LIMIT = 3;
+    // v10.6：一場打完錯（含沒答）這麼多題以內，獎勵變這麼多倍
+    const DUEL_ACCURATE_WRONG_MAX = 2;
+    const DUEL_ACCURATE_MULT = 3;
     function duelTerrainMatch(t, rep) { return !!(t && rep && equippedSwords(duelGearView(rep))[0] === t.sword); }
     function duelTerrainLabel(t) { return t ? t.icon + ' ' + t.name + '（主劍是' + ITEMS[t.sword].name + '的人傷害 +' + Math.round(DUEL_TERRAIN_BONUS * 100) + '%）' : ''; }
     const DUEL_KEYS = { L: ['1', '2', '3', '4'], R: ['7', '8', '9', '0'] };
@@ -7661,9 +7667,11 @@
             + (duel.terrain ? '｜地形 ' + duel.terrain.icon + duel.terrain.name : '');
         document.getElementById('duel-question').textContent = q.text;
         document.getElementById('duel-result').textContent = '';
+        document.getElementById('duel-result').style.fontSize = '';
         document.getElementById('duel-next-btn').style.display = 'none';
         document.getElementById('duel-pause-btn').innerText = '⏸ 暫停';
         ['L', 'R'].forEach(function (k) { renderDuelSide(duel.sides[k]); renderDuelOptions(k); });
+        if (!duel.qFit) duelFitQuestion(); // 要在選項畫好之後量（選項多高會影響題目區有多少空間）
         duelFitFigures();
         clearInterval(duel.timerId);
         duel.timerId = setInterval(duelTick, 100);
@@ -7769,6 +7777,7 @@
         }).join('');
         if (!res.winner) {
             resultEl.textContent = (res.reason === 'tie' ? '兩邊同時答對，平手！' : '兩邊都沒答對，沒有人受傷。') + '\n' + ansText + rushWarn;
+            duelFitResult();
             ['L', 'R'].forEach(function (k) { renderDuelSide(duel.sides[k]); });
             playSfx(sfxAttack);
             duelAfterRound();
@@ -7784,11 +7793,14 @@
         const dmg = special ? baseDmg * DUEL_SPECIAL_MULT : baseDmg;
         const spName = special ? duelSpecialName(att.rep) : '';
         if (special) { att.combo = 0; duelNoteSpecial(att.rep); }
-        def.hp = Math.max(0, def.hp - dmg);
+        // v10.7 保底：還沒到規定題數，這一擊最多打到剩 1 血
+        const held = def.hp - dmg <= 0 && duel.round < DUEL_MIN_ROUND[duel.mode];
+        def.hp = held ? 1 : Math.max(0, def.hp - dmg);
         // 最後一擊：勝負已定，之後按「結束對戰」會直接結算，不會變成「不發獎勵」
         if (def.hp <= 0) { duel.phase = 'finishing'; duel.winKey = att.key; }
         const extras = [d.bonus > 0 ? '戰力壓制 +' + Math.round(d.bonus * 100) + '%' : '', terrainHit ? duel.terrain.icon + '地形加成+' + Math.round(DUEL_TERRAIN_BONUS * 100) + '%' : '', res.counter ? '🎯看準反擊+' + Math.round(DUEL_COUNTER_BONUS * 100) + '%' : ''].filter(Boolean);
-        resultEl.textContent = nameOf(res.winner) + (res.reason === 'faster' ? ' 快了 ' + (res.diffMs / 1000).toFixed(1) + ' 秒，' : ' 答對，') + (special ? '使出必殺「' + spName + '」！' : '') + '造成 ' + dmg + ' 傷害' + (extras.length ? '（' + extras.join('、') + '）' : '') + '\n' + ansText + rushWarn;
+        resultEl.textContent = nameOf(res.winner) + (res.reason === 'faster' ? ' 快了 ' + (res.diffMs / 1000).toFixed(1) + ' 秒，' : ' 答對，') + (special ? '使出必殺「' + spName + '」！' : '') + '造成 ' + dmg + ' 傷害' + (extras.length ? '（' + extras.join('、') + '）' : '') + (held ? '，' + def.name + ' 勉強撐住（剩 1 血）' : '') + '\n' + ansText + rushWarn;
+        duelFitResult();
         renderDuelSide(att);
         const hitMs = duelStrikeAnim(res.winner, dmg, special ? spName : '');
         const thisDuel = duel;
@@ -7808,6 +7820,7 @@
         ['L', 'R'].forEach(function (k) { renderDuelSide(duel.sides[k]); });
         const who = out.map(function (k) { return duel.sides[k].name; }).join('、');
         document.getElementById('duel-result').textContent = '🚫 ' + who + ' 連續 ' + DUEL_RUSH_LIMIT + ' 題不到 1 秒就答錯，判定用猜的，直接判輸！\n' + ansText;
+        duelFitResult();
         playSfx(sfxAttack);
         const thisDuel = duel;
         setTimeout(function () { if (duel === thisDuel && duel.phase === 'finishing') finishDuel(duel.winKey); }, 2500);
@@ -7910,7 +7923,105 @@
         });
         stage.style.setProperty('--fig-scale', Math.max(0.35, Math.min(1, scale)).toFixed(3));
     }
-    window.addEventListener('resize', function () { if (duel && document.getElementById('duel-modal').style.display === 'flex') duelFitFigures(); });
+    window.addEventListener('resize', function () {
+        if (!duel || document.getElementById('duel-modal').style.display !== 'flex') return;
+        if (duel.phase !== 'end') duelFitQuestion();
+        duelFitFigures();
+    });
+
+    // v10.7（Steven 11/21）：題目框大小固定，用這場範圍裡「最長的題目」當標準定字級和高度，
+    // 每題一樣大、不會跳動，也不用上下捲。最長的放不下就整場一起縮字
+    const DUEL_Q_FONT_MAX = 32, DUEL_Q_FONT_MIN = 14;
+    function duelFitQuestion() {
+        if (!duel) return;
+        const box = document.getElementById('duel-question');
+        // 窄螢幕（手機）版面本來就擠，維持原本的做法（題目太長可以捲）
+        if (window.matchMedia('(max-width: 760px)').matches) { duelFreeQuestion(); duel.qFit = true; return; }
+        const center = document.getElementById('duel-center');
+        const result = document.getElementById('duel-result');
+        const timer = document.getElementById('duel-timer');
+        let longest = '', longOpt = '';
+        let byMax = null, byTotal = null; // 選項最長的那題、選項加起來最長的那題（答案區最高的候選）
+        const maxLen = function (q) { return Math.max.apply(null, q.options.map(function (o) { return o.length; })); };
+        const total = function (q) { return q.options.join('').length + q.options.length * 100; }; // 四個選項的比兩個高
+        duel.pool.forEach(function (id) {
+            const q = questions.find(function (x) { return x.id === id; });
+            if (!q) return;
+            if (q.text.length > longest.length) longest = q.text;
+            q.options.forEach(function (o) { if (o.length > longOpt.length) longOpt = o; });
+            if (!byMax || maxLen(q) > maxLen(byMax)) byMax = q;
+            if (!byTotal || total(q) > total(byTotal)) byTotal = q;
+        });
+        // 數學題換數字可能多一兩位數，有數字的才留一點餘裕
+        if (/\d/.test(longest)) longest += '000';
+        // 結果區預留常見的長度（誰答對＋傷害＋加成、正確答案，約 3 行）；更長的那一題由 duelFitResult() 縮結果的字，題目框不動
+        const L = duel.sides.L.name, R = duel.sides.R.name;
+        const longName = L.length >= R.length ? L : R;
+        const shownResult = result.textContent, shownTimer = timer.textContent, shown = box.textContent;
+        result.style.fontSize = '';
+        result.textContent = longName + ' 快了 9.9 秒，造成 99 傷害（戰力壓制 +30%）\n正確答案：' + longOpt.slice(0, 14);
+        if (!timer.textContent) timer.textContent = '20';
+        // 答案區用題庫裡「選項最長」「選項最多最長」的真實題目各量一次，取題目區比較矮的那個
+        // （選項換行會讓上面的題目區變矮）。量完放回原本的按鈕
+        const saved = ['L', 'R'].map(function (k) {
+            const ob = document.getElementById('duel-opts-' + k);
+            const keep = Array.prototype.slice.call(ob.childNodes);
+            keep.forEach(function (n) { ob.removeChild(n); });
+            return { ob: ob, keep: keep };
+        });
+        const fill = function (q) {
+            saved.forEach(function (x) {
+                x.ob.innerHTML = '';
+                q.options.forEach(function (o) {
+                    const b = document.createElement('button');
+                    b.className = 'duel-opt';
+                    b.innerHTML = '<span class="duel-letter">A</span><span></span><span class="duel-key">1</span>';
+                    b.children[1].textContent = o;
+                    x.ob.appendChild(b);
+                });
+            });
+            return center.clientHeight;
+        };
+        const centerH = Math.min(fill(byMax || duel.current.q), fill(byTotal || duel.current.q));
+        const gap = parseFloat(getComputedStyle(center).rowGap) || 0;
+        const others = document.getElementById('duel-round').offsetHeight + timer.offsetHeight + result.offsetHeight + gap * 3 + 4;
+        result.textContent = shownResult; timer.textContent = shownTimer;
+        saved.forEach(function (x) { x.ob.innerHTML = ''; x.keep.forEach(function (n) { x.ob.appendChild(n); }); });
+        const room = Math.max(60, centerH - others);
+        box.style.height = 'auto';
+        box.style.flex = 'none'; // 固定高度，不讓下面的結果文字把題目框擠扁
+        box.style.overflowY = 'hidden';
+        box.style.fontSize = '';
+        box.textContent = longest;
+        // 不超過原本依螢幕算的字級
+        let font = Math.min(DUEL_Q_FONT_MAX, parseFloat(getComputedStyle(box).fontSize));
+        while (font > DUEL_Q_FONT_MIN) {
+            box.style.fontSize = font + 'px';
+            if (box.offsetHeight <= room) break;
+            font -= 1;
+        }
+        box.style.fontSize = font + 'px';
+        box.style.height = Math.min(room, box.offsetHeight) + 'px';
+        box.style.overflowY = box.scrollHeight > box.clientHeight + 1 ? 'auto' : 'hidden'; // 縮到最小還放不下才捲
+        box.textContent = shown;
+        duel.qFit = true;
+    }
+    // v10.7：結果文字太長（加成全中＋撐住＋長答案＋亂猜警告）時，只縮結果的字，不動題目框
+    function duelFitResult() {
+        const result = document.getElementById('duel-result');
+        const center = document.getElementById('duel-center');
+        result.style.fontSize = '';
+        let font = parseFloat(getComputedStyle(result).fontSize);
+        while (center.scrollHeight > center.clientHeight + 1 && font > 12) {
+            font -= 1;
+            result.style.fontSize = font + 'px';
+        }
+    }
+    function duelFreeQuestion() {
+        const box = document.getElementById('duel-question');
+        box.style.height = ''; box.style.fontSize = ''; box.style.overflowY = ''; box.style.flex = '';
+        document.getElementById('duel-result').style.fontSize = '';
+    }
 
     function toggleDuelPause() {
         if (!duel || duel.phase === 'end' || duel.phase === 'finishing') return;
@@ -7929,13 +8040,27 @@
         duelTick();
     }
 
+    // v10.6：這一邊整場錯幾題以內（門派把上場的人加起來）；對手亂猜判輸的場次題數太少，不算
+    function duelAccurate(d, key) {
+        if (d.forfeit || !d.tally) return false;
+        let a = 0, c = 0;
+        Object.keys(d.tally).forEach(function (id) {
+            const t = d.tally[id];
+            if (t.k === key) { a += t.a; c += t.c; }
+        });
+        return a > 0 && a - c <= DUEL_ACCURATE_WRONG_MAX;
+    }
+
     // 算獎勵（純計算，方便測試）：回傳每位弟子要加多少
     function duelRewardPlan(d, winKey) {
         const loseKey = winKey === 'L' ? 'R' : 'L';
         const win = d.sides[winKey], lose = d.sides[loseKey];
         // 對手是亂猜判輸的，不算以弱勝強（免得強的故意亂猜幫朋友拿加倍）
         const underdog = !d.forfeit && win.cp < lose.cp;
-        const mult = underdog ? 2 : 1;
+        const winAcc = duelAccurate(d, winKey), loseAcc = duelAccurate(d, loseKey);
+        // 精準 ×3 不跟以弱勝強 ×2 疊加，取高的（聲望照給）
+        const mult = winAcc ? DUEL_ACCURATE_MULT : (underdog ? 2 : 1);
+        const loseMult = loseAcc ? DUEL_ACCURATE_MULT : 1;
         const fm = fortuneIs('duel2') ? 2 : 1;
         const table = DUEL_REWARD[d.mode];
         const all = function (side) {
@@ -7953,8 +8078,8 @@
         };
         return {
             underdog: underdog,
-            win: { people: people(win), coins: boostCoins(table.win.coins * mult * fm), exp: boostExp(table.win.exp * mult * fm), rep: underdog ? REP_UNDERDOG : 0 },
-            lose: d.forfeit ? { people: people(lose), coins: 0, exp: 0 } : { people: people(lose), coins: boostCoins(table.lose.coins * fm), exp: boostExp(table.lose.exp * fm) },
+            win: { people: people(win), coins: boostCoins(table.win.coins * mult * fm), exp: boostExp(table.win.exp * mult * fm), rep: underdog ? REP_UNDERDOG : 0, accurate: winAcc },
+            lose: d.forfeit ? { people: people(lose), coins: 0, exp: 0 } : { people: people(lose), coins: boostCoins(table.lose.coins * loseMult * fm), exp: boostExp(table.lose.exp * loseMult * fm), accurate: loseAcc },
             forfeit: !!d.forfeit,
             capped: capped
         };
@@ -7974,6 +8099,7 @@
     function finishDuel(winKey) {
         if (!duel || duel.phase === 'end') return;
         duel.phase = 'end';
+        duelFreeQuestion(); // 結算畫面要用整個空間
         clearInterval(duel.timerId);
         clearTimeout(duel.autoId);
         if (!winKey) {
@@ -8023,6 +8149,7 @@
         if (leveledUp) { playSfx(sfxLevelUp); showLevelUpEffect(); } else playSfx(sfxGetItem);
 
         const each = duel.mode === 'sect' ? '每人 ' : '';
+        const accText = function (g) { return g.accurate ? '（答題精準 ×' + DUEL_ACCURATE_MULT + '）' : ''; };
         const fmt = function (g) { return [g.coins ? '妖丹 +' + g.coins : '', g.exp ? '修為 +' + g.exp : '', g.rep ? '聲望 +' + g.rep : ''].filter(Boolean).join('、'); };
         const center = document.getElementById('duel-question');
         center.innerHTML = '';
@@ -8034,7 +8161,7 @@
         if (plan.underdog) {
             const u = document.createElement('div');
             u.className = 'duel-underdog';
-            u.textContent = '以弱勝強！獎勵 ×2、聲望 +' + REP_UNDERDOG;
+            u.textContent = '以弱勝強！' + (plan.win.accurate ? '' : '獎勵 ×2、') + '聲望 +' + REP_UNDERDOG;
             end.appendChild(u);
         }
         const r = document.createElement('div');
@@ -8045,9 +8172,9 @@
             const line = function (side, g, tail) {
                 return side.name + ' ' + (g.people.length ? fmt(g) + tail : '今天的練功獎勵用完了');
             };
-            rewardText = line(win, plan.win, '') + '\n' + (plan.forfeit ? lose.name + ' 亂猜判輸，沒有獎勵' : line(lose, plan.lose, '（參加獎）'));
+            rewardText = line(win, plan.win, accText(plan.win)) + '\n' + (plan.forfeit ? lose.name + ' 亂猜判輸，沒有獎勵' : line(lose, plan.lose, '（參加獎）' + accText(plan.lose)));
         } else {
-            rewardText = win.name + ' ' + each + fmt(plan.win) + '\n' + lose.name + (plan.forfeit ? ' 亂猜判輸，沒有獎勵' : ' ' + each + fmt(plan.lose) + '（參加獎）');
+            rewardText = win.name + ' ' + each + fmt(plan.win) + accText(plan.win) + '\n' + lose.name + (plan.forfeit ? ' 亂猜判輸，沒有獎勵' : ' ' + each + fmt(plan.lose) + '（參加獎）' + accText(plan.lose));
             if (plan.capped.length) rewardText += '\n今天練功獎勵已用完：' + plan.capped.map(function (s) { return s.name; }).join('、');
         }
         if (!duel.teacher) rewardText += '\n（老師沒登入：每人每天前 ' + DUEL_FREE_DAILY + ' 場有獎勵）';
@@ -8075,6 +8202,7 @@
     function closeDuel() {
         if (duel) { clearInterval(duel.timerId); clearTimeout(duel.autoId); }
         duel = null;
+        duelFreeQuestion();
         document.getElementById('duel-modal').style.display = 'none';
         document.getElementById('duel-quit-btn').onclick = endDuelEarly;
         playBGM('main');
